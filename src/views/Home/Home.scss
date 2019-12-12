@@ -1,0 +1,17 @@
+@import "../../variables.scss";
+
+div#homeView
+{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 128px;
+    padding-top: 256px;
+}
+
+h1
+{
+    font-size: 128px;
+    margin: 0;
+    margin-bottom: 16px;
+}

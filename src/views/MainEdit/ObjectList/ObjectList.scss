@@ -1,0 +1,9 @@
+@import "../../../variables.scss";
+
+.objectList
+{
+    border: 1px solid $controlBorderColor;
+    background-color: rgba(0,0,0,0.1);
+    padding: 0 4px;
+    box-sizing: border-box;
+}

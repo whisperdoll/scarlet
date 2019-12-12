@@ -1,0 +1,50 @@
+@import "variables.scss";
+
+*
+{
+    color: $controlForeground;
+}
+
+button
+{
+    background-color: $controlBackground;
+    color: $controlForeground;
+    border: 1px solid $controlBorderColor;
+    padding: 8px;
+    margin: 4px 0;
+    cursor: pointer;
+
+    &:hover
+    {
+        background-color: $controlHoverBackground;
+    }
+}
+
+input
+{
+    background-color: $controlBackground;
+    color: $controlForeground;
+    border: 1px solid $controlBorderColor;
+    padding: 8px;
+    margin: 4px 0;
+
+    &:hover
+    {
+        background-color: $controlHoverBackground;
+    }
+}
+
+select
+{
+    background-color: $controlBackground;
+    color: $controlForeground;
+    border: 1px solid $controlBorderColor;
+    padding: 4px;
+    margin: 4px 0;
+    cursor: pointer;
+
+    &:hover
+    {
+        background-color: $controlHoverBackground;
+    }
+}

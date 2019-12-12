@@ -1,0 +1,31 @@
+.children > *
+{
+    padding-left: 24px;
+}
+
+.objectItem
+{
+    user-select: none;
+    cursor: pointer;
+    font-size: 18px;
+
+    &:hover
+    {
+        background-color: rgba(255,255,255,0.1);
+    }
+}
+
+.folderName
+{
+
+    &::before
+    {
+        font-size: 12px;
+        content: '▼ '; 
+    }
+
+    &.collapsed::before
+    {
+        content: '▶ ';
+    }
+}
