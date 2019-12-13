@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
-import './PlayerEdit.scss';
-import { PlayerModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
+import './BulletEdit.scss';
+import { BulletModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
 import ObjectCache from '../../../utils/objectcache';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
 import SpriteEdit from '../SpriteEdit/SpriteEdit';
@@ -9,15 +9,15 @@ const { dialog } = require("electron").remote;
 interface Props
 {
     project: ProjectModel;
-    player: PlayerModel;
-    onUpdate: (player: PlayerModel) => any;
+    bullet: BulletModel;
+    onUpdate: (bullet: BulletModel) => any;
 }
 
 interface State
 {
 }
 
-export default class PlayerEdit extends React.PureComponent<Props, State>
+export default class BulletEdit extends React.PureComponent<Props, State>
 {
     constructor(props: Props)
     {
@@ -26,18 +26,17 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleSpriteChange = this.handleSpriteChange.bind(this);
         this.handleScriptChange = this.handleScriptChange.bind(this);
-        this.handleBulletChange = this.handleBulletChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectCache.getObjectWithId<SpriteModel>(this.props.player.spriteId) || null;
+        return ObjectCache.getObjectWithId<SpriteModel>(this.props.bullet.spriteId) || null;
     }
 
     handleNameChange(e: ChangeEvent<HTMLInputElement>)
     {
         this.props.onUpdate({
-            ...this.props.player,
+            ...this.props.bullet,
             name: e.currentTarget.value
         });
     }
@@ -45,7 +44,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
     handleSpriteChange(spriteId: number)
     {
         this.props.onUpdate({
-            ...this.props.player,
+            ...this.props.bullet,
             spriteId: spriteId
         });
     }
@@ -53,35 +52,27 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
     handleScriptChange(scriptId: number)
     {
         this.props.onUpdate({
-            ...this.props.player,
+            ...this.props.bullet,
             scriptId: scriptId
-        });
-    }
-
-    handleBulletChange(bulletId: number)
-    {
-        this.props.onUpdate({
-            ...this.props.player,
-            bulletId: bulletId
         });
     }
 
     render()
     {
         return (
-            <div className="playerEdit">
+            <div className="bulletEdit">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.player.name}
+                        value={this.props.bullet.name}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.player.spriteId}
+                        currentObjectId={this.props.bullet.spriteId}
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
@@ -89,18 +80,9 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                     {this.sprite && <img className="sprite" src={this.sprite.path} />}
                 </div>
                 <div className="row">
-                    <span className="label">Bullet:</span>
-                    <ObjectSelect
-                        currentObjectId={this.props.player.bulletId}
-                        objectType={"bullet"}
-                        onChange={this.handleBulletChange}
-                        project={this.props.project}
-                    />
-                </div>
-                <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.player.scriptId}
+                        currentObjectId={this.props.bullet.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}

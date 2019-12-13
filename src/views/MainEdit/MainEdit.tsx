@@ -1,11 +1,14 @@
 import React from 'react';
 import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel } from '../../utils/datatypes';
+import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel } from '../../utils/datatypes';
 import ObjectCache from '../../utils/objectcache';
 import { obj_copy, array_copy, array_ensureOne } from '../../utils/utils';
 import SpriteEdit from './SpriteEdit/SpriteEdit';
 import PlayerEdit from './PlayerEdit/PlayerEdit';
+import ScriptEdit from './ScriptEdit/ScriptEdit';
+import EnemyEdit from './EnemyEdit/EnemyEdit';
+import BulletEdit from './BulletEdit/BulletEdit';
 
 interface Props
 {
@@ -78,6 +81,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
     render()
     {
+        // ADDTYPE
         return (
             <div className="mainEditView">
                 <div className="error">{this.state.errors.join(", ")}</div>
@@ -106,6 +110,33 @@ export default class MainEditView extends React.PureComponent<Props, State>
                                             player={this.state.currentlyEditing as PlayerModel}
                                             project={this.props.project}
                                         />
+                                    );
+                                case "script":
+                                    return (
+                                        <ScriptEdit
+                                            onUpdate={this.handleObjectUpdate}
+                                            script={this.state.currentlyEditing as ScriptModel}
+                                        />
+                                    );
+                                case "enemy":
+                                    return (
+                                        <EnemyEdit
+                                            onUpdate={this.handleObjectUpdate}
+                                            enemy={this.state.currentlyEditing as EnemyModel}
+                                            project={this.props.project}
+                                        />
+                                    );
+                                case "bullet":
+                                    return (
+                                        <BulletEdit
+                                            onUpdate={this.handleObjectUpdate}
+                                            bullet={this.state.currentlyEditing as BulletModel}
+                                            project={this.props.project}
+                                        />
+                                    );
+                                case "boss":
+                                    return (
+                                        <div>boss</div>
                                     );
                             }
                         })()}

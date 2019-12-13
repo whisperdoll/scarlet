@@ -5,6 +5,7 @@ import { ObjectModel, ProjectModel, ObjectType } from '../../../utils/datatypes'
 import Point from '../../../utils/point';
 import ContextMenu from '../../../components/ContextMenu/ContextMenu';
 import ContextMenuItem from '../../../components/ContextMenu/ContextMenuItem';
+import ObjectCache from '../../../utils/objectcache';
 
 interface Props
 {
@@ -70,13 +71,20 @@ export default class ObjectList extends React.PureComponent<Props, State>
             },
             {
                 id: -5,
+                name: "Bullets",
+                type: "folder",
+                hint: "bullet",
+                children: []
+            },
+            {
+                id: -6,
                 name: "Sprites",
                 type: "folder",
                 hint: "sprite",
                 children: []
             },
             {
-                id: -6,
+                id: -7,
                 name: "Scripts",
                 type: "folder",
                 hint: "script",
@@ -131,13 +139,18 @@ export default class ObjectList extends React.PureComponent<Props, State>
         const objs = this.rootObjects;
 
         const c = (type: ObjectType) => objs.find(o => o.hint === type)?.children as ObjectModel[];
-        const p = (type: ObjectType, collection: ObjectModel[]) =>
+        const p = (type: ObjectType) =>
         {
-            c(type).push(...collection);
+            c(type).push(...ObjectCache.collectionFromType(type, this.props.project).collection);
         };
 
-        p("sprite", this.props.project.sprites);
-        p("player", this.props.project.players);
+        // ADDTYPE
+        p("sprite");
+        p("player");
+        p("script");
+        p("enemy");
+        p("bullet");
+        p("boss");
 
         const objEls = objs.map((o) =>
         {

@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel } from "./datatypes";
 import { array_copy, obj_copy, array_ensureOne, array_remove } from "./utils";
 
 export default class ObjectCache
@@ -37,8 +37,13 @@ export default class ObjectCache
             this.idCounter += collection.length;
         };
 
+        // ADDTYPE
         f("sprite");
         f("player");
+        f("script");
+        f("enemy");
+        f("bullet");
+        f("boss");
 
         return p;
     }
@@ -70,6 +75,7 @@ export default class ObjectCache
         let ret: ObjectModel;
         const p = obj_copy(project) as ProjectModel;
 
+        // ADDTYPE
         switch (type)
         {
             case "sprite":
@@ -84,10 +90,46 @@ export default class ObjectCache
                 ret = {
                     id: id,
                     name: "New Player " + this.typeArray(type).length,
-                    script: "",
+                    scriptId: -1,
                     spriteId: -1,
+                    bulletId: -1,
                     type: "player"
                 } as PlayerModel;
+                break;
+            case "script":
+                ret = {
+                    id: id,
+                    name: "New Script " + this.typeArray(type).length,
+                    path: "",
+                    type: "script"
+                } as ScriptModel;
+                break;
+            case "enemy":
+                ret = {
+                    id: id,
+                    name: "New Enemy " + this.typeArray(type).length,
+                    bulletId: -1,
+                    scriptId: -1,
+                    spriteId: -1,
+                    type: "enemy"
+                } as EnemyModel;
+                break;
+            case "bullet":
+                ret = {
+                    id: id,
+                    name: "New Bullet " + this.typeArray(type).length,
+                    scriptId: -1,
+                    spriteId: -1,
+                    type: "bullet"
+                } as BulletModel;
+                break;
+            case "boss":
+                ret = {
+                    id: id,
+                    name: "New Boss " + this.typeArray(type).length,
+                    forms: [],
+                    type: "boss"
+                } as BossModel;
                 break;
             default:
                 this.idCounter--;
@@ -129,12 +171,21 @@ export default class ObjectCache
     public static collectionFromType(type: ObjectType, project: ProjectModel): { key: string, collection: ObjectModel[] }
     {
         // key should be the name of the array so we can do like project[key] //
+        // ADDTYPE
         switch (type)
         {
             case "sprite":
                 return { key: "sprites", collection: project.sprites };
-            case "player":
-                return { key: "players", collection: project.players }
+                case "player":
+                    return { key: "players", collection: project.players }
+                case "script":
+                    return { key: "scripts", collection: project.scripts }
+                case "enemy":
+                    return { key: "enemies", collection: project.enemies }
+                case "bullet":
+                    return { key: "bullets", collection: project.bullets }
+                case "boss":
+                    return { key: "bosses", collection: project.bosses }
             default:
                 throw "bad type";
         }
