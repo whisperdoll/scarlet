@@ -3,6 +3,7 @@ import './StageComposer.scss';
 import { StageModel, ProjectModel, SpriteModel } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
+import EnemyList from './EnemyList/EnemyList';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -16,6 +17,8 @@ interface Props
 interface State
 {
     timeSeconds: number;
+    selectedEnemyIndex: number;
+    selectedNewEnemyId: number;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -25,7 +28,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
         super(props);
         
         this.state = {
-            timeSeconds: 0
+            timeSeconds: 0,
+            selectedEnemyIndex: -1,
+            selectedNewEnemyId: -1
         };
 
         this.handleBack = this.handleBack.bind(this);
@@ -33,6 +38,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handlePlayerChange = this.handlePlayerChange.bind(this);
         this.handleBossChange = this.handleBossChange.bind(this);
         this.handleTimelineChange = this.handleTimelineChange.bind(this);
+        this.handleAddEnemy = this.handleAddEnemy.bind(this);
+        this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
+        this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
+        this.handleAddEnemy = this.handleAddEnemy.bind(this);
     }
 
     handleBack()
@@ -91,6 +100,52 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handleAddEnemy()
+    {
+        if (this.state.selectedNewEnemyId >= 0)
+        {
+            this.props.onUpdate({
+                ...this.props.stage,
+                data: {
+                    ...this.props.stage.data,
+                    enemies: this.props.stage.data.enemies.concat([{
+                        id: this.state.selectedNewEnemyId,
+                        lifetime: -1,
+                        position: {
+                            x: 0,
+                            y: 0
+                        },
+                        spawnAmount: 1,
+                        spawnRate: 0,
+                        spawnTime: this.state.timeSeconds
+                    }])
+                }
+            });
+        }
+    }
+
+    handleSelectEnemy(index: number)
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                selectedEnemyIndex: index
+            };
+        });
+    }
+
+    handleSelectNewEnemy(newEnemyId: number)
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                selectedNewEnemyId: newEnemyId
+            };
+        });
+    }
+
     render()
     {
         return (
@@ -133,10 +188,24 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         </div>
                         <div className="row">
                             <span>Enemies:</span>
+                            <ObjectSelect
+                                currentObjectId={this.state.selectedNewEnemyId}
+                                objectType="enemy"
+                                onChange={this.handleSelectNewEnemy}
+                                project={this.props.project}
+                            />
+                            <button
+                                className="addEnemy"
+                                onClick={this.handleAddEnemy}
+                            >
+                                + Add
+                            </button>
                         </div>
-                        <div className="enemyList">
-                            enemies here lol
-                        </div>
+                        <EnemyList
+                            onSelectEnemy={this.handleSelectEnemy}
+                            project={this.props.project}
+                            stage={this.props.stage}
+                        />
                     </div>
                     {/* stage */}
                     <div className="stagePreview">
