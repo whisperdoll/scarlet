@@ -1,7 +1,7 @@
 import React from 'react';
 import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel } from '../../utils/datatypes';
+import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 import { obj_copy, array_copy, array_ensureOne } from '../../utils/utils';
 import SpriteEdit from './SpriteEdit/SpriteEdit';
@@ -9,6 +9,7 @@ import PlayerEdit from './PlayerEdit/PlayerEdit';
 import ScriptEdit from './ScriptEdit/ScriptEdit';
 import EnemyEdit from './EnemyEdit/EnemyEdit';
 import BulletEdit from './BulletEdit/BulletEdit';
+import BossEdit from './BossEdit/BossEdit';
 
 interface Props
 {
@@ -136,7 +137,11 @@ export default class MainEditView extends React.PureComponent<Props, State>
                                     );
                                 case "boss":
                                     return (
-                                        <div>boss</div>
+                                        <BossEdit
+                                            onUpdate={this.handleObjectUpdate}
+                                            boss={this.state.currentlyEditing as BossModel}
+                                            project={this.props.project}
+                                        />
                                     );
                             }
                         })()}

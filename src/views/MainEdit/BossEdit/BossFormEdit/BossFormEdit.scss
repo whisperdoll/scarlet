@@ -1,0 +1,26 @@
+@import "../../../../variables.scss";
+
+.bossFormEdit
+{
+    & > *
+    {
+        margin: 4px 0;
+    }
+
+    .row
+    {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .sprite
+    {
+        image-rendering: pixelated;
+        height: 32px;
+    }
+
+    border: 1px solid $controlBorderColor;
+    background-color: rgba(255,255,255,0.05);
+    padding: 8px 12px;
+}

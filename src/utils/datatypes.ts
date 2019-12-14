@@ -65,13 +65,16 @@ export interface BulletModel extends ObjectModel
     damage: number;
 };
 
+export interface BossFormModel
+{
+    spriteId: number;
+    scriptId: number;
+    bulletId: number;
+    hp: number;
+};
+
 export interface BossModel extends ObjectModel
 {
     type: "boss";
-    forms: {
-        spriteId: number,
-        scriptId: number,
-        bulletId: number,
-        hp: number
-    }[];
-}
+    forms: BossFormModel[]
+};
