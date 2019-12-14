@@ -1,9 +1,11 @@
 import React, { ChangeEvent } from 'react';
 import './StageComposer.scss';
-import { StageModel, ProjectModel, SpriteModel } from '../../../../utils/datatypes';
+import { StageModel, ProjectModel, SpriteModel, StageEnemyData } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
+import PropertyEdit from './PropertyEdit/PropertyEdit';
+import { array_copy } from '../../../../utils/utils';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -42,6 +44,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
         this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
+        this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
     }
 
     handleBack()
@@ -147,6 +150,20 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handleUpdateEnemy(enemy: StageEnemyData, index: number)
+    {
+        const enemies = array_copy(this.props.stage.data.enemies);
+        enemies[index] = enemy;
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            data: {
+                ...this.props.stage.data,
+                enemies: enemies
+            }
+        });
+    }
+
     render()
     {
         return (
@@ -213,9 +230,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         stage here lol
                     </div>
                     {/* properties */}
-                    <div className="properties">
-                        properties here lol
-                    </div>
+                    <PropertyEdit
+                        enemyIndex={this.state.selectedEnemyIndex}
+                        handleUpdate={this.handleUpdateEnemy}
+                        project={this.props.project}
+                        stage={this.props.stage}
+                    />
                 </div>
                 {/* timeline */}
                 <div className="row timeline">

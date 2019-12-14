@@ -83,7 +83,19 @@ export interface StageModel extends ObjectModel
 {
     type: "stage";
     data: StageData;
-}
+};
+
+export interface StageData
+{
+    size: {
+        x: number,
+        y: number
+    };
+    lengthSeconds: number;
+    playerId: number;
+    bossId: number;
+    enemies: StageEnemyData[]
+};
 
 export interface StageEnemyData
 {
@@ -93,16 +105,8 @@ export interface StageEnemyData
         x: number,
         y: number
     };
+    spawnTime: number;
     spawnRate: number;
     spawnAmount: number;
-    spawnTime: number;
     lifetime: number;
 };
-
-export interface StageData
-{
-    lengthSeconds: number;
-    playerId: number;
-    bossId: number;
-    enemies: StageEnemyData[]
-}

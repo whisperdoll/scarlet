@@ -83,7 +83,11 @@ export default class ObjectHelper
                         bossId: -1,
                         playerId: -1,
                         lengthSeconds: 60,
-                        enemies: []
+                        enemies: [],
+                        size: {
+                            x: 384,
+                            y: 448
+                        }
                     }
                 } as StageModel;
                 break;
