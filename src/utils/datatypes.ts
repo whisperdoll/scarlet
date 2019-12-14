@@ -88,6 +88,7 @@ export interface StageModel extends ObjectModel
 export interface StageEnemyData
 {
     id: number;
+    instanceName: string;
     position: {
         x: number,
         y: number

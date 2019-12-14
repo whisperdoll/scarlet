@@ -110,6 +110,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     ...this.props.stage.data,
                     enemies: this.props.stage.data.enemies.concat([{
                         id: this.state.selectedNewEnemyId,
+                        instanceName: "New Enemy " + this.props.stage.data.enemies.length.toString(),
                         lifetime: -1,
                         position: {
                             x: 0,

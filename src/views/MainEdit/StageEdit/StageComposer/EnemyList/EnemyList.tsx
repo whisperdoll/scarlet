@@ -48,7 +48,8 @@ export default class EnemyList extends React.PureComponent<Props, State>
                         key={i}
                         data-index={i.toString()}
                     >
-                        {"[" + i.toString() + "] " + ObjectHelper.getObjectWithId(enemy.id, this.props.project)?.name}
+                        {enemy.instanceName}
+                        <span className="enemyType">{" (" + ObjectHelper.getObjectWithId(enemy.id, this.props.project)?.name + ")"}</span>
                     </div>
                 ))}
             </div>
