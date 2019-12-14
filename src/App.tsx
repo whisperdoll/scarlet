@@ -7,7 +7,7 @@ import { ObjectModel, ProjectModel } from './utils/datatypes';
 import UserSettings from './utils/usersettings';
 import * as fs from "fs";
 import * as path from "path";
-import ObjectCache from './utils/objectcache';
+import ObjectHelper from './utils/ObjectHelper';
 const { remote } = require('electron');
 const { Menu, MenuItem, dialog } = remote;
 
@@ -168,7 +168,7 @@ export default class App extends React.PureComponent<Props, State>
                 return;
             }
 
-            project = ObjectCache.init(project);
+            project = ObjectHelper.init(project);
             this.projectFilename = paths[0];
             this.setState((state) =>
             {
@@ -205,7 +205,7 @@ export default class App extends React.PureComponent<Props, State>
             throw e;
         }
 
-        project = ObjectCache.init(project);
+        project = ObjectHelper.init(project);
         this.setState((state) =>
         {
             return {

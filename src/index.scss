@@ -137,3 +137,17 @@ body, html, #container, #root, .fullSize, .dialog-backdrop {
         font-style: italic;
     }
 }
+
+.label
+{
+    width: 64px;
+    display: inline-block;
+}
+
+.row
+{
+    & > *
+    {
+        margin-right: 8px;
+    }
+}

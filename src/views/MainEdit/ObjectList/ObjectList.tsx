@@ -1,11 +1,11 @@
 import React from 'react';
 import './ObjectList.scss';
 import ObjectItem from './ObjectItem/ObjectItem';
-import { ObjectModel, ProjectModel, ObjectType } from '../../../utils/datatypes';
+import { ObjectModel, ProjectModel, ObjectType, GameObjectTypes } from '../../../utils/datatypes';
 import Point from '../../../utils/point';
 import ContextMenu from '../../../components/ContextMenu/ContextMenu';
 import ContextMenuItem from '../../../components/ContextMenu/ContextMenuItem';
-import ObjectCache from '../../../utils/objectcache';
+import ObjectHelper from '../../../utils/ObjectHelper';
 
 interface Props
 {
@@ -138,19 +138,12 @@ export default class ObjectList extends React.PureComponent<Props, State>
     {
         const objs = this.rootObjects;
 
-        const c = (type: ObjectType) => objs.find(o => o.hint === type)?.children as ObjectModel[];
-        const p = (type: ObjectType) =>
+        // make folders //
+        GameObjectTypes.forEach((type) =>
         {
-            c(type).push(...ObjectCache.collectionFromType(type, this.props.project).collection);
-        };
-
-        // ADDTYPE
-        p("sprite");
-        p("player");
-        p("script");
-        p("enemy");
-        p("bullet");
-        p("boss");
+            const c = objs.find(o => o.hint === type)?.children as ObjectModel[];
+            c.push(...ObjectHelper.getObjectsWithType(type, this.props.project));
+        });
 
         const objEls = objs.map((o) =>
         {

@@ -2,7 +2,7 @@ import React from 'react';
 import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
 import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel } from '../../utils/datatypes';
-import ObjectCache from '../../utils/objectcache';
+import ObjectHelper from '../../utils/ObjectHelper';
 import { obj_copy, array_copy, array_ensureOne } from '../../utils/utils';
 import SpriteEdit from './SpriteEdit/SpriteEdit';
 import PlayerEdit from './PlayerEdit/PlayerEdit';
@@ -40,7 +40,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
     handleObjectCreate(type: ObjectType)
     {
-        const { obj, project } = ObjectCache.generate(type, this.props.project);
+        const { obj, project } = ObjectHelper.createAndAddObject(type, this.props.project);
 
         this.setState((state) =>
         {
@@ -55,7 +55,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
     handleObjectUpdate(obj: ObjectModel)
     {
-        const { errors, project } = ObjectCache.updateObject(obj, this.props.project, this.state.errors);
+        const { errors, project } = ObjectHelper.updateObject(obj, this.props.project, this.state.errors);
 
         this.props.onUpdate(project);
         this.setState((state) =>

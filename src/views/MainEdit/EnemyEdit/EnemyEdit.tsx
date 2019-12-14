@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './EnemyEdit.scss';
 import { EnemyModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
-import ObjectCache from '../../../utils/objectcache';
+import ObjectHelper from '../../../utils/ObjectHelper';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
 import SpriteEdit from '../SpriteEdit/SpriteEdit';
 const { dialog } = require("electron").remote;
@@ -27,11 +27,12 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         this.handleSpriteChange = this.handleSpriteChange.bind(this);
         this.handleScriptChange = this.handleScriptChange.bind(this);
         this.handleBulletChange = this.handleBulletChange.bind(this);
+        this.handleHpChange = this.handleHpChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectCache.getObjectWithId<SpriteModel>(this.props.enemy.spriteId) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.enemy.spriteId, this.props.project) || null;
     }
 
     handleNameChange(e: ChangeEvent<HTMLInputElement>)
@@ -66,6 +67,20 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         });
     }
 
+    handleHpChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseFloat(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = 5;
+        }
+
+        this.props.onUpdate({
+            ...this.props.enemy,
+            hp: val
+        });
+    }
+
     render()
     {
         return (
@@ -87,6 +102,15 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                         onChange={this.handleSpriteChange}
                     />
                     {this.sprite && <img className="sprite" src={this.sprite.path} />}
+                </div>
+                <div className="row">
+                    <span className="label">HP:</span>
+                    <input
+                        type="number"
+                        value={this.props.enemy.hp.toString()}
+                        onChange={this.handleHpChange}
+                        min={1}
+                    />
                 </div>
                 <div className="row">
                     <span className="label">Bullet:</span>

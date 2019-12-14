@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import { ObjectModel, ProjectModel, ObjectType } from '../../utils/datatypes';
-import ObjectCache from '../../utils/objectcache';
+import ObjectHelper from '../../utils/ObjectHelper';
 
 interface Props
 {
@@ -45,7 +45,7 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
                 value={this.props.currentObjectId.toString()}
             >
                 <option key={-1} value="-1">(None)</option>
-                {ObjectCache.collectionFromType(this.props.objectType, this.props.project).collection.map((obj) =>
+                {ObjectHelper.getObjectsWithType(this.props.objectType, this.props.project).map((obj) =>
                 {
                    return <option key={obj.id} value={obj.id.toString()}>{obj.name}</option> 
                 })}

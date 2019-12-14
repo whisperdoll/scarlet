@@ -80,15 +80,9 @@ export default class NewProjectView extends React.PureComponent<Props, State>
 
     handleCreate()
     {
-        // ADDTYPE
         let project: ProjectModel = {
             name: this.state.name,
-            sprites: [],
-            players: [],
-            scripts: [],
-            enemies: [],
-            bullets: [],
-            bosses: []
+            objects: []
         };
 
         this.props.onCreate(project, this.state.path);

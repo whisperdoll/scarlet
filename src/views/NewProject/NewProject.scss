@@ -19,24 +19,9 @@ div#newProjectView
         margin: 0;
         margin-bottom: 16px;
     }
-}
 
-.label
-{
-    width: 52px;
-    display: inline-block;
-}
-
-.row
-{
-    & > *
+    input
     {
-        margin-right: 8px;
+        width: 400px;
     }
-}
-
-input
-{
-    width: 400px;
-    margin: 0;
 }

@@ -1,18 +1,22 @@
-// ADDTYPE
 export interface ProjectModel
 {
     name: string;
-    sprites: SpriteModel[];
-    players: PlayerModel[];
-    scripts: ScriptModel[];
-    enemies: EnemyModel[];
-    bullets: BulletModel[];
-    bosses: BossModel[];
+    objects: ObjectModel[];
 };
 
 export type ErrorTypes = "Duplicate name" | "Empty name";
 
+// ADDTYPE //
 export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "sprite" | "script" | "bullet";
+export const GameObjectTypes: ObjectType[] = [
+    "player",
+    "stage",
+    "enemy",
+    "boss",
+    "sprite",
+    "script",
+    "bullet"
+];
 
 export interface ObjectModel
 {
@@ -49,6 +53,7 @@ export interface EnemyModel extends ObjectModel
     spriteId: number;
     scriptId: number;
     bulletId: number;
+    hp: number;
 };
 
 export interface BulletModel extends ObjectModel
@@ -56,6 +61,8 @@ export interface BulletModel extends ObjectModel
     type: "bullet";
     spriteId: number;
     scriptId: number;
+    fireRate: number;
+    damage: number;
 };
 
 export interface BossModel extends ObjectModel

@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './BulletEdit.scss';
 import { BulletModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
-import ObjectCache from '../../../utils/objectcache';
+import ObjectHelper from '../../../utils/ObjectHelper';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
 import SpriteEdit from '../SpriteEdit/SpriteEdit';
 const { dialog } = require("electron").remote;
@@ -26,11 +26,13 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleSpriteChange = this.handleSpriteChange.bind(this);
         this.handleScriptChange = this.handleScriptChange.bind(this);
+        this.handleFireRateChange = this.handleFireRateChange.bind(this);
+        this.handleDamageChange = this.handleDamageChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectCache.getObjectWithId<SpriteModel>(this.props.bullet.spriteId) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.bullet.spriteId, this.props.project) || null;
     }
 
     handleNameChange(e: ChangeEvent<HTMLInputElement>)
@@ -57,6 +59,34 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         });
     }
 
+    handleFireRateChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseFloat(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = 1;
+        }
+
+        this.props.onUpdate({
+            ...this.props.bullet,
+            fireRate: val
+        });
+    }
+
+    handleDamageChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseFloat(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = 1;
+        }
+
+        this.props.onUpdate({
+            ...this.props.bullet,
+            damage: val
+        });
+    }
+
     render()
     {
         return (
@@ -78,6 +108,24 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                         onChange={this.handleSpriteChange}
                     />
                     {this.sprite && <img className="sprite" src={this.sprite.path} />}
+                </div>
+                <div className="row">
+                    <span className="label">Fire rate:</span>
+                    <input
+                        type="number"
+                        value={this.props.bullet.fireRate}
+                        onChange={this.handleFireRateChange}
+                        min={0}
+                    />
+                    <span>bullets per second</span>
+                </div>
+                <div className="row">
+                    <span className="label">Damage:</span>
+                    <input
+                        type="number"
+                        value={this.props.bullet.damage}
+                        onChange={this.handleDamageChange}
+                    />
                 </div>
                 <div className="row">
                     <span className="label">Script:</span>

@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './PlayerEdit.scss';
 import { PlayerModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
-import ObjectCache from '../../../utils/objectcache';
+import ObjectHelper from '../../../utils/ObjectHelper';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
 import SpriteEdit from '../SpriteEdit/SpriteEdit';
 const { dialog } = require("electron").remote;
@@ -31,7 +31,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectCache.getObjectWithId<SpriteModel>(this.props.player.spriteId) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.player.spriteId, this.props.project) || null;
     }
 
     handleNameChange(e: ChangeEvent<HTMLInputElement>)

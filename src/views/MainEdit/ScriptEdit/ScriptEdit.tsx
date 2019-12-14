@@ -48,6 +48,16 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
                     };
                 });
             }
+            else
+            {
+                this.setState((state) =>
+                {
+                    return {
+                        ...state,
+                        code: "error reading path"
+                    };
+                });
+            }
         });
     }
 
