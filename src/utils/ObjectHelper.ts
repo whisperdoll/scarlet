@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, GameObjectTypes } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, GameObjectTypes, StageModel } from "./datatypes";
 import { array_copy, obj_copy, array_ensureOne, array_remove } from "./utils";
 
 export default class ObjectHelper
@@ -73,6 +73,19 @@ export default class ObjectHelper
                     forms: [],
                     type: "boss"
                 } as BossModel;
+                break;
+            case "stage":
+                ret = {
+                    id: id,
+                    name: "New Stage " + this.getObjectsWithType(type, project).length,
+                    type: "stage",
+                    data: {
+                        bossId: -1,
+                        playerId: -1,
+                        lengthSeconds: 60,
+                        enemies: []
+                    }
+                } as StageModel;
                 break;
             default:
                 throw "fuck u";

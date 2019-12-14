@@ -1,0 +1,79 @@
+@import "../../../../variables.scss";
+
+.objectEdit > .stageComposer
+{
+    padding: 8px 16px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: $appBackground;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-sizing: border-box;
+
+    .row.header
+    {
+        margin-bottom: 16px;
+
+        h1
+        {
+            margin: 0;
+            font-size: 32px;
+            margin-left: 16px;
+        }
+    }
+
+    .row
+    {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .col
+    {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .edit
+    {
+        flex-grow: 1;
+        align-items: stretch;
+
+        & > *
+        {
+            flex-basis: 300px;
+        }
+
+        & > .stagePreview
+        {
+            flex-grow: 1;
+            border: 1px solid $controlBorderColor;
+            border-top: 0;
+            border-bottom: 0;
+        }
+    }
+
+    .timeline
+    {
+        padding: 16px 24px;
+        box-sizing: border-box;
+        margin: 0;
+
+        input
+        {
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+        }
+
+    }
+}

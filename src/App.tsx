@@ -83,6 +83,12 @@ export default class App extends React.PureComponent<Props, State>
             role: "reload"
         }));
 
+        debugMenu.append(new MenuItem({
+            label: "Toggle Dev Tools",
+            accelerator: "CmdOrCtrl+Shift+I",
+            role: "toggleDevTools"
+        }));
+
         const menu = new Menu();
         menu.append(new MenuItem({
             label: "File",

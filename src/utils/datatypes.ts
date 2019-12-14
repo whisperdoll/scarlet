@@ -78,3 +78,25 @@ export interface BossModel extends ObjectModel
     type: "boss";
     forms: BossFormModel[]
 };
+
+export interface StageModel extends ObjectModel
+{
+    type: "stage";
+    data: StageData;
+}
+
+export interface StageData
+{
+    lengthSeconds: number;
+    playerId: number;
+    bossId: number;
+    enemies: {
+        id: number,
+        position: {
+            x: number,
+            y: number
+        },
+        spawnRate: number,
+        spawnAmount: number
+    }[];
+}
