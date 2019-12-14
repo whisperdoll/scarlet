@@ -70,7 +70,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                         value={this.props.sprite.name}
                     />
                 </div>
-                <img src={this.props.sprite.path} />
+                <img alt="sprite" src={this.props.sprite.path} />
                 <button
                     onClick={this.handleBrowse}
                 >
