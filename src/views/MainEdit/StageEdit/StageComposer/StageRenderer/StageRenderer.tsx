@@ -7,7 +7,7 @@ import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import ScriptEngine, { EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult } from '../../../../../utils/ScriptEngine';
+import ScriptEngine, { EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult, ScriptResult } from '../../../../../utils/ScriptEngine';
 import { obj_copy } from '../../../../../utils/utils';
 const { dialog } = require("electron").remote;
 
@@ -28,6 +28,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private containerRef: React.RefObject<HTMLDivElement>;
     private counter: number = 0;
     private date: number = 0;
+    private dirty: boolean = true;
 
     constructor(props: Props)
     {
@@ -36,6 +37,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.grabCanvas = this.grabCanvas.bind(this);
         this.renderStage = this.renderStage.bind(this);
         this.handleResize = this.handleResize.bind(this);
+        this.handleUpdate = this.handleUpdate.bind(this);
 
         window.addEventListener("resize", this.handleResize);
 
@@ -55,6 +57,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const stageSize = Point.fromPointLike(this.props.stage.size);
             const ratio = containerSize.dividedBy(stageSize).min;
             this.canvas?.scale(ratio, "translate(-50%,-50%)", "");
+            this.dirty = true;
         }
     }
 
@@ -86,15 +89,22 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     renderStage()
     {
-        if (!this.canvas)
+        if (!this.canvas || !this.dirty)
         {
             requestAnimationFrame(this.renderStage);
             return;
         }
-        
-        this.canvas.fill("#" + (Math.random() * (0xFFFFFF)).toString(16));
 
+        // console.time("> stage render");
+
+        this.dirty = false;
+        // console.time("clear canvas");
+        this.canvas.clear();
+        // console.timeEnd("clear canvas");
+
+        // console.time("fetch background");
         const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
+        // console.timeEnd("fetch background");
         if (background)
         {
             ImageCache.getImage(background.path, (img) =>
@@ -103,10 +113,15 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             });
         }
 
+        // console.time("fetch player");
         const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
+        // console.timeEnd("fetch player");
+        // console.time("draw player");
         player && this.renderSpriteHaver(player, Point.fromPointLike(this.props.stage.playerSpawnPosition));
+        // console.timeEnd("draw player");
 
-        this.props.stage.enemies.forEach((enemyData) =>
+        // console.time("enemies");
+        this.props.stage.enemies.forEach((enemyData, enemyIndex) =>
         {
             for (let i = 0; i < enemyData.spawnAmount; i++)
             {
@@ -115,32 +130,51 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
                 if (minTime <= this.props.time && this.props.time < maxTime)
                 {
+                    // console.time("retrieve enemy");
                     const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
+                    // console.timeEnd("retrieve enemy");
+                    const gameSize = obj_copy(this.props.stage.size);
                     if (enemy)
                     {
                         if (enemy.scriptId >= 0)
                         {
-                            const methods = ScriptEngine.parseScriptFor<EnemyScriptMethodCollection>(enemy, this.props.project);
                             try
                             {
-                                const results = methods.update({
-                                    age: this.props.time - minTime,
-                                    game: { 
-                                        size: obj_copy(this.props.stage.size)
-                                    },
-                                    index: i,
-                                    spawnPosition: enemyData.position,
-                                    stageAge: this.props.time
-                                } as EnemyScriptContext);
-                                if (results && results.position)
+                                // console.time("parse script");
+                                const methods = ScriptEngine.parseScriptFor<EnemyScriptContext, EnemyScriptResult>(enemy, this.props.project);
+                                // console.timeEnd("parse script");
+                                let scriptInfo = {
+                                    position: obj_copy(enemyData.position)
+                                };
+                                // console.time("catchup loop");
+                                for (let _time = minTime; _time < this.props.time; _time += 1 / 60)
                                 {
-                                    this.renderSpriteHaver(enemy, Point.fromPointLike(results.position || enemyData.position));
+                                    // console.time("method call");
+                                    const results = methods.update({
+                                        age: this.props.time - minTime,
+                                        game: { 
+                                            size: gameSize
+                                        },
+                                        index: i,
+                                        spawnPosition: enemyData.position,
+                                        stageAge: this.props.time,
+                                        delta: 1 / 60,
+                                        position: scriptInfo.position,
+                                        _uniq: ""
+                                    });
+                                    // console.timeEnd("method call");
+                                    
+                                    // console.time("eat results");
+                                    if (results)
+                                    {
+                                        if (results.position) scriptInfo.position = results.position;
+                                    }
+                                    // console.timeEnd("eat results");
                                 }
-                                else
-                                {
-                                    console.log(methods, results);
-                                    this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
-                                }
+                                // console.timeEnd("catchup loop");
+                                // console.time("render sprite");
+                                this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
+                                // console.timeEnd("render sprite");
                             }
                             catch (e)
                             {
@@ -156,13 +190,15 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 }
             }
         });
+        // console.timeEnd("enemies");
 
         requestAnimationFrame(this.renderStage);
+        // console.timeEnd("> stage render");
     }
 
-    empty()
+    handleUpdate()
     {
-
+        this.dirty = true;
     }
     
     render()
@@ -181,7 +217,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         pixelated: true
                     }}
                     size={Point.fromPointLike(this.props.stage.size)}
-                    onUpdate={this.empty}
+                    onUpdate={this.handleUpdate}
                 />
             </div>
         );

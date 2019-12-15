@@ -18,9 +18,13 @@ export interface GameScriptData
 };
 
 export interface ScriptResult {};
-export interface ScriptMethodCollection {};
+export type ScriptMethodCollection<C extends ScriptContext, R extends ScriptResult> = {[key: string]: (context: C) => R};
+export interface ScriptContext
+{
+    _uniq: any;
+};
 
-export interface EnemyScriptContext
+export interface EnemyScriptContext extends ScriptContext
 {
     index: number;
     spawnPosition: {
@@ -30,6 +34,11 @@ export interface EnemyScriptContext
     game: GameScriptData;
     age: number;
     stageAge: number;
+    delta: number;
+    position: {
+        x: number,
+        y: number
+    };
 };
 
 export interface EnemyScriptResult extends ScriptResult
@@ -41,7 +50,7 @@ export interface EnemyScriptResult extends ScriptResult
     store?: any;
 };
 
-export interface EnemyScriptMethodCollection extends ScriptMethodCollection
+export interface EnemyScriptMethodCollection extends ScriptMethodCollection<EnemyScriptContext, EnemyScriptResult>
 {
     update: (context: EnemyScriptContext) => EnemyScriptResult;
 };
@@ -49,12 +58,15 @@ export interface EnemyScriptMethodCollection extends ScriptMethodCollection
 export default class ScriptEngine
 {
     private static scriptMap: Map<number, vm.Script> = new Map();
+    private static resultCache: Map<string, any> = new Map();
+    private static contextCache: Map<number, vm.Context> = new Map();
 
     public static updateCache(project: ProjectModel)
     {
+        this.contextCache.clear();
+        this.resultCache.clear();
         const scripts = ObjectHelper.getObjectsWithType<ScriptModel>("script", project);
         scripts.forEach(script => this.fetchScriptFor(script, project));
-        console.log(this.scriptMap);
     }
 
     private static fetchScriptFor(scriptObject: ScriptModel, project: ProjectModel): boolean
@@ -64,7 +76,11 @@ export default class ScriptEngine
         try
         {
             code = fs.readFileSync(scriptObject.path, "utf8");
-            this.scriptMap.set(scriptObject.id, new vm.Script(code));
+            const script = new vm.Script(code);
+            this.scriptMap.set(scriptObject.id, script);
+            const context = vm.createContext();
+            script.runInContext(context);
+            this.contextCache.set(scriptObject.id, context);
         }
         catch (e)
         {
@@ -75,20 +91,34 @@ export default class ScriptEngine
         return true;
     }
 
-    public static parseScriptFor<T extends ScriptMethodCollection>(obj: ObjectModel & { scriptId: number }, project: ProjectModel): T
+    public static parseScriptFor<C extends ScriptContext, R extends ScriptResult>(obj: ObjectModel & { scriptId: number }, project: ProjectModel): ScriptMethodCollection<C, R>
     {
         if (obj.scriptId === -1)
         {
             throw "tried to parse script for scriptless object " + obj.name;
         }
-        if (!this.scriptMap.has(obj.scriptId))
+        if (!this.contextCache.has(obj.scriptId))
         {
             throw "fetch script first";
         }
+        
+        return this.contextCache.get(obj.scriptId) as ScriptMethodCollection<C, R>;
+    }
 
-        const script = this.scriptMap.get(obj.scriptId) as vm.Script;
-        const context = vm.createContext();
-        script.runInContext(context);
-        return context as T;
+    public static executeScript<C extends ScriptContext, R extends ScriptResult>(methodCollection: ScriptMethodCollection<C, R>, method: string, context: C): R
+    {
+        return methodCollection[method](context);
+        const cacheKey = context._uniq;
+        const cached = this.resultCache.get(cacheKey);
+        if (cached)
+        {
+            return cached;
+        }
+        else
+        {
+            const results = methodCollection[method](context);
+            this.resultCache.set(cacheKey, results);
+            return results;
+        }
     }
 }
