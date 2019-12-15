@@ -6,7 +6,7 @@ import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
 import PropertyEdit from './PropertyEdit/PropertyEdit';
 import StageRenderer from "./StageRenderer/StageRenderer";
-import { array_copy } from '../../../../utils/utils';
+import { array_copy, obj_copy } from '../../../../utils/utils';
 import ScriptEngine from '../../../../utils/ScriptEngine';
 const { dialog } = require("electron").remote;
 
@@ -58,6 +58,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     refreshScripts()
     {
         ScriptEngine.updateCache(this.props.project);
+        this.forceUpdate();
     }
 
     componentDidMount()

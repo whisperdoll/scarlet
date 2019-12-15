@@ -68,7 +68,6 @@ export interface BulletModel extends ObjectModel
     type: "bullet";
     spriteId: number;
     scriptId: number;
-    fireRate: number;
     damage: number;
 };
 

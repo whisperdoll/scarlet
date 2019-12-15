@@ -26,7 +26,6 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleSpriteChange = this.handleSpriteChange.bind(this);
         this.handleScriptChange = this.handleScriptChange.bind(this);
-        this.handleFireRateChange = this.handleFireRateChange.bind(this);
         this.handleDamageChange = this.handleDamageChange.bind(this);
     }
 
@@ -56,20 +55,6 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         this.props.onUpdate({
             ...this.props.bullet,
             scriptId: scriptId
-        });
-    }
-
-    handleFireRateChange(e: ChangeEvent<HTMLInputElement>)
-    {
-        let val = parseFloat(e.currentTarget.value);
-        if (isNaN(val))
-        {
-            val = 1;
-        }
-
-        this.props.onUpdate({
-            ...this.props.bullet,
-            fireRate: val
         });
     }
 
@@ -108,16 +93,6 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                         onChange={this.handleSpriteChange}
                     />
                     {this.sprite && <img className="sprite" src={this.sprite.path} />}
-                </div>
-                <div className="row">
-                    <span className="label">Fire rate:</span>
-                    <input
-                        type="number"
-                        value={this.props.bullet.fireRate}
-                        onChange={this.handleFireRateChange}
-                        min={0}
-                    />
-                    <span>bullets per second</span>
                 </div>
                 <div className="row">
                     <span className="label">Damage:</span>

@@ -48,12 +48,44 @@ export interface EnemyScriptResult extends ScriptResult
         y: number
     };
     store?: any;
+    fire?: boolean;
 };
 
 export interface EnemyScriptMethodCollection extends ScriptMethodCollection<EnemyScriptContext, EnemyScriptResult>
 {
     update: (context: EnemyScriptContext) => EnemyScriptResult;
 };
+
+export interface BulletScriptContext extends ScriptContext
+{
+    index: number;
+    game: GameScriptData;
+    age: number;
+    stageAge: number;
+    delta: number;
+    position: {
+        x: number,
+        y: number
+    };
+    spawnPosition: {
+        x: number,
+        y: number
+    };
+};
+
+export interface BulletScriptResult extends ScriptResult
+{
+    position?: {
+        x: number,
+        y: number
+    };
+    alive?: boolean;
+}
+
+export interface BulletScriptMethodCollection extends ScriptMethodCollection<BulletScriptContext, BulletScriptResult>
+{
+    update: (context: BulletScriptResult) => BulletScriptResult;
+}
 
 export default class ScriptEngine
 {

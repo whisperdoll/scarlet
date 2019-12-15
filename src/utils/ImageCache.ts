@@ -7,16 +7,21 @@ export default class ImageCache
         this.imageMap.delete(filename);
     }
 
+    public static invalidateAll(): void
+    {
+        this.imageMap.clear();
+    }
+
     public static fetchImage(filename: string)
     {
         this.getImage(filename, () => {});
     }
 
-    public static getImage(filename: string, callback: (image: HTMLImageElement) => any)
+    public static getImage(filename: string, callback: (image: HTMLImageElement, wasCached: boolean) => any)
     {
         if (this.imageMap.has(filename))
         {
-            callback(this.imageMap.get(filename) as HTMLImageElement);
+            callback(this.imageMap.get(filename) as HTMLImageElement, true);
         }
         else
         {
@@ -24,7 +29,7 @@ export default class ImageCache
             this.imageMap.set(filename, img);
             img.onload = () =>
             {
-                callback(img);
+                callback(img, false);
             };
             img.src = filename;
         }

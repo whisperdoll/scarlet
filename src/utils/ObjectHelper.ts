@@ -142,6 +142,11 @@ export default class ObjectHelper
         return project.objects.filter(o => o.type === type) as T[];
     }
 
+    /**
+     * @param id Id of the object to get
+     * @param project Project
+     * @returns Object with id. If the id is invalid, returns null.
+     */
     public static getObjectWithId<T extends ObjectModel>(id: number, project: ProjectModel): T | null
     {
         if (id < 0) return null;

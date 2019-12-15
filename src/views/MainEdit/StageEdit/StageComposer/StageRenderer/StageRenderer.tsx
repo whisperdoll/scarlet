@@ -1,14 +1,14 @@
 import React, { ChangeEvent, Ref } from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel, BulletModel, ScriptModel } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
 import Point from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import ScriptEngine, { EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult, ScriptResult } from '../../../../../utils/ScriptEngine';
-import { obj_copy } from '../../../../../utils/utils';
+import ScriptEngine, { EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult, ScriptResult, ScriptMethodCollection, BulletScriptMethodCollection, BulletScriptContext, BulletScriptResult } from '../../../../../utils/ScriptEngine';
+import { obj_copy, numberArray } from '../../../../../utils/utils';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -29,6 +29,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private counter: number = 0;
     private date: number = 0;
     private dirty: boolean = true;
+    private rendering: boolean = false;
+    private renderBuffer: boolean = false;
 
     constructor(props: Props)
     {
@@ -80,23 +82,24 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(obj.spriteId, this.props.project);
         if (sprite)
         {
-            ImageCache.getImage(sprite.path, (img) =>
+            ImageCache.getImage(sprite.path, (img, wasCached) =>
             {
                 this.canvas?.drawImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)));
+                this.dirty = !wasCached;
             });
         }
     }
 
     renderStage()
     {
-        if (!this.canvas || !this.dirty)
+        if (!this.canvas || !this.dirty || this.rendering)
         {
             requestAnimationFrame(this.renderStage);
             return;
         }
 
-        // console.time("> stage render");
-
+        console.time("> stage render");
+        this.rendering = true;
         this.dirty = false;
         // console.time("clear canvas");
         this.canvas.clear();
@@ -107,9 +110,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         // console.timeEnd("fetch background");
         if (background)
         {
-            ImageCache.getImage(background.path, (img) =>
+            ImageCache.getImage(background.path, (img, wasCached) =>
             {
                 this.canvas?.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
+                this.dirty = !wasCached;
             });
         }
 
@@ -120,80 +124,144 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         player && this.renderSpriteHaver(player, Point.fromPointLike(this.props.stage.playerSpawnPosition));
         // console.timeEnd("draw player");
 
+        const delta = 1 / 60;
+        const gameSize = obj_copy(this.props.stage.size);
+        
         // console.time("enemies");
         this.props.stage.enemies.forEach((enemyData, enemyIndex) =>
         {
+            const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
+            if (!enemy) return;
+            if (enemy.scriptId < 0)
+            {
+                this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
+                return;
+            }
+            const enemyMethods = ScriptEngine.parseScriptFor<EnemyScriptContext, EnemyScriptResult>(enemy, this.props.project);
+
+            let bulletMethods: ScriptMethodCollection<BulletScriptContext, BulletScriptResult> | null = null;
+            let enemyBullet = ObjectHelper.getObjectWithId<BulletModel>(enemy.bulletId, this.props.project);
+            if (enemyBullet)
+            {
+                bulletMethods = ScriptEngine.parseScriptFor(enemyBullet, this.props.project);
+            }
+
+            const bullets: {
+                index: number,
+                spawnTime: number,
+                spawnPosition: {
+                    x: number,
+                    y: number
+                }
+            }[] = [];
+            
             for (let i = 0; i < enemyData.spawnAmount; i++)
             {
+                let bulletIndexCounter = 0;
                 const minTime = enemyData.spawnTime + (1 / enemyData.spawnRate) * i;
                 const maxTime = minTime + enemyData.lifetime;
 
-                if (minTime <= this.props.time && this.props.time < maxTime)
+                if (minTime <= this.props.time)
                 {
-                    // console.time("retrieve enemy");
-                    const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
-                    // console.timeEnd("retrieve enemy");
-                    const gameSize = obj_copy(this.props.stage.size);
-                    if (enemy)
+                    let scriptInfo = {
+                        position: obj_copy(enemyData.position)
+                    };
+                    // console.time("catchup loop");
+                    for (let _time = minTime; _time < this.props.time; _time += delta)
                     {
-                        if (enemy.scriptId >= 0)
+                        // console.time("method call");
+                        const results = enemyMethods.update({
+                            age: _time - minTime,
+                            game: { 
+                                size: gameSize
+                            },
+                            index: i,
+                            spawnPosition: enemyData.position,
+                            stageAge: _time,
+                            delta: delta,
+                            position: scriptInfo.position,
+                            _uniq: ""
+                        });
+                        // console.timeEnd("method call");
+                        
+                        // console.time("eat results");
+                        if (results)
                         {
-                            try
+                            if (results.position) scriptInfo.position = results.position;
+                            if (results.fire)
                             {
-                                // console.time("parse script");
-                                const methods = ScriptEngine.parseScriptFor<EnemyScriptContext, EnemyScriptResult>(enemy, this.props.project);
-                                // console.timeEnd("parse script");
-                                let scriptInfo = {
-                                    position: obj_copy(enemyData.position)
-                                };
-                                // console.time("catchup loop");
-                                for (let _time = minTime; _time < this.props.time; _time += 1 / 60)
-                                {
-                                    // console.time("method call");
-                                    const results = methods.update({
-                                        age: this.props.time - minTime,
-                                        game: { 
-                                            size: gameSize
-                                        },
-                                        index: i,
-                                        spawnPosition: enemyData.position,
-                                        stageAge: this.props.time,
-                                        delta: 1 / 60,
-                                        position: scriptInfo.position,
-                                        _uniq: ""
-                                    });
-                                    // console.timeEnd("method call");
-                                    
-                                    // console.time("eat results");
-                                    if (results)
-                                    {
-                                        if (results.position) scriptInfo.position = results.position;
-                                    }
-                                    // console.timeEnd("eat results");
-                                }
-                                // console.timeEnd("catchup loop");
-                                // console.time("render sprite");
-                                this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
-                                // console.timeEnd("render sprite");
+                                bullets.push({
+                                    index: bulletIndexCounter++,
+                                    spawnPosition: scriptInfo.position,
+                                    spawnTime: _time
+                                });
                             }
-                            catch (e)
-                            {
-                                console.error(e);
-                            }
-                            
                         }
-                        else
-                        {
-                            this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
-                        }
-                    } 
+                        // console.timeEnd("eat results");
+                    }
+                    // console.timeEnd("catchup loop");
+                    // console.time("render sprite");
+                    this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
+                    // console.timeEnd("render sprite");
+                    
                 }
+            }
+
+            if (enemyBullet)
+            {
+                const maxTime = this.props.stage.lengthSeconds;
+                bullets.forEach((bullet) =>
+                {
+                    bulletMethods = bulletMethods as BulletScriptMethodCollection;
+                    const age = this.props.time - bullet.spawnTime;
+                    if (age > maxTime)
+                    {
+                        return; // TODO: SHOW ERROR
+                    }
+
+                    let scriptInfo = {
+                        position: bullet.spawnPosition
+                    };
+
+                    let alive = true;
+
+                    for (let _time = bullet.spawnTime; _time < bullet.spawnTime + age; _time += delta)
+                    {
+                        const results = bulletMethods.update({
+                            _uniq: "",
+                            age: _time - bullet.spawnTime,
+                            delta: delta,
+                            game: {
+                                size: gameSize
+                            },
+                            index: bullet.index,
+                            position: scriptInfo.position,
+                            spawnPosition: bullet.spawnPosition,
+                            stageAge: _time
+                        });
+
+                        if (results)
+                        {
+                            if (!results.alive)
+                            {
+                                alive = false;
+                                break;
+                            }
+                            if (results.position) scriptInfo.position = results.position;
+                        }
+                    }
+
+                    if (alive)
+                    {
+                        this.renderSpriteHaver(enemyBullet as BulletModel, Point.fromPointLike(scriptInfo.position));
+                    }
+                });
             }
         });
         // console.timeEnd("enemies");
-
+        this.rendering = false;
         requestAnimationFrame(this.renderStage);
-        // console.timeEnd("> stage render");
+        console.timeEnd("> stage render");
     }
 
     handleUpdate()
