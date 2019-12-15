@@ -7,6 +7,7 @@ import EnemyList from './EnemyList/EnemyList';
 import PropertyEdit from './PropertyEdit/PropertyEdit';
 import StageRenderer from "./StageRenderer/StageRenderer";
 import { array_copy } from '../../../../utils/utils';
+import ScriptEngine from '../../../../utils/ScriptEngine';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -51,6 +52,17 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
+        this.refreshScripts = this.refreshScripts.bind(this);
+    }
+
+    refreshScripts()
+    {
+        ScriptEngine.updateCache(this.props.project);
+    }
+
+    componentDidMount()
+    {
+        this.refreshScripts();
     }
 
     handleBack()
@@ -239,6 +251,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 <div className="row header">
                     <button onClick={this.handleBack}>&lt; Back</button>
                     <h1>{this.props.stage.name}</h1>
+                    <button
+                        className="refreshScripts"
+                        onClick={this.refreshScripts}
+                    >
+                        Refresh Scripts
+                    </button>
                 </div>
                 {/* edit stuff */}
                 <div className="row edit">

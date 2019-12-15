@@ -137,9 +137,9 @@ export default class ObjectHelper
      * Do not mutate the return value of this; Make a copy
      * @param type Type of objects to get
      */
-    public static getObjectsWithType(type: ObjectType, project: ProjectModel): ObjectModel[]
+    public static getObjectsWithType<T extends ObjectModel>(type: ObjectType, project: ProjectModel): T[]
     {
-        return project.objects.filter(o => o.type === type);
+        return project.objects.filter(o => o.type === type) as T[];
     }
 
     public static getObjectWithId<T extends ObjectModel>(id: number, project: ProjectModel): T | null

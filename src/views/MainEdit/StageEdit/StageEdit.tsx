@@ -5,6 +5,7 @@ import ObjectHelper from '../../../utils/ObjectHelper';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
 import SpriteEdit from '../SpriteEdit/SpriteEdit';
 import StageComposer from './StageComposer/StageComposer';
+import ScriptEngine from '../../../utils/ScriptEngine';
 const { dialog } = require("electron").remote;
 
 interface Props

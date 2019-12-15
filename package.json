@@ -41,7 +41,7 @@
     "build": "rescripts build",
     "test": "rescripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "concurrently \"yarn start\" \"wait-on http://localhost:3001 && electron --disable-gpu .\"",
+    "electron-dev": "concurrently \"yarn start\" \"wait-on http://localhost:3001 && npx electron --disable-gpu .\"",
     "postinstall": "electron-builder install-app-deps",
     "preelectron-pack": "yarn build",
     "electron-pack": "build -mw"
@@ -65,7 +65,7 @@
     "@rescripts/cli": "^0.0.13",
     "@rescripts/rescript-env": "^0.0.11",
     "concurrently": "^5.0.0",
-    "electron": "^7.1.1",
+    "electron": "^7.1.2",
     "electron-builder": "^22.1.0",
     "typescript": "^3.7.2",
     "wait-on": "^3.3.0"

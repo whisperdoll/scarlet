@@ -7,6 +7,8 @@ import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
+import ScriptEngine, { EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult } from '../../../../../utils/ScriptEngine';
+import { obj_copy } from '../../../../../utils/utils';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -24,6 +26,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 {
     private canvas: Canvas | null = null;
     private containerRef: React.RefObject<HTMLDivElement>;
+    private counter: number = 0;
+    private date: number = 0;
 
     constructor(props: Props)
     {
@@ -51,13 +55,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const stageSize = Point.fromPointLike(this.props.stage.size);
             const ratio = containerSize.dividedBy(stageSize).min;
             this.canvas?.scale(ratio, "translate(-50%,-50%)", "");
-            this.renderStage();
         }
     }
 
     componentDidMount()
     {
         this.handleResize();
+        requestAnimationFrame(this.renderStage);
     }
 
     grabCanvas(canvas: Canvas)
@@ -82,8 +86,12 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     renderStage()
     {
-        if (!this.canvas) return;
-
+        if (!this.canvas)
+        {
+            requestAnimationFrame(this.renderStage);
+            return;
+        }
+        
         this.canvas.fill("#" + (Math.random() * (0xFFFFFF)).toString(16));
 
         const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
@@ -108,10 +116,53 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 if (minTime <= this.props.time && this.props.time < maxTime)
                 {
                     const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
-                    enemy && this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
+                    if (enemy)
+                    {
+                        if (enemy.scriptId >= 0)
+                        {
+                            const methods = ScriptEngine.parseScriptFor<EnemyScriptMethodCollection>(enemy, this.props.project);
+                            try
+                            {
+                                const results = methods.update({
+                                    age: this.props.time - minTime,
+                                    game: { 
+                                        size: obj_copy(this.props.stage.size)
+                                    },
+                                    index: i,
+                                    spawnPosition: enemyData.position,
+                                    stageAge: this.props.time
+                                } as EnemyScriptContext);
+                                if (results && results.position)
+                                {
+                                    this.renderSpriteHaver(enemy, Point.fromPointLike(results.position || enemyData.position));
+                                }
+                                else
+                                {
+                                    console.log(methods, results);
+                                    this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
+                                }
+                            }
+                            catch (e)
+                            {
+                                console.error(e);
+                            }
+                            
+                        }
+                        else
+                        {
+                            this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
+                        }
+                    } 
                 }
             }
         });
+
+        requestAnimationFrame(this.renderStage);
+    }
+
+    empty()
+    {
+
     }
     
     render()
@@ -130,7 +181,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         pixelated: true
                     }}
                     size={Point.fromPointLike(this.props.stage.size)}
-                    onUpdate={this.renderStage}
+                    onUpdate={this.empty}
                 />
             </div>
         );
