@@ -199,6 +199,7 @@ export default class App extends React.PureComponent<Props, State>
             fs.mkdirSync(folderPath);
             fs.mkdirSync(path.join(folderPath, "sprites"));
             fs.mkdirSync(path.join(folderPath, "scripts"));
+            fs.mkdirSync(path.join(folderPath, "backgrounds"));
         }
         catch (e)
         {

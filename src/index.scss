@@ -149,5 +149,10 @@ body, html, #container, #root, .fullSize, .dialog-backdrop {
     & > *
     {
         margin-right: 8px;
+
+        &:last-child
+        {
+            margin-right: 0;
+        }
     }
 }

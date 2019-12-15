@@ -40,11 +40,17 @@ select
     color: $controlForeground;
     border: 1px solid $controlBorderColor;
     padding: 4px;
-    margin: 2px 0;
+    margin: 0px 0;
     cursor: pointer;
 
     &:hover
     {
         background-color: $controlHoverBackground;
+    }
+
+    option
+    {
+        background: black;
+        color: white;
     }
 }

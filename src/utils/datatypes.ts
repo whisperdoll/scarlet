@@ -7,7 +7,7 @@ export interface ProjectModel
 export type ErrorTypes = "Duplicate name" | "Empty name";
 
 // ADDTYPE //
-export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "sprite" | "script" | "bullet";
+export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "sprite" | "script" | "bullet" | "background";
 export const GameObjectTypes: ObjectType[] = [
     "player",
     "stage",
@@ -15,7 +15,8 @@ export const GameObjectTypes: ObjectType[] = [
     "boss",
     "sprite",
     "script",
-    "bullet"
+    "bullet",
+    "background"
 ];
 
 export interface ObjectModel
@@ -32,6 +33,12 @@ export interface SpriteModel extends ObjectModel
     type: "sprite";
     path: string;
 };
+
+export interface BackgroundModel extends ObjectModel
+{
+    type: "background";
+    path: string;
+}
 
 export interface PlayerModel extends ObjectModel
 {
@@ -82,19 +89,19 @@ export interface BossModel extends ObjectModel
 export interface StageModel extends ObjectModel
 {
     type: "stage";
-    data: StageData;
-};
-
-export interface StageData
-{
+    backgroundId: number;
+    playerId: number;
+    bossId: number;
+    lengthSeconds: number;
+    enemies: StageEnemyData[]
     size: {
         x: number,
         y: number
     };
-    lengthSeconds: number;
-    playerId: number;
-    bossId: number;
-    enemies: StageEnemyData[]
+    playerSpawnPosition: {
+        x: number,
+        y: number
+    };
 };
 
 export interface StageEnemyData

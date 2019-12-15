@@ -38,7 +38,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
     {
         if (this.props.enemyIndex >= 0)
         {
-            return this.props.stage.data.enemies[this.props.enemyIndex];
+            return this.props.stage.enemies[this.props.enemyIndex];
         }
         else
         {

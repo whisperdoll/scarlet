@@ -5,6 +5,7 @@ import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
 import PropertyEdit from './PropertyEdit/PropertyEdit';
+import StageRenderer from "./StageRenderer/StageRenderer";
 import { array_copy } from '../../../../utils/utils';
 const { dialog } = require("electron").remote;
 
@@ -37,6 +38,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
         this.handleBack = this.handleBack.bind(this);
         this.handleLengthChange = this.handleLengthChange.bind(this);
+        this.handleWidthChange = this.handleWidthChange.bind(this);
+        this.handleHeightChange = this.handleHeightChange.bind(this);
+        this.handleSpawnXChange = this.handleSpawnXChange.bind(this);
+        this.handleSpawnYChange = this.handleSpawnYChange.bind(this);
+        this.handleBackgroundChange = this.handleBackgroundChange.bind(this);
         this.handlePlayerChange = this.handlePlayerChange.bind(this);
         this.handleBossChange = this.handleBossChange.bind(this);
         this.handleTimelineChange = this.handleTimelineChange.bind(this);
@@ -57,15 +63,88 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = 60;
+            val = this.props.stage.lengthSeconds;
         }
 
         this.props.onUpdate({
             ...this.props.stage,
-            data: {
-                ...this.props.stage.data,
-                lengthSeconds: val
+            lengthSeconds: val
+        });
+    }
+
+    handleWidthChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.stage.size.x;
+        }
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            size: {
+                ...this.props.stage.size,
+                x: val
             }
+        });
+    }
+
+    handleHeightChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.stage.size.y;
+        }
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            size: {
+                ...this.props.stage.size,
+                y: val
+            }
+        });
+    }
+
+    handleSpawnXChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.stage.size.y;
+        }
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            playerSpawnPosition: {
+                ...this.props.stage.playerSpawnPosition,
+                x: val
+            }
+        });
+    }
+
+    handleSpawnYChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.stage.size.y;
+        }
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            playerSpawnPosition: {
+                ...this.props.stage.playerSpawnPosition,
+                y: val
+            }
+        });
+    }
+
+    handleBackgroundChange(backgroundId: number)
+    {
+        this.props.onUpdate({
+            ...this.props.stage,
+            backgroundId: backgroundId
         });
     }
 
@@ -73,10 +152,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.props.onUpdate({
             ...this.props.stage,
-            data: {
-                ...this.props.stage.data,
-                playerId: playerId
-            }
+            playerId: playerId
         });
     }
 
@@ -84,10 +160,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.props.onUpdate({
             ...this.props.stage,
-            data: {
-                ...this.props.stage.data,
-                bossId: bossId
-            }
+            bossId: bossId
         });
     }
 
@@ -109,21 +182,18 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             this.props.onUpdate({
                 ...this.props.stage,
-                data: {
-                    ...this.props.stage.data,
-                    enemies: this.props.stage.data.enemies.concat([{
-                        id: this.state.selectedNewEnemyId,
-                        instanceName: "New Enemy " + this.props.stage.data.enemies.length.toString(),
-                        lifetime: -1,
-                        position: {
-                            x: 0,
-                            y: 0
-                        },
-                        spawnAmount: 1,
-                        spawnRate: 0,
-                        spawnTime: this.state.timeSeconds
-                    }])
-                }
+                enemies: this.props.stage.enemies.concat([{
+                    id: this.state.selectedNewEnemyId,
+                    instanceName: "New Enemy " + this.props.stage.enemies.length.toString(),
+                    lifetime: -1,
+                    position: {
+                        x: 0,
+                        y: 0
+                    },
+                    spawnAmount: 1,
+                    spawnRate: 0,
+                    spawnTime: this.state.timeSeconds
+                }])
             });
         }
     }
@@ -152,15 +222,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleUpdateEnemy(enemy: StageEnemyData, index: number)
     {
-        const enemies = array_copy(this.props.stage.data.enemies);
+        const enemies = array_copy(this.props.stage.enemies);
         enemies[index] = enemy;
 
         this.props.onUpdate({
             ...this.props.stage,
-            data: {
-                ...this.props.stage.data,
-                enemies: enemies
-            }
+            enemies: enemies
         });
     }
 
@@ -178,27 +245,64 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     {/* left col */}
                     <div className="col stageInfo">
                         <div className="row">
+                            <span className="label">Size:</span>
+                            <input
+                                type="number"
+                                onChange={this.handleWidthChange}
+                                value={this.props.stage.size.x.toString()}
+                            />
+                            <span>x</span>
+                            <input
+                                type="number"
+                                onChange={this.handleHeightChange}
+                                value={this.props.stage.size.y.toString()}
+                            />
+                        </div>
+                        <div className="row">
                             <span className="label">Length:</span>
                             <input
                                 type="number"
                                 onChange={this.handleLengthChange}
-                                value={this.props.stage.data.lengthSeconds.toString()}
+                                value={this.props.stage.lengthSeconds.toString()}
                             />
                             <span>seconds</span>
                         </div>
                         <div className="row">
+                            <span className="label">Background:</span>
+                            <ObjectSelect
+                                currentObjectId={this.props.stage.backgroundId}
+                                objectType="background"
+                                onChange={this.handleBackgroundChange}
+                                project={this.props.project}
+                            />
+                        </div>
+                        <div className="row">
                             <span className="label">Player:</span>
                             <ObjectSelect
-                                currentObjectId={this.props.stage.data.playerId}
+                                currentObjectId={this.props.stage.playerId}
                                 objectType="player"
                                 onChange={this.handlePlayerChange}
                                 project={this.props.project}
                             />
                         </div>
                         <div className="row">
+                            <span className="label">Spawn Pos:</span>
+                            <input
+                                type="number"
+                                onChange={this.handleSpawnXChange}
+                                value={this.props.stage.playerSpawnPosition.x.toString()}
+                            />
+                            <span>x</span>
+                            <input
+                                type="number"
+                                onChange={this.handleSpawnYChange}
+                                value={this.props.stage.playerSpawnPosition.y.toString()}
+                            />
+                        </div>
+                        <div className="row">
                             <span className="label">Boss:</span>
                             <ObjectSelect
-                                currentObjectId={this.props.stage.data.bossId}
+                                currentObjectId={this.props.stage.bossId}
                                 objectType="boss"
                                 onChange={this.handleBossChange}
                                 project={this.props.project}
@@ -227,7 +331,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     </div>
                     {/* stage */}
                     <div className="stagePreview">
-                        stage here lol
+                        <StageRenderer
+                            project={this.props.project}
+                            stage={this.props.stage}
+                            time={this.state.timeSeconds}
+                        />
                     </div>
                     {/* properties */}
                     <PropertyEdit
@@ -243,7 +351,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         type="range"
                         onChange={this.handleTimelineChange}
                         min="0"
-                        max={this.props.stage.data.lengthSeconds.toString()}
+                        max={this.props.stage.lengthSeconds.toString()}
                         step="0.01"
                         value={this.state.timeSeconds.toString()}
                     />

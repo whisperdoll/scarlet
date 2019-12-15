@@ -51,12 +51,50 @@
             flex-basis: 300px;
         }
 
+        & > .stageInfo
+        {
+            .label
+            {
+                width: 92px;
+            }
+
+            input
+            {
+                width: 0;
+            }
+
+            input, select
+            {
+                flex-grow: 1;
+            }
+        }
+
         & > .stagePreview
         {
             flex-grow: 1;
             border: 1px solid $controlBorderColor;
             border-top: 0;
             border-bottom: 0;
+            box-sizing: border-box;
+
+            .stageRenderer
+            {
+                position: relative;
+                box-sizing: border-box;
+                background: rgba(255,255,255,0.1);
+                width: 100%;
+                height: 100%;
+
+                canvas
+                {
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    transform-origin: center;
+                    transform: translate(-50%,-50%) scale(1);
+                    box-sizing: border-box;
+                }
+            }
         }
     }
 

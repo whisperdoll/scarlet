@@ -1,7 +1,7 @@
 import React from 'react';
 import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel } from '../../utils/datatypes';
+import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 import { obj_copy, array_copy, array_ensureOne } from '../../utils/utils';
 import SpriteEdit from './SpriteEdit/SpriteEdit';
@@ -11,6 +11,7 @@ import EnemyEdit from './EnemyEdit/EnemyEdit';
 import BulletEdit from './BulletEdit/BulletEdit';
 import BossEdit from './BossEdit/BossEdit';
 import StageEdit from './StageEdit/StageEdit';
+import BackgroundEdit from './BackgroundEdit/BackgroundEdit';
 
 interface Props
 {
@@ -152,6 +153,13 @@ export default class MainEditView extends React.PureComponent<Props, State>
                                             project={this.props.project}
                                         />
                                     );
+                                case "background":
+                                    return (
+                                        <BackgroundEdit
+                                            onUpdate={this.handleObjectUpdate}
+                                            background={this.state.currentlyEditing as BackgroundModel}
+                                        />
+                                    )
                             }
                         })()}
                     </div>

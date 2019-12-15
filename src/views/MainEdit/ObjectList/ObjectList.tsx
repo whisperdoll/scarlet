@@ -38,6 +38,7 @@ export default class ObjectList extends React.PureComponent<Props, State>
         this.handleSelect = this.handleSelect.bind(this);
     }
 
+    // ADDTYPE //
     get rootObjects(): ObjectModel[]
     {
         return [
@@ -85,6 +86,13 @@ export default class ObjectList extends React.PureComponent<Props, State>
             },
             {
                 id: -7,
+                name: "Backgrounds",
+                type: "folder",
+                hint: "background",
+                children: []
+            },
+            {
+                id: -8,
                 name: "Scripts",
                 type: "folder",
                 hint: "script",

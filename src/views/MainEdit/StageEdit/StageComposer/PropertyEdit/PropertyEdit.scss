@@ -20,8 +20,9 @@
 
     .row
     {
-        & > *:nth-child(2)
+        input, select
         {
+            width: 0;
             flex-grow: 1;
         }
     }

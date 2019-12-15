@@ -15,6 +15,9 @@
     {
         padding: 4px 8px;
         cursor: pointer;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
 
         &:hover
         {
@@ -24,6 +27,11 @@
         .enemyType
         {
             font-style: italic;
+        }
+
+        img
+        {
+            height: 32px;
         }
     }
 }

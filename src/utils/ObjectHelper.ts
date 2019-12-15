@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, GameObjectTypes, StageModel } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, GameObjectTypes, StageModel, BackgroundModel } from "./datatypes";
 import { array_copy, obj_copy, array_ensureOne, array_remove } from "./utils";
 
 export default class ObjectHelper
@@ -79,17 +79,28 @@ export default class ObjectHelper
                     id: id,
                     name: "New Stage " + this.getObjectsWithType(type, project).length,
                     type: "stage",
-                    data: {
-                        bossId: -1,
-                        playerId: -1,
-                        lengthSeconds: 60,
-                        enemies: [],
-                        size: {
-                            x: 384,
-                            y: 448
-                        }
+                    backgroundId: -1,
+                    bossId: -1,
+                    playerId: -1,
+                    lengthSeconds: 60,
+                    enemies: [],
+                    size: {
+                        x: 384,
+                        y: 448
+                    },
+                    playerSpawnPosition: {
+                        x: 384 / 2,
+                        y: 400
                     }
                 } as StageModel;
+                break;
+            case "background":
+                ret = {
+                    id: id,
+                    name: "New Background " + this.getObjectsWithType(type, project).length,
+                    type: "background",
+                    path: ""
+                } as BackgroundModel;
                 break;
             default:
                 throw "fuck u";
