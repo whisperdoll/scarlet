@@ -120,8 +120,14 @@
             box-sizing: border-box;
             cursor: pointer;
             padding: 0;
-            margin: 0;
+            margin-left: 0;
+            margin-top: 0;
+            margin-bottom: 0;
         }
 
+        .play
+        {
+            flex-basis: 64px;
+        }
     }
 }

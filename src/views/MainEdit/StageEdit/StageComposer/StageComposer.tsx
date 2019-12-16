@@ -23,6 +23,7 @@ interface State
     timeSeconds: number;
     selectedEnemyIndex: number;
     selectedNewEnemyId: number;
+    playing: boolean;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -34,7 +35,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.state = {
             timeSeconds: 0,
             selectedEnemyIndex: -1,
-            selectedNewEnemyId: -1
+            selectedNewEnemyId: -1,
+            playing: false
         };
 
         this.handleBack = this.handleBack.bind(this);
@@ -53,6 +55,29 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
         this.refreshScripts = this.refreshScripts.bind(this);
+        this.handlePlayPause = this.handlePlayPause.bind(this);
+        this.animate = this.animate.bind(this);
+    }
+
+    animate()
+    {
+        if (this.state.playing)
+        {
+            this.setState((state) =>
+            {
+                let newTime = state.timeSeconds + 1/60;
+                if (newTime >= this.props.stage.lengthSeconds)
+                {
+                    newTime = this.props.stage.lengthSeconds - 1/60;
+                }
+
+                return {
+                    ...state,
+                    timeSeconds: newTime
+                };
+            });
+        }
+        requestAnimationFrame(this.animate);
     }
 
     refreshScripts()
@@ -64,6 +89,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     componentDidMount()
     {
         this.refreshScripts();
+        this.animate();
     }
 
     handleBack()
@@ -244,6 +270,17 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handlePlayPause()
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                playing: !state.playing
+            };
+        });
+    }
+
     render()
     {
         return (
@@ -374,6 +411,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         step="0.01"
                         value={this.state.timeSeconds.toString()}
                     />
+                    <button
+                        className="play"
+                        onClick={this.handlePlayPause}
+                    >
+                        {this.state.playing ? "Pause" : "Play"}
+                    </button>
                 </div>
             </div>
         );

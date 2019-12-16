@@ -163,6 +163,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
                 if (minTime <= this.props.time)
                 {
+                    const isDead = this.props.time >= maxTime;
                     let scriptInfo = {
                         position: obj_copy(enemyData.position)
                     };
@@ -201,7 +202,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     }
                     // console.timeEnd("catchup loop");
                     // console.time("render sprite");
-                    this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
+                    if (!isDead)
+                    {
+                        this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
+                    }
                     // console.timeEnd("render sprite");
                     
                 }
