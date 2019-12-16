@@ -12,6 +12,7 @@ interface Props
     stage: StageModel;
     time: number;
     handleTimeChange: (time: number) => any;
+    selectedEnemyIndex: number;
 }
 
 interface State
@@ -70,6 +71,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                                 }}
                                 title={enemy.instanceName}
                                 key={i}
+                                className={i === this.props.selectedEnemyIndex ? "selected" : ""}
                             />
                         );
                     })}

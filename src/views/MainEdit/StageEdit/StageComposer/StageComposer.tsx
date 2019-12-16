@@ -54,6 +54,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleTimeChange = this.handleTimeChange.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
+        this.handleDeselectEnemy = this.handleDeselectEnemy.bind(this);
         this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
@@ -256,6 +257,17 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handleDeselectEnemy()
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                selectedEnemyIndex: -1
+            };
+        });
+    }
+
     handleSelectNewEnemy(newEnemyId: number)
     {
         this.setState((state) =>
@@ -400,14 +412,16 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             stage={this.props.stage}
                             time={this.state.timeSeconds}
                             refresh={this.state.refreshRenderer}
+                            selectedEnemyIndex={this.state.selectedEnemyIndex}
                         />
                     </div>
                     {/* properties */}
                     <PropertyEdit
                         enemyIndex={this.state.selectedEnemyIndex}
-                        handleUpdate={this.handleUpdateEnemy}
+                        onUpdate={this.handleUpdateEnemy}
                         project={this.props.project}
                         stage={this.props.stage}
+                        onDeselectEnemy={this.handleDeselectEnemy}
                     />
                 </div>
                 {/* timeline */}
@@ -416,6 +430,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     project={this.props.project}
                     stage={this.props.stage}
                     time={this.state.timeSeconds}
+                    selectedEnemyIndex={this.state.selectedEnemyIndex}
                 />
                 <button
                     className="play"

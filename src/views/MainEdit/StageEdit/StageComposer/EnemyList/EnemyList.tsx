@@ -28,6 +28,7 @@ export default class EnemyList extends React.PureComponent<Props, State>
         };
 
         this.handleEnemySelect = this.handleEnemySelect.bind(this);
+        this.handleEnemyDeselect = this.handleEnemyDeselect.bind(this);
     }
 
     handleEnemySelect(e: React.MouseEvent<HTMLDivElement, MouseEvent>)
@@ -35,6 +36,11 @@ export default class EnemyList extends React.PureComponent<Props, State>
         e.stopPropagation();
         const index = parseInt(e.currentTarget.dataset.index as string);
         this.props.onSelectEnemy(index);
+    }
+
+    handleEnemyDeselect()
+    {
+        this.props.onSelectEnemy(-1);
     }
 
     private spritePathForEnemy(enemyId: number): string
@@ -49,7 +55,7 @@ export default class EnemyList extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="enemyList">
+            <div className="enemyList" onClick={this.handleEnemyDeselect}>
                 {this.props.stage.enemies.map((enemy, i) => (
                     <div
                         className="enemyItem"

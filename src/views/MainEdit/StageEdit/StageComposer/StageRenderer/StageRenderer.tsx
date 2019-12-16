@@ -17,6 +17,7 @@ interface Props
     stage: StageModel;
     time: number;
     refresh: boolean;
+    selectedEnemyIndex: number;
 }
 
 interface State
@@ -32,6 +33,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private dirty: boolean = true;
     private rendering: boolean = false;
     private renderBuffer: boolean = false;
+    private ratio: number = 1;
 
     constructor(props: Props)
     {
@@ -60,6 +62,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const stageSize = Point.fromPointLike(this.props.stage.size);
             const ratio = containerSize.dividedBy(stageSize).min;
             this.canvas?.scale(ratio, "translate(-50%,-50%)", "");
+            this.ratio = ratio;
             this.dirty = true;
         }
     }
@@ -86,7 +89,11 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             ImageCache.getImage(sprite.path, (img, wasCached) =>
             {
                 this.canvas?.drawImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)));
-                this.dirty = !wasCached;
+                if (this.props.selectedEnemyIndex >= 0 && obj.id === this.props.stage.enemies[this.props.selectedEnemyIndex].id)
+                {
+                    this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
+                }
+                this.dirty = !wasCached; // draw order likely fucked up so let's
             });
         }
     }

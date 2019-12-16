@@ -11,7 +11,8 @@ interface Props
     project: ProjectModel;
     stage: StageModel;
     enemyIndex: number;
-    handleUpdate: (enemy: StageEnemyData, index: number) => any;
+    onUpdate: (enemy: StageEnemyData, index: number) => any;
+    onDeselectEnemy: () => any;
 }
 
 interface State
@@ -32,6 +33,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         this.handleSpawnTimeChange = this.handleSpawnTimeChange.bind(this);
         this.handleXChange = this.handleXChange.bind(this);
         this.handleYChange = this.handleYChange.bind(this);
+        this.handleDeselect = this.handleDeselect.bind(this);
     }
 
     get enemy(): StageEnemyData | null
@@ -50,7 +52,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
     {
         if (enemyId >= 0)
         {
-            this.props.handleUpdate({
+            this.props.onUpdate({
                 ...(this.enemy as StageEnemyData),
                 id: enemyId
             }, this.props.enemyIndex);
@@ -59,7 +61,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
 
     handleNameChange(e: ChangeEvent<HTMLInputElement>)
     {
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             instanceName: e.currentTarget.value
         }, this.props.enemyIndex);
@@ -73,7 +75,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
             val = this.enemy?.position.x as number;
         }
 
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             position: {
                 ...(this.enemy as StageEnemyData).position,
@@ -90,7 +92,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
             val = this.enemy?.position.x as number;
         }
 
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             position: {
                 ...(this.enemy as StageEnemyData).position,
@@ -107,7 +109,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
             val = this.enemy?.spawnTime as number;
         }
 
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             spawnTime: val
         }, this.props.enemyIndex);
@@ -121,7 +123,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
             val = this.enemy?.spawnAmount as number;
         }
 
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             spawnAmount: val
         }, this.props.enemyIndex);
@@ -135,7 +137,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
             val = this.enemy?.spawnRate as number;
         }
 
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             spawnRate: val
         }, this.props.enemyIndex);
@@ -149,10 +151,15 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
             val = this.enemy?.lifetime as number;
         }
 
-        this.props.handleUpdate({
+        this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
             lifetime: val
         }, this.props.enemyIndex);
+    }
+
+    handleDeselect()
+    {
+        this.props.onDeselectEnemy();
     }
 
     render()
@@ -229,6 +236,11 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             value={this.enemy.lifetime.toString()}
                         />
                     </div>
+                    <button
+                        onClick={this.handleDeselect}
+                    >
+                        Deselect
+                    </button>
                 </div>
             );
         }
