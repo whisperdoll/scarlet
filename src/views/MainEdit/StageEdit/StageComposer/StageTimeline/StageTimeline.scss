@@ -1,0 +1,14 @@
+.objectEdit > .stageComposer .row.timeline
+{
+    flex-direction: column;
+    .enemyTimeline
+    {
+        height: 32px;
+        display: block;
+    }
+
+    input
+    {
+        display: block;
+    }
+}

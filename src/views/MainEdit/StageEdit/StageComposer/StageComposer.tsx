@@ -8,6 +8,7 @@ import PropertyEdit from './PropertyEdit/PropertyEdit';
 import StageRenderer from "./StageRenderer/StageRenderer";
 import { array_copy, obj_copy } from '../../../../utils/utils';
 import ScriptEngine from '../../../../utils/ScriptEngine';
+import StageTimeline from './StageTimeline/StageTimeline';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -50,7 +51,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleBackgroundChange = this.handleBackgroundChange.bind(this);
         this.handlePlayerChange = this.handlePlayerChange.bind(this);
         this.handleBossChange = this.handleBossChange.bind(this);
-        this.handleTimelineChange = this.handleTimelineChange.bind(this);
+        this.handleTimeChange = this.handleTimeChange.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
         this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
@@ -211,14 +212,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleTimelineChange(e: ChangeEvent<HTMLInputElement>)
+    handleTimeChange(time: number)
     {
-        const timeSeconds = parseFloat(e.currentTarget.value);
         this.setState((state) =>
         {
             return {
                 ...state,
-                timeSeconds: timeSeconds
+                timeSeconds: time
             };
         });
     }
@@ -411,22 +411,18 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     />
                 </div>
                 {/* timeline */}
-                <div className="row timeline">
-                    <input
-                        type="range"
-                        onChange={this.handleTimelineChange}
-                        min="0"
-                        max={this.props.stage.lengthSeconds.toString()}
-                        step="0.01"
-                        value={this.state.timeSeconds.toString()}
-                    />
-                    <button
-                        className="play"
-                        onClick={this.handlePlayPause}
-                    >
-                        {this.state.playing ? "Pause" : "Play"}
-                    </button>
-                </div>
+                <StageTimeline
+                    handleTimeChange={this.handleTimeChange}
+                    project={this.props.project}
+                    stage={this.props.stage}
+                    time={this.state.timeSeconds}
+                />
+                <button
+                    className="play"
+                    onClick={this.handlePlayPause}
+                >
+                    {this.state.playing ? "Pause" : "Play"}
+                </button>
             </div>
         );
     }
