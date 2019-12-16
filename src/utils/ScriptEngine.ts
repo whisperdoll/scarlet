@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
 import { ProjectModel, ScriptModel, ObjectModel, EnemyModel, PlayerModel } from "./datatypes";
+import { PointLike } from "./point";
 
 interface FunctionData
 {
@@ -9,46 +10,44 @@ interface FunctionData
     body: string;
 };
 
-export interface GameScriptData
+export interface StageScriptData
 {
-    size: {
-        x: number,
-        y: number
-    }
+    size: PointLike;
+    age: number;
+};
+
+export interface PlayerScriptData
+{
+    position: PointLike;
 };
 
 export interface ScriptResult {};
 export type ScriptMethodCollection<C extends ScriptContext, R extends ScriptResult> = {[key: string]: (context: C) => R};
 export interface ScriptContext
 {
-    _uniq: any;
+};
+
+export interface EnemyScriptData
+{
+    age: number;
+    spawnPosition: PointLike;
+    position: PointLike;
 };
 
 export interface EnemyScriptContext extends ScriptContext
 {
     index: number;
-    spawnPosition: {
-        x: number,
-        y: number
-    };
-    game: GameScriptData;
-    age: number;
-    stageAge: number;
+    enemy: EnemyScriptData;
+    stage: StageScriptData;
     delta: number;
-    position: {
-        x: number,
-        y: number
-    };
 };
 
 export interface EnemyScriptResult extends ScriptResult
 {
-    position?: {
-        x: number,
-        y: number
-    };
+    position?: PointLike;
     store?: any;
     fire?: boolean;
+    alive?: boolean;
 };
 
 export interface EnemyScriptMethodCollection extends ScriptMethodCollection<EnemyScriptContext, EnemyScriptResult>
@@ -56,35 +55,30 @@ export interface EnemyScriptMethodCollection extends ScriptMethodCollection<Enem
     update: (context: EnemyScriptContext) => EnemyScriptResult;
 };
 
+export interface BulletScriptData
+{
+    age: number;
+    position: PointLike;
+    spawnPosition: PointLike;
+};
+
 export interface BulletScriptContext extends ScriptContext
 {
     index: number;
-    game: GameScriptData;
-    age: number;
-    stageAge: number;
+    bullet: BulletScriptData;
+    stage: StageScriptData;
     delta: number;
-    position: {
-        x: number,
-        y: number
-    };
-    spawnPosition: {
-        x: number,
-        y: number
-    };
 };
 
 export interface BulletScriptResult extends ScriptResult
 {
-    position?: {
-        x: number,
-        y: number
-    };
+    position?: PointLike;
     alive?: boolean;
 }
 
 export interface BulletScriptMethodCollection extends ScriptMethodCollection<BulletScriptContext, BulletScriptResult>
 {
-    update: (context: BulletScriptResult) => BulletScriptResult;
+    update: (context: BulletScriptContext) => BulletScriptResult;
 }
 
 export default class ScriptEngine
@@ -140,7 +134,7 @@ export default class ScriptEngine
     public static executeScript<C extends ScriptContext, R extends ScriptResult>(methodCollection: ScriptMethodCollection<C, R>, method: string, context: C): R
     {
         return methodCollection[method](context);
-        const cacheKey = context._uniq;
+        /*const cacheKey = context._uniq;
         const cached = this.resultCache.get(cacheKey);
         if (cached)
         {
@@ -151,6 +145,6 @@ export default class ScriptEngine
             const results = methodCollection[method](context);
             this.resultCache.set(cacheKey, results);
             return results;
-        }
+        }*/
     }
 }

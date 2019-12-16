@@ -1,3 +1,15 @@
+export interface PointLike
+{
+    x: number;
+    y: number;
+};
+
+export interface SizeLike
+{
+    width: number;
+    height: number;
+};
+
 /**
  * A class to represent a two-dimensional point in space, or something that would benefit from a similar treatment.
  *
@@ -43,12 +55,12 @@ export default class Point
         this.y = y;
     }
     
-    public static fromSizeLike(sizeLike : { width : number, height : number}) : Point
+    public static fromSizeLike(sizeLike : SizeLike) : Point
     {
         return new Point(sizeLike.width, sizeLike.height);
     }
     
-    public static fromPointLike(pointLike : { x : number, y : number}) : Point
+    public static fromPointLike(pointLike : PointLike) : Point
     {
         return new Point(pointLike.x, pointLike.y);
     }

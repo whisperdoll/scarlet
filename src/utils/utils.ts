@@ -35,7 +35,9 @@ export function isFileNotFoundError(err : NodeJS.ErrnoException) : boolean
 
 export function obj_copy(obj: any): any
 {
-    return {...obj};
+    const ret: {[key: string]: any} = {};
+    for (let key in obj) ret[key] = obj[key];
+    return ret;
 }
 
 export function isWin32() : boolean

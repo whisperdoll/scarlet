@@ -1,6 +1,6 @@
 import React, { ChangeEvent, Ref } from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel, BulletModel, ScriptModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel, BulletModel, ScriptModel, StageEnemyData } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
 import Point from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
@@ -128,8 +128,9 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const gameSize = obj_copy(this.props.stage.size);
         
         // console.time("enemies");
-        this.props.stage.enemies.forEach((enemyData, enemyIndex) =>
+        this.props.stage.enemies.forEach((_enemyData, enemyIndex) =>
         {
+            const enemyData: StageEnemyData = obj_copy(_enemyData);
             const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
             if (!enemy) return;
             if (enemy.scriptId < 0)
@@ -163,32 +164,41 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
                 if (minTime <= this.props.time)
                 {
-                    const isDead = this.props.time >= maxTime;
+                    let isDead = this.props.time >= maxTime;
                     let scriptInfo = {
-                        position: obj_copy(enemyData.position)
+                        position: enemyData.position
                     };
                     // console.time("catchup loop");
                     for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
                     {
                         // console.time("method call");
                         const results = enemyMethods.update({
-                            age: _time - minTime,
-                            game: { 
+                            enemy: {
+                                age: _time - minTime,
+                                position: scriptInfo.position,
+                                spawnPosition: enemyData.position
+                            },
+                            stage: {
+                                age: _time,
                                 size: gameSize
                             },
                             index: i,
-                            spawnPosition: enemyData.position,
-                            stageAge: _time,
-                            delta: delta,
-                            position: scriptInfo.position,
-                            _uniq: ""
+                            delta: delta
                         });
                         // console.timeEnd("method call");
                         
                         // console.time("eat results");
                         if (results)
                         {
-                            if (results.position) scriptInfo.position = results.position;
+                            if (!results.alive)
+                            {
+                                isDead = true;
+                                break;
+                            }
+                            if (results.position)
+                            {
+                                scriptInfo.position = results.position;
+                            }
                             if (results.fire)
                             {
                                 bullets.push({
@@ -232,16 +242,17 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     for (let _time = bullet.spawnTime; _time < bullet.spawnTime + age; _time += delta)
                     {
                         const results = bulletMethods.update({
-                            _uniq: "",
-                            age: _time - bullet.spawnTime,
-                            delta: delta,
-                            game: {
+                            bullet: {
+                                age: _time - bullet.spawnTime,
+                                position: scriptInfo.position,
+                                spawnPosition: bullet.spawnPosition
+                            },
+                            stage: {
+                                age: _time,
                                 size: gameSize
                             },
-                            index: bullet.index,
-                            position: scriptInfo.position,
-                            spawnPosition: bullet.spawnPosition,
-                            stageAge: _time
+                            delta: delta,
+                            index: bullet.index
                         });
 
                         if (results)
