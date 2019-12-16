@@ -167,7 +167,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         position: obj_copy(enemyData.position)
                     };
                     // console.time("catchup loop");
-                    for (let _time = minTime; _time < this.props.time; _time += delta)
+                    for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
                     {
                         // console.time("method call");
                         const results = enemyMethods.update({
