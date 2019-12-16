@@ -16,6 +16,7 @@ interface Props
     project: ProjectModel;
     stage: StageModel;
     time: number;
+    refresh: boolean;
 }
 
 interface State

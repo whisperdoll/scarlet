@@ -24,6 +24,7 @@ interface State
     selectedEnemyIndex: number;
     selectedNewEnemyId: number;
     playing: boolean;
+    refreshRenderer: boolean;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -36,7 +37,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             timeSeconds: 0,
             selectedEnemyIndex: -1,
             selectedNewEnemyId: -1,
-            playing: false
+            playing: false,
+            refreshRenderer: false
         };
 
         this.handleBack = this.handleBack.bind(this);
@@ -83,7 +85,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
     refreshScripts()
     {
         ScriptEngine.updateCache(this.props.project);
-        this.forceUpdate();
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                refreshRenderer: !state.refreshRenderer
+            };
+        });
     }
 
     componentDidMount()
@@ -391,6 +399,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             project={this.props.project}
                             stage={this.props.stage}
                             time={this.state.timeSeconds}
+                            refresh={this.state.refreshRenderer}
                         />
                     </div>
                     {/* properties */}
