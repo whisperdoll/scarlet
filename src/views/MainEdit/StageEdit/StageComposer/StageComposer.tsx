@@ -386,6 +386,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             {
                 return {
                     ...state,
+                    playing: false,
+                    timeSeconds: 0,
                     editMode: "boss"
                 };
             });
@@ -402,6 +404,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             return {
                 ...state,
+                playing: false,
+                timeSeconds: 0,
                 editMode: "enemy"
             };
         });
@@ -430,7 +434,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             bulletId: -1,
             hp: 10,
             scriptId: -1,
-            spriteId: -1
+            spriteId: -1,
+            lifetime: 10
         };
 
         const boss = obj_copy(ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project));
@@ -612,6 +617,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             refresh={this.state.refreshRenderer}
                             selectedEnemyIndex={this.state.selectedEnemyIndex}
                             onInstanceCount={this.handleInstanceCount}
+                            editMode={this.state.editMode}
                         />
                     </div>
                     {/* properties */}
@@ -641,7 +647,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     project={this.props.project}
                     stage={this.props.stage}
                     time={this.state.timeSeconds}
-                    selectedEnemyIndex={this.state.selectedEnemyIndex}
+                    selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
+                    editMode={this.state.editMode}
                 />
                 <button
                     className="play"

@@ -73,6 +73,7 @@ export interface BulletModel extends ObjectModel
 
 export interface BossFormModel
 {
+    lifetime: number;
     spriteId: number;
     scriptId: number;
     bulletId: number;

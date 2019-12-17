@@ -26,6 +26,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         this.handleScriptChange = this.handleScriptChange.bind(this);
         this.handleBulletChange = this.handleBulletChange.bind(this);
         this.handleHpChange = this.handleHpChange.bind(this);
+        this.handleLifetimeChange = this.handleLifetimeChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
@@ -62,12 +63,26 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = 5;
+            val = this.props.bossForm.hp;
         }
 
         this.props.onUpdate({
             ...this.props.bossForm,
             hp: val
+        }, this.props.index);
+    }
+
+    handleLifetimeChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseFloat(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.bossForm.lifetime;
+        }
+
+        this.props.onUpdate({
+            ...this.props.bossForm,
+            lifetime: val
         }, this.props.index);
     }
 
@@ -92,6 +107,15 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                         type="number"
                         value={this.props.bossForm.hp.toString()}
                         onChange={this.handleHpChange}
+                        min={1}
+                    />
+                </div>
+                <div className="row">
+                    <span className="label">Lifetime:</span>
+                    <input
+                        type="number"
+                        value={this.props.bossForm.lifetime.toString()}
+                        onChange={this.handleLifetimeChange}
                         min={1}
                     />
                 </div>

@@ -55,7 +55,8 @@ export default class BossEdit extends React.PureComponent<Props, State>
             bulletId: -1,
             hp: 10,
             scriptId: -1,
-            spriteId: -1
+            spriteId: -1,
+            lifetime: 10
         };
 
         this.props.onUpdate({

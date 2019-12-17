@@ -18,6 +18,7 @@ interface Props
     time: number;
     refresh: boolean;
     selectedEnemyIndex: number;
+    editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
 }
 
@@ -142,6 +143,18 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         let instanceCounter = 0;
         let bulletCounter = 0;
+
+        const bullets: {
+            index: number,
+            spawnTime: number,
+            spawnPosition: {
+                x: number,
+                y: number
+            },
+            methods: ScriptMethodCollection<BulletScriptContext, BulletScriptResult>,
+            count: boolean,
+            obj: BulletModel
+        }[] = [];
         
         // console.time("enemies");
         this.props.stage.enemies.forEach((_enemyData, enemyIndex) =>
@@ -162,15 +175,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             {
                 bulletMethods = ScriptEngine.parseScriptFor(enemyBullet, this.props.project);
             }
-
-            const bullets: {
-                index: number,
-                spawnTime: number,
-                spawnPosition: {
-                    x: number,
-                    y: number
-                }
-            }[] = [];
             
             for (let i = 0; i < enemyData.spawnAmount; i++)
             {
@@ -215,12 +219,15 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                             {
                                 scriptInfo.position = results.position;
                             }
-                            if (results.fire)
+                            if (results.fire && enemyBullet && bulletMethods)
                             {
                                 bullets.push({
                                     index: bulletIndexCounter++,
                                     spawnPosition: scriptInfo.position,
-                                    spawnTime: _time
+                                    spawnTime: _time,
+                                    count: this.props.selectedEnemyIndex >= 0 && this.props.stage.enemies[this.props.selectedEnemyIndex].id === enemy.id,
+                                    methods: bulletMethods,
+                                    obj: enemyBullet
                                 });
                             }
                         }
@@ -237,67 +244,63 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         }
                     }
                     // console.timeEnd("render sprite");
-                    
                 }
-            }
-
-            if (enemyBullet)
-            {
-                const maxTime = this.props.stage.lengthSeconds;
-                bullets.forEach((bullet) =>
-                {
-                    bulletMethods = bulletMethods as BulletScriptMethodCollection;
-                    const age = this.props.time - bullet.spawnTime;
-                    if (age > maxTime)
-                    {
-                        return; // TODO: SHOW ERROR
-                    }
-
-                    let scriptInfo = {
-                        position: bullet.spawnPosition
-                    };
-
-                    let alive = true;
-
-                    for (let _time = bullet.spawnTime; _time < bullet.spawnTime + age; _time += delta)
-                    {
-                        const results = bulletMethods.update({
-                            bullet: {
-                                age: _time - bullet.spawnTime,
-                                position: scriptInfo.position,
-                                spawnPosition: bullet.spawnPosition
-                            },
-                            stage: {
-                                age: _time,
-                                size: gameSize
-                            },
-                            delta: delta,
-                            index: bullet.index
-                        });
-
-                        if (results)
-                        {
-                            if (!results.alive)
-                            {
-                                alive = false;
-                                break;
-                            }
-                            if (results.position) scriptInfo.position = results.position;
-                        }
-                    }
-
-                    if (alive)
-                    {
-                        this.renderSpriteHaver(enemyBullet as BulletModel, Point.fromPointLike(scriptInfo.position));
-                        if (this.props.selectedEnemyIndex >= 0 && this.props.stage.enemies[this.props.selectedEnemyIndex].id === enemy.id)
-                        {
-                            bulletCounter++;
-                        }
-                    }
-                });
             }
         });
         // console.timeEnd("enemies");
+
+        const maxTime = this.props.stage.lengthSeconds;
+        bullets.forEach((bullet) =>
+        {
+            const age = this.props.time - bullet.spawnTime;
+            if (age > maxTime)
+            {
+                return; // TODO: SHOW ERROR
+            }
+
+            let scriptInfo = {
+                position: bullet.spawnPosition
+            };
+
+            let alive = true;
+
+            for (let _time = bullet.spawnTime; _time < bullet.spawnTime + age; _time += delta)
+            {
+                const results = bullet.methods.update({
+                    bullet: {
+                        age: _time - bullet.spawnTime,
+                        position: scriptInfo.position,
+                        spawnPosition: bullet.spawnPosition
+                    },
+                    stage: {
+                        age: _time,
+                        size: gameSize
+                    },
+                    delta: delta,
+                    index: bullet.index
+                });
+
+                if (results)
+                {
+                    if (!results.alive)
+                    {
+                        alive = false;
+                        break;
+                    }
+                    if (results.position) scriptInfo.position = results.position;
+                }
+            }
+
+            if (alive)
+            {
+                this.renderSpriteHaver(bullet.obj, Point.fromPointLike(scriptInfo.position));
+
+                if (bullet.count)
+                {
+                    bulletCounter++;
+                }
+            }
+        });
         
         this.props.onInstanceCount(instanceCounter, bulletCounter);
 
