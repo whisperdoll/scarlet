@@ -75,7 +75,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleInstanceCount = this.handleInstanceCount.bind(this);
         this.handleBossEditMode = this.handleBossEditMode.bind(this);
         this.handleEnemyEditMode = this.handleEnemyEditMode.bind(this);
-        this.handleBossFormChange = this.handleBossFormChange.bind(this);
         this.handleBossFormIndexChange = this.handleBossFormIndexChange.bind(this);
         this.handleAddBossForm = this.handleAddBossForm.bind(this);
         this.handleBossFormUpdate = this.handleBossFormUpdate.bind(this);
@@ -417,15 +416,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             return {
                 ...state,
-                selectedBossFormIndex: index
+                selectedBossFormIndex: index,
+                timeSeconds: 0
             };
         });
-    }
-
-    handleBossFormChange(e: React.ChangeEvent<HTMLSelectElement>)
-    {
-        const index = e.currentTarget.selectedIndex;
-        this.handleBossFormIndexChange(index);
     }
 
     handleAddBossForm()
@@ -615,7 +609,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             stage={this.props.stage}
                             time={this.state.timeSeconds}
                             refresh={this.state.refreshRenderer}
-                            selectedEnemyIndex={this.state.selectedEnemyIndex}
+                            selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
                             onInstanceCount={this.handleInstanceCount}
                             editMode={this.state.editMode}
                         />

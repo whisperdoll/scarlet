@@ -1,13 +1,13 @@
 import React, { ChangeEvent, Ref } from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel, BulletModel, ScriptModel, StageEnemyData } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel, BulletModel, ScriptModel, StageEnemyData, BossModel } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
-import Point from '../../../../../utils/point';
+import Point, { PointLike } from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import ScriptEngine, { EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult, ScriptResult, ScriptMethodCollection, BulletScriptMethodCollection, BulletScriptContext, BulletScriptResult } from '../../../../../utils/ScriptEngine';
+import ScriptEngine, { BossScriptContext, BossScriptResult, BossScriptMethodCollection, EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult, ScriptResult, ScriptMethodCollection, BulletScriptMethodCollection, BulletScriptContext, BulletScriptResult } from '../../../../../utils/ScriptEngine';
 import { obj_copy, numberArray } from '../../../../../utils/utils';
 const { dialog } = require("electron").remote;
 
@@ -17,7 +17,7 @@ interface Props
     stage: StageModel;
     time: number;
     refresh: boolean;
-    selectedEnemyIndex: number;
+    selectedEntityIndex: number;
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
 }
@@ -25,6 +25,19 @@ interface Props
 interface State
 {
 }
+
+interface BulletInfo
+{
+    index: number;
+    spawnTime: number;
+    spawnPosition: {
+        x: number,
+        y: number
+    };
+    methods: ScriptMethodCollection<BulletScriptContext, BulletScriptResult>;
+    count: boolean;
+    obj: BulletModel;
+};
 
 export default class StageRenderer extends React.PureComponent<Props, State>
 {
@@ -87,15 +100,15 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         });
     }
 
-    renderSpriteHaver(obj: ObjectModel & { spriteId: number }, pos: Point)
+    renderSpriteHaver(spriteId: number, pos: Point, hilite: boolean)
     {
-        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(obj.spriteId, this.props.project);
+        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
         if (sprite)
         {
             ImageCache.getImage(sprite.path, (img, wasCached) =>
             {
                 this.canvas?.drawImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)));
-                if (this.props.selectedEnemyIndex >= 0 && obj.id === this.props.stage.enemies[this.props.selectedEnemyIndex].id)
+                if (hilite)
                 {
                     this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
                 }
@@ -104,76 +117,31 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
     }
 
-    renderStage()
+    renderEnemies(delta: number, gameSize: PointLike): { bullets: BulletInfo[], instances: number }
     {
-        if (!this.canvas || !this.dirty || this.rendering)
-        {
-            requestAnimationFrame(this.renderStage);
-            return;
-        }
-
-        console.time("> stage render");
-        this.rendering = true;
-        this.dirty = false;
-        // console.time("clear canvas");
-        this.canvas.clear();
-        // console.timeEnd("clear canvas");
-
-        // console.time("fetch background");
-        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
-        // console.timeEnd("fetch background");
-        if (background)
-        {
-            ImageCache.getImage(background.path, (img, wasCached) =>
-            {
-                this.canvas?.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
-                this.dirty = !wasCached;
-            });
-        }
-
-        // console.time("fetch player");
-        const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
-        // console.timeEnd("fetch player");
-        // console.time("draw player");
-        player && this.renderSpriteHaver(player, Point.fromPointLike(this.props.stage.playerSpawnPosition));
-        // console.timeEnd("draw player");
-
-        const delta = 1 / 60;
-        const gameSize = obj_copy(this.props.stage.size);
-
+        const bullets: BulletInfo[] = [];
         let instanceCounter = 0;
-        let bulletCounter = 0;
 
-        const bullets: {
-            index: number,
-            spawnTime: number,
-            spawnPosition: {
-                x: number,
-                y: number
-            },
-            methods: ScriptMethodCollection<BulletScriptContext, BulletScriptResult>,
-            count: boolean,
-            obj: BulletModel
-        }[] = [];
-        
-        // console.time("enemies");
         this.props.stage.enemies.forEach((_enemyData, enemyIndex) =>
         {
             const enemyData: StageEnemyData = obj_copy(_enemyData);
             const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
             if (!enemy) return;
+
+            const isSelected = this.props.selectedEntityIndex >= 0 && this.props.stage.enemies[this.props.selectedEntityIndex].id === enemy.id;
+
             if (enemy.scriptId < 0)
             {
-                this.renderSpriteHaver(enemy, Point.fromPointLike(enemyData.position));
+                this.renderSpriteHaver(enemy.spriteId, Point.fromPointLike(enemyData.position), isSelected);
                 return;
             }
-            const enemyMethods = ScriptEngine.parseScriptFor<EnemyScriptContext, EnemyScriptResult>(enemy, this.props.project);
+            const enemyMethods = ScriptEngine.parseScript<EnemyScriptContext, EnemyScriptResult>(enemy.scriptId, this.props.project);
 
             let bulletMethods: ScriptMethodCollection<BulletScriptContext, BulletScriptResult> | null = null;
             let enemyBullet = ObjectHelper.getObjectWithId<BulletModel>(enemy.bulletId, this.props.project);
             if (enemyBullet)
             {
-                bulletMethods = ScriptEngine.parseScriptFor(enemyBullet, this.props.project);
+                bulletMethods = ScriptEngine.parseScript(enemyBullet.scriptId, this.props.project);
             }
             
             for (let i = 0; i < enemyData.spawnAmount; i++)
@@ -225,7 +193,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                                     index: bulletIndexCounter++,
                                     spawnPosition: scriptInfo.position,
                                     spawnTime: _time,
-                                    count: this.props.selectedEnemyIndex >= 0 && this.props.stage.enemies[this.props.selectedEnemyIndex].id === enemy.id,
+                                    count: isSelected,
                                     methods: bulletMethods,
                                     obj: enemyBullet
                                 });
@@ -237,8 +205,9 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     // console.time("render sprite");
                     if (!isDead)
                     {
-                        this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
-                        if (this.props.selectedEnemyIndex >= 0 && this.props.stage.enemies[this.props.selectedEnemyIndex].id === enemy.id)
+                        
+                        this.renderSpriteHaver(enemy.spriteId, Point.fromPointLike(scriptInfo.position), isSelected);
+                        if (isSelected)
                         {
                             instanceCounter++;
                         }
@@ -247,7 +216,162 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 }
             }
         });
-        // console.timeEnd("enemies");
+
+        return { bullets: bullets, instances: instanceCounter };
+    }
+
+    renderBoss(delta: number, gameSize: PointLike): BulletInfo[]
+    {
+        const bullets: BulletInfo[] = [];
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        if (!boss) return [];
+        
+        const form = boss.forms[this.props.selectedEntityIndex];
+        if (!form) return [];
+
+        if (form.scriptId < 0)
+        {
+            // TODO: SPAWN POINTS
+            this.renderSpriteHaver(form.spriteId, new Point(64, 64), false);
+            return [];
+        }
+        const bossMethods = ScriptEngine.parseScript<BossScriptContext, BossScriptResult>(form.scriptId, this.props.project);
+
+        let bulletMethods: ScriptMethodCollection<BulletScriptContext, BulletScriptResult> | null = null;
+        let bossBullet = ObjectHelper.getObjectWithId<BulletModel>(form.bulletId, this.props.project);
+        if (bossBullet)
+        {
+            bulletMethods = ScriptEngine.parseScript(bossBullet.scriptId, this.props.project);
+        }
+
+        let bulletIndexCounter = 0;
+        const minTime = 0;
+        const maxTime = form.lifetime;
+        
+        let totalAge = 0;
+        for (let i = 0; i < this.props.selectedEntityIndex; i++)
+        {
+            totalAge += boss.forms[i].lifetime;
+        }
+
+        if (minTime <= this.props.time)
+        {
+            let isDead = this.props.time >= maxTime;
+            let scriptInfo = {
+                position: { x: 64, y: 64 } // TODO: SPAWN POSITION
+            };
+            // console.time("catchup loop");
+            for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
+            {
+                // console.time("method call");
+                const results = bossMethods.update({
+                    boss: {
+                        formAge: _time - minTime,
+                        position: scriptInfo.position,
+                        spawnPosition: { x: 64, y: 64 },
+                        formIndex: this.props.selectedEntityIndex,
+                        totalAge: totalAge + (_time - minTime)
+                    },
+                    stage: {
+                        age: _time,
+                        size: gameSize
+                    },
+                    delta: delta
+                });
+                // console.timeEnd("method call");
+                
+                // console.time("eat results");
+                if (results)
+                {
+                    if (!results.alive)
+                    {
+                        isDead = true;
+                    }
+                    if (results.position)
+                    {
+                        scriptInfo.position = results.position;
+                    }
+                    if (results.fire && bossBullet && bulletMethods)
+                    {
+                        bullets.push({
+                            index: bulletIndexCounter++,
+                            spawnPosition: scriptInfo.position,
+                            spawnTime: _time,
+                            count: true,
+                            methods: bulletMethods,
+                            obj: bossBullet
+                        });
+                    }
+                }
+                // console.timeEnd("eat results");
+            }
+            // console.timeEnd("catchup loop");
+            // console.time("render sprite");
+            if (!isDead)
+            {
+                this.renderSpriteHaver(form.spriteId, Point.fromPointLike(scriptInfo.position), false);
+            }
+            // console.timeEnd("render sprite");
+        }
+
+        return bullets;
+    }
+
+    renderStage()
+    {
+        if (!this.canvas || !this.dirty || this.rendering)
+        {
+            requestAnimationFrame(this.renderStage);
+            return;
+        }
+
+        console.time("> stage render");
+        this.rendering = true;
+        this.dirty = false;
+        // console.time("clear canvas");
+        this.canvas.clear();
+        // console.timeEnd("clear canvas");
+
+        // console.time("fetch background");
+        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
+        // console.timeEnd("fetch background");
+        if (background)
+        {
+            ImageCache.getImage(background.path, (img, wasCached) =>
+            {
+                this.canvas?.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
+                this.dirty = !wasCached;
+            });
+        }
+
+        // console.time("fetch player");
+        const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
+        // console.timeEnd("fetch player");
+        // console.time("draw player");
+        player && this.renderSpriteHaver(player.spriteId, Point.fromPointLike(this.props.stage.playerSpawnPosition), false);
+        // console.timeEnd("draw player");
+
+        const delta = 1 / 60;
+        const gameSize = obj_copy(this.props.stage.size);
+
+        let instanceCounter = 0;
+        let bulletCounter = 0;
+
+        let bullets: BulletInfo[] = [];
+        
+        if (this.props.editMode === "enemy")
+        {
+            // console.time("enemies");
+            const enemyRenderResult = this.renderEnemies(delta, gameSize);
+            bullets = enemyRenderResult.bullets;
+            instanceCounter = enemyRenderResult.instances;
+            // console.timeEnd("enemies");
+        }
+        else if (this.props.editMode === "boss")
+        {
+            bullets = this.renderBoss(delta, gameSize);
+            instanceCounter = 0;
+        }
 
         const maxTime = this.props.stage.lengthSeconds;
         bullets.forEach((bullet) =>
@@ -293,7 +417,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
             if (alive)
             {
-                this.renderSpriteHaver(bullet.obj, Point.fromPointLike(scriptInfo.position));
+                this.renderSpriteHaver(bullet.obj.spriteId, Point.fromPointLike(scriptInfo.position), false);
 
                 if (bullet.count)
                 {

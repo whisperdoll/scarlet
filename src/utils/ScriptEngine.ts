@@ -55,6 +55,35 @@ export interface EnemyScriptMethodCollection extends ScriptMethodCollection<Enem
     update: (context: EnemyScriptContext) => EnemyScriptResult;
 };
 
+export interface BossScriptData
+{
+    totalAge: number;
+    formAge: number;
+    formIndex: number;
+    spawnPosition: PointLike;
+    position: PointLike;
+};
+
+export interface BossScriptContext extends ScriptContext
+{
+    boss: BossScriptData;
+    stage: StageScriptData;
+    delta: number;
+};
+
+export interface BossScriptResult extends ScriptResult
+{
+    position?: PointLike;
+    store?: any;
+    fire?: boolean;
+    alive?: boolean;
+};
+
+export interface BossScriptMethodCollection extends ScriptMethodCollection<BossScriptContext, BossScriptResult>
+{
+    update: (context: BossScriptContext) => BossScriptResult;
+};
+
 export interface BulletScriptData
 {
     age: number;
@@ -117,18 +146,18 @@ export default class ScriptEngine
         return true;
     }
 
-    public static parseScriptFor<C extends ScriptContext, R extends ScriptResult>(obj: ObjectModel & { scriptId: number }, project: ProjectModel): ScriptMethodCollection<C, R>
+    public static parseScript<C extends ScriptContext, R extends ScriptResult>(scriptId: number, project: ProjectModel): ScriptMethodCollection<C, R>
     {
-        if (obj.scriptId === -1)
+        if (scriptId === -1)
         {
-            throw "tried to parse script for scriptless object " + obj.name;
+            throw "tried to parse script for scriptless object ";
         }
-        if (!this.contextCache.has(obj.scriptId))
+        if (!this.contextCache.has(scriptId))
         {
             throw "fetch script first";
         }
         
-        return this.contextCache.get(obj.scriptId) as ScriptMethodCollection<C, R>;
+        return this.contextCache.get(scriptId) as ScriptMethodCollection<C, R>;
     }
 
     public static executeScript<C extends ScriptContext, R extends ScriptResult>(methodCollection: ScriptMethodCollection<C, R>, method: string, context: C): R
