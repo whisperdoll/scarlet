@@ -102,6 +102,35 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.animate();
     }
 
+    componentDidUpdate(prevProps: Props, prevState: State)
+    {
+        const currentEnemies = this.props.stage.enemies;
+        const prevEnemies = prevProps.stage.enemies;
+
+        if (currentEnemies.length !== prevEnemies.length)
+        {
+            this.refreshScripts();
+        }
+        else
+        {
+            for (let i = 0; i < currentEnemies.length; i++)
+            {
+                const currObj = ObjectHelper.getObjectWithId(currentEnemies[i].id, this.props.project);
+                const prevObj = ObjectHelper.getObjectWithId(prevEnemies[i].id, this.props.project);
+
+                if (!currObj || !prevObj)
+                {
+                    throw "somertthing bad happen,,,";
+                }
+                else if (currObj.type !== prevObj.type)
+                {
+                    this.refreshScripts();
+                    return;
+                }
+            }
+        }
+    }
+
     handleBack()
     {
         this.props.onBack();
