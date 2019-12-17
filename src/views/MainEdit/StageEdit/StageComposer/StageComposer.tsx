@@ -26,6 +26,8 @@ interface State
     selectedNewEnemyId: number;
     playing: boolean;
     refreshRenderer: boolean;
+    selectedEnemyAliveCount: number;
+    selectedEnemyBulletAliveCount: number;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -39,7 +41,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
             selectedEnemyIndex: -1,
             selectedNewEnemyId: -1,
             playing: false,
-            refreshRenderer: false
+            refreshRenderer: false,
+            selectedEnemyAliveCount: 0,
+            selectedEnemyBulletAliveCount: 0
         };
 
         this.handleBack = this.handleBack.bind(this);
@@ -61,6 +65,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.refreshScripts = this.refreshScripts.bind(this);
         this.handlePlayPause = this.handlePlayPause.bind(this);
         this.animate = this.animate.bind(this);
+        this.handleInstanceCount = this.handleInstanceCount.bind(this);
     }
 
     animate()
@@ -330,6 +335,18 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handleInstanceCount(instance: number, bullet: number)
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                selectedEnemyAliveCount: instance,
+                selectedEnemyBulletAliveCount: bullet
+            };
+        });
+    }
+
     render()
     {
         return (
@@ -442,6 +459,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             time={this.state.timeSeconds}
                             refresh={this.state.refreshRenderer}
                             selectedEnemyIndex={this.state.selectedEnemyIndex}
+                            onInstanceCount={this.handleInstanceCount}
                         />
                     </div>
                     {/* properties */}
@@ -451,6 +469,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         project={this.props.project}
                         stage={this.props.stage}
                         onDeselectEnemy={this.handleDeselectEnemy}
+                        enemyAliveCount={this.state.selectedEnemyAliveCount}
+                        enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
                     />
                 </div>
                 {/* timeline */}

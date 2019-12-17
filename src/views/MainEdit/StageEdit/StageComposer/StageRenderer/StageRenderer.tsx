@@ -18,6 +18,7 @@ interface Props
     time: number;
     refresh: boolean;
     selectedEnemyIndex: number;
+    onInstanceCount: (instances: number, bullets: number) => any;
 }
 
 interface State
@@ -134,6 +135,9 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         const delta = 1 / 60;
         const gameSize = obj_copy(this.props.stage.size);
+
+        let instanceCounter = 0;
+        let bulletCounter = 0;
         
         // console.time("enemies");
         this.props.stage.enemies.forEach((_enemyData, enemyIndex) =>
@@ -223,6 +227,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     if (!isDead)
                     {
                         this.renderSpriteHaver(enemy, Point.fromPointLike(scriptInfo.position));
+                        if (this.props.selectedEnemyIndex >= 0 && this.props.stage.enemies[this.props.selectedEnemyIndex].id === enemy.id)
+                        {
+                            instanceCounter++;
+                        }
                     }
                     // console.timeEnd("render sprite");
                     
@@ -277,11 +285,18 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     if (alive)
                     {
                         this.renderSpriteHaver(enemyBullet as BulletModel, Point.fromPointLike(scriptInfo.position));
+                        if (this.props.selectedEnemyIndex >= 0 && this.props.stage.enemies[this.props.selectedEnemyIndex].id === enemy.id)
+                        {
+                            bulletCounter++;
+                        }
                     }
                 });
             }
         });
         // console.timeEnd("enemies");
+        
+        this.props.onInstanceCount(instanceCounter, bulletCounter);
+
         this.rendering = false;
         requestAnimationFrame(this.renderStage);
         console.timeEnd("> stage render");

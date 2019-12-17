@@ -13,6 +13,8 @@ interface Props
     enemyIndex: number;
     onUpdate: (enemy: StageEnemyData, index: number) => any;
     onDeselectEnemy: () => any;
+    enemyAliveCount: number;
+    enemyBulletAliveCount: number;
 }
 
 interface State
@@ -241,6 +243,8 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                     >
                         Deselect
                     </button>
+                    <div>Alive: {this.props.enemyAliveCount}</div>
+                    <div>Bullets Alive: {this.props.enemyBulletAliveCount}</div>
                 </div>
             );
         }
