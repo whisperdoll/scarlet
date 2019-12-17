@@ -13,7 +13,7 @@ interface Props
     project: ProjectModel;
     stage: StageModel;
     onUpdate: (stage: StageModel) => any;
-    
+    onProjectUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -92,6 +92,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
                     onUpdate={this.props.onUpdate}
                     project={this.props.project}
                     stage={this.props.stage}
+                    onProjectUpdate={this.props.onProjectUpdate}
                 />
             )
         }

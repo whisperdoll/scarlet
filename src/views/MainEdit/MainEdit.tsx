@@ -39,6 +39,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
         this.handleObjectCreate = this.handleObjectCreate.bind(this);
         this.handleObjectUpdate = this.handleObjectUpdate.bind(this);
         this.handleObjectSelect = this.handleObjectSelect.bind(this);
+        this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
     }
 
     handleObjectCreate(type: ObjectType)
@@ -80,6 +81,11 @@ export default class MainEditView extends React.PureComponent<Props, State>
                 currentlyEditing: obj
             };
         });
+    }
+
+    handleProjectUpdate(project: ProjectModel)
+    {
+        this.props.onUpdate(project);
     }
 
     render()
@@ -151,6 +157,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                                             onUpdate={this.handleObjectUpdate}
                                             stage={this.state.currentlyEditing as StageModel}
                                             project={this.props.project}
+                                            onProjectUpdate={this.handleProjectUpdate}
                                         />
                                     );
                                 case "background":

@@ -119,6 +119,7 @@ export default class ObjectHelper
         array_remove(errors, "Empty name");
 
         const p = obj_copy(project) as ProjectModel;
+        p.objects = array_copy(p.objects);
         p.objects[p.objects.findIndex(o => o.id === obj.id)] = obj;
 
         if (obj.name === "")

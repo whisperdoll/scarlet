@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import './StageComposer.scss';
-import { StageModel, ProjectModel, SpriteModel, StageEnemyData } from '../../../../utils/datatypes';
+import { StageModel, ProjectModel, SpriteModel, StageEnemyData, BossModel, BossFormModel } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
@@ -16,6 +16,7 @@ interface Props
     project: ProjectModel;
     stage: StageModel;
     onUpdate: (stage: StageModel) => any;
+    onProjectUpdate: (project: ProjectModel) => any;
     onBack: () => any;
 }
 
@@ -28,6 +29,8 @@ interface State
     refreshRenderer: boolean;
     selectedEnemyAliveCount: number;
     selectedEnemyBulletAliveCount: number;
+    editMode: "enemy" | "boss";
+    selectBossFormIndex: number;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -43,7 +46,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
             playing: false,
             refreshRenderer: false,
             selectedEnemyAliveCount: 0,
-            selectedEnemyBulletAliveCount: 0
+            selectedEnemyBulletAliveCount: 0,
+            editMode: "enemy",
+            selectBossFormIndex: 0
         };
 
         this.handleBack = this.handleBack.bind(this);
@@ -66,6 +71,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handlePlayPause = this.handlePlayPause.bind(this);
         this.animate = this.animate.bind(this);
         this.handleInstanceCount = this.handleInstanceCount.bind(this);
+        this.handleBossEditMode = this.handleBossEditMode.bind(this);
+        this.handleEnemyEditMode = this.handleEnemyEditMode.bind(this);
+        this.handleBossFormChange = this.handleBossFormChange.bind(this);
+        this.handleBossFormIndexChange = this.handleBossFormIndexChange.bind(this);
+        this.handleAddBossForm = this.handleAddBossForm.bind(this);
     }
 
     animate()
@@ -130,8 +140,26 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 else if (currObj.type !== prevObj.type)
                 {
                     this.refreshScripts();
-                    return;
+                    break;
                 }
+            }
+        }
+
+        const currentBoss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        const prevBoss = ObjectHelper.getObjectWithId<BossModel>(prevProps.stage.bossId, prevProps.project);
+
+        if (currentBoss && prevBoss)
+        {
+            if (currentBoss.forms.length > prevBoss.forms.length)
+            {
+                // form was added //
+                this.handleBossFormIndexChange(currentBoss.forms.length - 1);
+            }
+            else if (currentBoss.forms.length < prevBoss.forms.length)
+            {
+                // form was removed //
+                const index = prevState.selectBossFormIndex;
+                this.handleBossFormIndexChange(Math.max(0, index - 1));
             }
         }
     }
@@ -347,6 +375,70 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handleBossEditMode()
+    {
+        if (this.props.stage.bossId >= 0)
+        {
+            this.setState((state) =>
+            {
+                return {
+                    ...state,
+                    editMode: "boss"
+                };
+            });
+        }
+        else
+        {
+            alert("select a boss first!");
+        }
+    }
+
+    handleEnemyEditMode()
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                editMode: "enemy"
+            };
+        });
+    }
+
+    handleBossFormIndexChange(index: number)
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                selectBossFormIndex: index
+            };
+        });
+    }
+
+    handleBossFormChange(e: React.ChangeEvent<HTMLSelectElement>)
+    {
+        const index = e.currentTarget.selectedIndex;
+        this.handleBossFormIndexChange(index);
+    }
+
+    handleAddBossForm()
+    {
+        const form: BossFormModel = {
+            bulletId: -1,
+            hp: 10,
+            scriptId: -1,
+            spriteId: -1
+        };
+
+        const boss = obj_copy(ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project));
+        if (boss)
+        {
+            boss.forms = boss.forms.concat([form]);
+            const { errors, project } = ObjectHelper.updateObject(boss, this.props.project, []);
+            this.props.onProjectUpdate(project);
+        }
+    }
+
     render()
     {
         return (
@@ -430,26 +522,53 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 project={this.props.project}
                             />
                         </div>
-                        <div className="row">
-                            <span>Enemies:</span>
-                            <ObjectSelect
-                                currentObjectId={this.state.selectedNewEnemyId}
-                                objectType="enemy"
-                                onChange={this.handleSelectNewEnemy}
-                                project={this.props.project}
-                            />
+                        {this.state.editMode === "enemy" && (<React.Fragment>
                             <button
-                                className="addEnemy"
-                                onClick={this.handleAddEnemy}
+                                onClick={this.handleBossEditMode}
                             >
-                                + Add
+                                Boss Edit Mode
                             </button>
-                        </div>
-                        <EnemyList
-                            onSelectEnemy={this.handleSelectEnemy}
-                            project={this.props.project}
-                            stage={this.props.stage}
-                        />
+                            <div className="row">
+                                <span>Enemies:</span>
+                                <ObjectSelect
+                                    currentObjectId={this.state.selectedNewEnemyId}
+                                    objectType="enemy"
+                                    onChange={this.handleSelectNewEnemy}
+                                    project={this.props.project}
+                                />
+                                <button
+                                    className="addEnemy"
+                                    onClick={this.handleAddEnemy}
+                                >
+                                    + Add
+                                </button>
+                            </div>
+                            <EnemyList
+                                onSelectEnemy={this.handleSelectEnemy}
+                                project={this.props.project}
+                                stage={this.props.stage}
+                            />
+                        </React.Fragment>)}
+                        {this.state.editMode === "boss" && (<React.Fragment>
+                            <button
+                                onClick={this.handleEnemyEditMode}
+                            >
+                                Enemy Edit Mode
+                            </button>
+                            <div className="row">
+                                <span>Form:</span>
+                                <select
+                                    onChange={this.handleBossFormChange}
+                                    value={this.state.selectBossFormIndex.toString()}
+                                >
+                                    {ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project)?.forms.map((form, i) =>
+                                    {
+                                        return <option key={i} value={i.toString()}>Form {i.toString()}</option>
+                                    })}
+                                </select>
+                                <button onClick={this.handleAddBossForm}>+ Add New</button>
+                            </div>
+                        </React.Fragment>)}
                     </div>
                     {/* stage */}
                     <div className="stagePreview">
