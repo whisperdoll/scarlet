@@ -9,6 +9,8 @@ import StageRenderer from "./StageRenderer/StageRenderer";
 import { array_copy, obj_copy } from '../../../../utils/utils';
 import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
+import BossFormList from './BossFormList/BossFormList';
+import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -30,7 +32,7 @@ interface State
     selectedEnemyAliveCount: number;
     selectedEnemyBulletAliveCount: number;
     editMode: "enemy" | "boss";
-    selectBossFormIndex: number;
+    selectedBossFormIndex: number;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -48,7 +50,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             selectedEnemyAliveCount: 0,
             selectedEnemyBulletAliveCount: 0,
             editMode: "enemy",
-            selectBossFormIndex: 0
+            selectedBossFormIndex: 0
         };
 
         this.handleBack = this.handleBack.bind(this);
@@ -76,6 +78,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleBossFormChange = this.handleBossFormChange.bind(this);
         this.handleBossFormIndexChange = this.handleBossFormIndexChange.bind(this);
         this.handleAddBossForm = this.handleAddBossForm.bind(this);
+        this.handleBossFormUpdate = this.handleBossFormUpdate.bind(this);
     }
 
     animate()
@@ -158,7 +161,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             else if (currentBoss.forms.length < prevBoss.forms.length)
             {
                 // form was removed //
-                const index = prevState.selectBossFormIndex;
+                const index = prevState.selectedBossFormIndex;
                 this.handleBossFormIndexChange(Math.max(0, index - 1));
             }
         }
@@ -410,7 +413,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             return {
                 ...state,
-                selectBossFormIndex: index
+                selectedBossFormIndex: index
             };
         });
     }
@@ -437,6 +440,39 @@ export default class StageComposer extends React.PureComponent<Props, State>
             const { errors, project } = ObjectHelper.updateObject(boss, this.props.project, []);
             this.props.onProjectUpdate(project);
         }
+    }
+
+    handleBossFormUpdate(bossForm: BossFormModel, index: number)
+    {
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        if (boss)
+        {
+            const forms = array_copy(boss.forms);
+            forms[index] = bossForm;
+            const newBoss: BossModel = {
+                ...boss,
+                forms: forms
+            };
+
+            const { project } = ObjectHelper.updateObject(newBoss, this.props.project, []);
+            this.props.onProjectUpdate(project);
+        }
+    }
+
+    private get selectedBossForm(): BossFormModel | null
+    {
+        if (this.state.selectedBossFormIndex === -1)
+        {
+            return null;
+        }
+
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        if (!boss || boss.forms.length === 0)
+        {
+            return null;
+        }
+
+        return boss.forms[this.state.selectedBossFormIndex];
     }
 
     render()
@@ -556,18 +592,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 Enemy Edit Mode
                             </button>
                             <div className="row">
-                                <span>Form:</span>
-                                <select
-                                    onChange={this.handleBossFormChange}
-                                    value={this.state.selectBossFormIndex.toString()}
-                                >
-                                    {ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project)?.forms.map((form, i) =>
-                                    {
-                                        return <option key={i} value={i.toString()}>Form {i.toString()}</option>
-                                    })}
-                                </select>
+                                <span className="formsLabel">Forms:</span>
                                 <button onClick={this.handleAddBossForm}>+ Add New</button>
                             </div>
+                            <BossFormList
+                                onSelectBossForm={this.handleBossFormIndexChange}
+                                project={this.props.project}
+                                stage={this.props.stage}
+                                bossId={this.props.stage.bossId}
+                            />
                         </React.Fragment>)}
                     </div>
                     {/* stage */}
@@ -582,15 +615,25 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         />
                     </div>
                     {/* properties */}
-                    <PropertyEdit
-                        enemyIndex={this.state.selectedEnemyIndex}
-                        onUpdate={this.handleUpdateEnemy}
-                        project={this.props.project}
-                        stage={this.props.stage}
-                        onDeselectEnemy={this.handleDeselectEnemy}
-                        enemyAliveCount={this.state.selectedEnemyAliveCount}
-                        enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
-                    />
+                    {this.state.editMode === "enemy" && (
+                        <PropertyEdit
+                            enemyIndex={this.state.selectedEnemyIndex}
+                            onUpdate={this.handleUpdateEnemy}
+                            project={this.props.project}
+                            stage={this.props.stage}
+                            onDeselectEnemy={this.handleDeselectEnemy}
+                            enemyAliveCount={this.state.selectedEnemyAliveCount}
+                            enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
+                        />
+                    )}
+                    {this.state.editMode === "boss" && this.selectedBossForm && (
+                        <BossFormEdit
+                            bossForm={this.selectedBossForm}
+                            index={this.state.selectedBossFormIndex}
+                            onUpdate={this.handleBossFormUpdate}
+                            project={this.props.project}
+                        />
+                    )}
                 </div>
                 {/* timeline */}
                 <StageTimeline

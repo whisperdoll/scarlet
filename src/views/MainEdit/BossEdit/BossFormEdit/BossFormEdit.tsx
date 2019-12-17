@@ -75,7 +75,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
     {
         return (
             <div className="bossFormEdit">
-                <span>Form {this.props.index.toString()}</span>
+                <h2>Form {this.props.index.toString()}</h2>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect

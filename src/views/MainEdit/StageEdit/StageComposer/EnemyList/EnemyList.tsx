@@ -63,10 +63,12 @@ export default class EnemyList extends React.PureComponent<Props, State>
                         key={i}
                         data-index={i.toString()}
                     >
-                        <img
-                            src={this.spritePathForEnemy(enemy.id)}
-                            alt={"sprite for " + enemy.instanceName}
-                        />
+                        {this.spritePathForEnemy(enemy.id) && (
+                            <img
+                                src={this.spritePathForEnemy(enemy.id)}
+                                alt={"sprite for " + enemy.instanceName}
+                            />
+                        )}
                         <span>{enemy.instanceName}</span>
                         <span>&nbsp;</span>
                         <span className="enemyType">{"(" + ObjectHelper.getObjectWithId(enemy.id, this.props.project)?.name + ")"}</span>
