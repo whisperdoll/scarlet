@@ -56,7 +56,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="row timeline">
+            <div className="timeline">
                 <div className="enemyTimeline">
                     {this.props.stage.enemies.map((enemy, i) =>
                     {

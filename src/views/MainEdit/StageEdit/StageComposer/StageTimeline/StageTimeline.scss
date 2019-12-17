@@ -1,8 +1,10 @@
-.objectEdit > .stageComposer .row.timeline
+.objectEdit > .stageComposer .timeline
 {
+    position: relative;
     flex-direction: column;
     .enemyTimeline
     {
+        position: relative;
         height: 32px;
         display: block;
 
@@ -10,10 +12,15 @@
         {
             background-color: rgba(255,255,255,0.2);
         }
+
+        width: 100%;
+        box-sizing: border-box;
     }
 
     input
     {
         display: block;
+        width: 100%;
+        box-sizing: border-box;
     }
 }
