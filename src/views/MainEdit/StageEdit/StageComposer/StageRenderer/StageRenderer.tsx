@@ -57,12 +57,16 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     handleResize()
     {
-        if (this.containerRef.current)
+        if (this.containerRef.current && this.canvas)
         {
             const containerSize = Point.fromSizeLike(this.containerRef.current.getBoundingClientRect());
             const stageSize = Point.fromPointLike(this.props.stage.size);
             const ratio = containerSize.dividedBy(stageSize).min;
-            this.canvas?.scale(ratio, "translate(-50%,-50%)", "");
+            this.canvas.scale(ratio, "translate(-50%,-50%)", "");
+            if ((ratio >= 1 && this.ratio < 1) || (ratio < 1 && this.ratio >= 1))
+            {
+                this.canvas.pixelated = ratio >= 1;
+            }
             this.ratio = ratio;
             this.dirty = true;
         }
