@@ -45,6 +45,7 @@ export interface BackgroundModel extends ObjectModel
 export interface PlayerModel extends ObjectModel
 {
     type: "player";
+    moveSpeed: number;
     spriteId: number;
     scriptId: number;
     bulletId: number;

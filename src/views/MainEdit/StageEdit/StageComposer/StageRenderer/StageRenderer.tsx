@@ -20,6 +20,7 @@ interface Props
     selectedEntityIndex: number;
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
+    playing: boolean;
 }
 
 interface State
@@ -43,16 +44,17 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 {
     private canvas: Canvas | null = null;
     private containerRef: React.RefObject<HTMLDivElement>;
-    private counter: number = 0;
-    private date: number = 0;
     private dirty: boolean = true;
     private rendering: boolean = false;
-    private renderBuffer: boolean = false;
     private ratio: number = 1;
+    private keyDownMap: Map<string, boolean> = new Map();
+    private playerPos: PointLike;
 
     constructor(props: Props)
     {
         super(props);
+
+        this.playerPos = obj_copy(props.stage.playerSpawnPosition);
 
         this.grabCanvas = this.grabCanvas.bind(this);
         this.renderStage = this.renderStage.bind(this);
@@ -64,8 +66,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.containerRef = React.createRef();
     }
 
-    componentDidUpdate()
+    componentDidUpdate(prevProps: Props)
     {
+        if (!this.props.playing)
+        {
+            this.playerPos = obj_copy(this.props.stage.playerSpawnPosition);
+        }
+
         this.handleResize();
     }
 
@@ -95,8 +102,18 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     grabCanvas(canvas: Canvas)
     {
         this.canvas = canvas;
-        this.canvas.addEventListener("mousedown", (pos) =>
+        this.canvas.canvas.tabIndex = -1;
+        this.canvas.canvas.addEventListener("keydown", (e) =>
         {
+            this.keyDownMap.set(e.key, true);
+        });
+        this.canvas.canvas.addEventListener("keyup", (e) =>
+        {
+            this.keyDownMap.set(e.key, false);
+        });
+        this.canvas.canvas.addEventListener("blur", () =>
+        {
+            this.keyDownMap.clear();
         });
     }
 
@@ -317,6 +334,19 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         return bullets;
     }
 
+    private get playerSpeed(): number
+    {
+        const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
+        if (player)
+        {
+            return player.moveSpeed;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
     renderStage()
     {
         if (!this.canvas || !this.dirty || this.rendering)
@@ -325,7 +355,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             return;
         }
 
-        console.time("> stage render");
+        const delta = 1 / 60;
+        const gameSize = obj_copy(this.props.stage.size);
+
+        // console.time("> stage render");
         this.rendering = true;
         this.dirty = false;
         // console.time("clear canvas");
@@ -344,15 +377,27 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             });
         }
 
-        // console.time("fetch player");
         const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
-        // console.timeEnd("fetch player");
-        // console.time("draw player");
-        player && this.renderSpriteHaver(player.spriteId, Point.fromPointLike(this.props.stage.playerSpawnPosition), false);
-        // console.timeEnd("draw player");
-
-        const delta = 1 / 60;
-        const gameSize = obj_copy(this.props.stage.size);
+        if (player)
+        {
+            if (this.keyDownMap.get("ArrowLeft"))
+            {
+                this.playerPos.x -= delta * this.playerSpeed;
+            }
+            if (this.keyDownMap.get("ArrowRight"))
+            {
+                this.playerPos.x += delta * this.playerSpeed;
+            }
+            if (this.keyDownMap.get("ArrowUp"))
+            {
+                this.playerPos.y -= delta * this.playerSpeed;
+            }
+            if (this.keyDownMap.get("ArrowDown"))
+            {
+                this.playerPos.y += delta * this.playerSpeed;
+            }
+            this.renderSpriteHaver(player.spriteId, Point.fromPointLike(this.playerPos), false);
+        }
 
         let instanceCounter = 0;
         let bulletCounter = 0;
@@ -430,7 +475,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         this.rendering = false;
         requestAnimationFrame(this.renderStage);
-        console.timeEnd("> stage render");
+        // console.timeEnd("> stage render");
     }
 
     handleUpdate()

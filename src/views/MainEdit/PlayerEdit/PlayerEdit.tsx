@@ -24,6 +24,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         super(props);
 
         this.handleNameChange = this.handleNameChange.bind(this);
+        this.handleMoveSpeedChange = this.handleMoveSpeedChange.bind(this);
         this.handleSpriteChange = this.handleSpriteChange.bind(this);
         this.handleScriptChange = this.handleScriptChange.bind(this);
         this.handleBulletChange = this.handleBulletChange.bind(this);
@@ -39,6 +40,20 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         this.props.onUpdate({
             ...this.props.player,
             name: e.currentTarget.value
+        });
+    }
+
+    handleMoveSpeedChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseFloat(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.player.moveSpeed;
+        }
+
+        this.props.onUpdate({
+            ...this.props.player,
+            moveSpeed: val
         });
     }
 
@@ -87,6 +102,15 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                         onChange={this.handleSpriteChange}
                     />
                     {this.sprite && <img className="sprite" src={this.sprite.path} />}
+                </div>
+                <div className="row">
+                    <span className="label">Move Speed:</span>
+                    <input
+                        type="number"
+                        onChange={this.handleMoveSpeedChange}
+                        value={this.props.player.moveSpeed}
+                    />
+                    <span>pixels per second</span>
                 </div>
                 <div className="row">
                     <span className="label">Bullet:</span>

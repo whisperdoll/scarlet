@@ -11,6 +11,7 @@ import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
 import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
+import { PointLike } from '../../../../utils/point';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -389,12 +390,19 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayPause()
+    handlePlayPause(e: React.MouseEvent)
     {
+        if (!this.state.playing)
+        {
+            e.preventDefault();
+            document.getElementById("renderer")?.focus();
+        }
+        
         this.setState((state) =>
         {
             return {
                 ...state,
+                playerTempPosition: obj_copy(this.props.stage.playerSpawnPosition),
                 playing: !state.playing
             };
         });
@@ -661,6 +669,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
                             onInstanceCount={this.handleInstanceCount}
                             editMode={this.state.editMode}
+                            playing={this.state.playing}
                         />
                     </div>
                     {/* properties */}
