@@ -67,6 +67,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
         this.handleDeselectEnemy = this.handleDeselectEnemy.bind(this);
+        this.handleRemoveEnemy = this.handleRemoveEnemy.bind(this);
         this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
@@ -364,6 +365,23 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 ...state,
                 selectedEnemyIndex: -1
             };
+        });
+    }
+
+    handleRemoveEnemy(index: number)
+    {
+        const enemies = array_copy(this.props.stage.enemies);
+        array_remove_at(enemies, index);
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                selectedEnemyIndex: -1
+            };
+        });
+        this.props.onUpdate({
+            ...this.props.stage,
+            enemies: enemies
         });
     }
 
@@ -696,6 +714,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             project={this.props.project}
                             stage={this.props.stage}
                             onDeselectEnemy={this.handleDeselectEnemy}
+                            onRequestRemoveEnemy={this.handleRemoveEnemy}
                             enemyAliveCount={this.state.selectedEnemyAliveCount}
                             enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
                         />

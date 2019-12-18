@@ -10,6 +10,7 @@ interface Props
     enemyIndex: number;
     onUpdate: (enemy: StageEnemyData, index: number) => any;
     onDeselectEnemy: () => any;
+    onRequestRemoveEnemy: (index: number) => any;
     enemyAliveCount: number;
     enemyBulletAliveCount: number;
 }
@@ -32,6 +33,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         this.handleXChange = this.handleXChange.bind(this);
         this.handleYChange = this.handleYChange.bind(this);
         this.handleDeselect = this.handleDeselect.bind(this);
+        this.handleRequestRemove = this.handleRequestRemove.bind(this);
     }
 
     get enemy(): StageEnemyData | null
@@ -146,6 +148,11 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         this.props.onDeselectEnemy();
     }
 
+    handleRequestRemove()
+    {
+        this.props.onRequestRemoveEnemy(this.props.enemyIndex);
+    }
+
     render()
     {
         if (this.enemy)
@@ -210,11 +217,8 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             value={this.enemy.spawnAmount.toString()}
                         />
                     </div>
-                    <button
-                        onClick={this.handleDeselect}
-                    >
-                        Deselect
-                    </button>
+                    <button onClick={this.handleDeselect}>Deselect</button>
+                    <button onClick={this.handleRequestRemove} className="remove">- Remove</button>
                     <div>Alive: {this.props.enemyAliveCount}</div>
                     <div>Bullets Alive: {this.props.enemyBulletAliveCount}</div>
                 </div>
