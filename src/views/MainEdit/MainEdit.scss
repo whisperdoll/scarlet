@@ -17,13 +17,13 @@
     padding: 8px 16px;
     box-sizing: border-box;
 
-    & > div
+    & > div:not(.stageComposer)
     {
         & > *
         {
-            
-        width: 400px;
+            width: 400px;
         }
+
         margin-bottom: 8px;
     }
 

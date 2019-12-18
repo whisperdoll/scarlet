@@ -8,9 +8,9 @@ div#newProjectView
     padding-left: 128px;
     padding-top: 256px;
 
-    & > *
+    & > * > span
     {
-        margin-bottom: 4px;
+        padding: 2px 0;
     }
 
     & > h1

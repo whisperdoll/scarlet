@@ -151,7 +151,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         if (this.enemy)
         {
             return (
-                <div className="propertyEdit">
+                <div className="propertyEdit col">
                     <h2>Properties for {this.enemy.instanceName}</h2>
                     <div className="row">
                         <span className="label">Type:</span>

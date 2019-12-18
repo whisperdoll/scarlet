@@ -10,9 +10,10 @@ button
     background-color: $controlBackground;
     color: $controlForeground;
     border: 1px solid $controlBorderColor;
-    padding: 8px;
+    padding: 9px 8px;
     // margin: 4px 0;
     cursor: pointer;
+    box-sizing: border-box;
 
     &:hover
     {
@@ -37,6 +38,7 @@ input
     border: 1px solid $controlBorderColor;
     padding: 8px;
     margin: 0px 0;
+    box-sizing: border-box;
 
     &:hover
     {
@@ -52,6 +54,7 @@ select
     padding: 8px;
     margin: 0px 0;
     cursor: pointer;
+    box-sizing: border-box;
 
     &:hover
     {
