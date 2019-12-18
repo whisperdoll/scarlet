@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './BossEdit.scss';
 import { BossModel, ProjectModel, BossFormModel } from '../../../utils/datatypes';
-import { array_copy } from '../../../utils/utils';
+import { array_copy, array_remove_at } from '../../../utils/utils';
 import BossFormEdit from './BossFormEdit/BossFormEdit';
 
 interface Props
@@ -23,6 +23,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
 
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleFormUpdate = this.handleFormUpdate.bind(this);
+        this.handleFormRemove = this.handleFormRemove.bind(this);
         this.addForm = this.addForm.bind(this);
     }
 
@@ -38,6 +39,17 @@ export default class BossEdit extends React.PureComponent<Props, State>
     {
         const forms = array_copy(this.props.boss.forms);
         forms[index] = form;
+
+        this.props.onUpdate({
+            ...this.props.boss,
+            forms: forms
+        });
+    }
+
+    handleFormRemove(index: number)
+    {
+        const forms = array_copy(this.props.boss.forms);
+        array_remove_at(forms, index);
 
         this.props.onUpdate({
             ...this.props.boss,
@@ -64,7 +76,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="bossEdit">
+            <div className="bossEdit col-8">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input
@@ -80,6 +92,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
                             bossForm={form}
                             index={i}
                             onUpdate={this.handleFormUpdate}
+                            onRequestRemove={this.handleFormRemove}
                             project={this.props.project}
                             key={i}
                         />

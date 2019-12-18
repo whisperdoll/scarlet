@@ -1,15 +1,13 @@
 .playerEdit
 {
-    .row
-    {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    }
-
     .sprite
     {
         image-rendering: pixelated;
         height: 32px;
+    }
+
+    .label
+    {
+        width: 96px;
     }
 }

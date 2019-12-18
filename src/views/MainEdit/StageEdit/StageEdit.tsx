@@ -66,7 +66,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
         if (!this.state.showingComposer)
         {
             return (
-                <div className="stageEdit">
+                <div className="stageEdit col">
                     <div className="row">
                         <span className="label">Name:</span>
                         <input

@@ -115,7 +115,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="scriptEdit">
+            <div className="scriptEdit col">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input

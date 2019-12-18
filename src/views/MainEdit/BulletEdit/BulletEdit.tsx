@@ -73,7 +73,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="bulletEdit">
+            <div className="bulletEdit col">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input

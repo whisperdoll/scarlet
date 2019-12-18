@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './BackgroundEdit.scss';
 import { BackgroundModel } from '../../../utils/datatypes';
+import ImageCache from '../../../utils/ImageCache';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -43,6 +44,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
+            ImageCache.invalidateImage(this.props.background.path);
             this.props.onUpdate({
                 ...this.props.background,
                 path: paths[0]
@@ -61,7 +63,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="backgroundEdit">
+            <div className="backgroundEdit col">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input

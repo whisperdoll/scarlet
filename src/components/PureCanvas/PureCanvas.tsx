@@ -6,8 +6,8 @@ interface Props
 {
     canvasGrabber: (canvas: Canvas) => any;
     canvasOptions: Omit<CanvasOptions, "canvasElement"|"size">;
-    size: Point;
-    onUpdate: () => any;
+    size?: Point;
+    onUpdate?: () => any;
 }
 
 interface State
@@ -29,10 +29,10 @@ export default class PureCanvas extends React.Component<Props, State>
     {
         if (this.canvas)
         {
-            if (!nextProps.size.equals(this.canvas.size))
+            if (nextProps.size && !nextProps.size.equals(this.canvas.size))
             {
                 this.canvas.resize(nextProps.size, false);
-                this.props.onUpdate();
+                this.props.onUpdate && this.props.onUpdate();
             }
         }
 

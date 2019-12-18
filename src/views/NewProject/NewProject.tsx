@@ -92,29 +92,31 @@ export default class NewProjectView extends React.PureComponent<Props, State>
         return (
             <div id="newProjectView">
                 <h1>new project</h1>
-                <div className="row">
-                    <span className="label">Name:</span>
-                    <input
-                        type="text"
-                        value={this.state.name}
-                        onChange={this.handleNameChange}
-                    />
+                <div className="col">
+                    <div className="row">
+                        <span className="label">Name:</span>
+                        <input
+                            type="text"
+                            value={this.state.name}
+                            onChange={this.handleNameChange}
+                        />
+                    </div>
+                    <div className="row">
+                        <span className="label">Path:</span>
+                        <input
+                            type="text"
+                            value={this.state.path}
+                            onChange={this.handlePathChange}
+                        />
+                        <button
+                            onClick={this.handleBrowse}
+                        >
+                            Browse...
+                        </button>
+                    </div>
+                    <span>A new folder will be created here for your project.</span>
+                    <button onClick={this.handleCreate}>Create</button>
                 </div>
-                <div className="row">
-                    <span className="label">Path:</span>
-                    <input
-                        type="text"
-                        value={this.state.path}
-                        onChange={this.handlePathChange}
-                    />
-                    <button
-                        onClick={this.handleBrowse}
-                    >
-                        Browse...
-                    </button>
-                </div>
-                <span>A new folder will be created here for your project.</span>
-                <button onClick={this.handleCreate}>Create</button>
             </div>
         );
     }

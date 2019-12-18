@@ -82,7 +82,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="enemyEdit">
+            <div className="enemyEdit col">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input

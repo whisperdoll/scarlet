@@ -10,6 +10,7 @@ interface Props
     bossForm: BossFormModel;
     index: number;
     onUpdate: (bossForm: BossFormModel, index: number) => any;
+    onRequestRemove: (index: number) => any;
 }
 
 interface State
@@ -27,6 +28,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         this.handleBulletChange = this.handleBulletChange.bind(this);
         this.handleHpChange = this.handleHpChange.bind(this);
         this.handleLifetimeChange = this.handleLifetimeChange.bind(this);
+        this.handleRequestRemove = this.handleRequestRemove.bind(this);
     }
 
     private get sprite(): SpriteModel | null
@@ -86,10 +88,15 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
+    handleRequestRemove()
+    {
+        this.props.onRequestRemove(this.props.index);
+    }
+
     render()
     {
         return (
-            <div className="bossFormEdit">
+            <div className="bossFormEdit col">
                 <h2>Form {this.props.index.toString()}</h2>
                 <div className="row">
                     <span className="label">Sprite:</span>
@@ -137,6 +144,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                         project={this.props.project}
                     />
                 </div>
+                <button onClick={this.handleRequestRemove} className="remove">- Remove</button>
             </div>
         );
     }

@@ -11,12 +11,22 @@ button
     color: $controlForeground;
     border: 1px solid $controlBorderColor;
     padding: 8px;
-    margin: 4px 0;
+    // margin: 4px 0;
     cursor: pointer;
 
     &:hover
     {
         background-color: $controlHoverBackground;
+    }
+
+    &.remove
+    {
+        background: #662233;
+
+        &:hover
+        {
+            background: #773344;
+        }
     }
 }
 
@@ -39,7 +49,7 @@ select
     background-color: $controlBackground;
     color: $controlForeground;
     border: 1px solid $controlBorderColor;
-    padding: 4px;
+    padding: 8px;
     margin: 0px 0;
     cursor: pointer;
 

@@ -6,7 +6,7 @@ import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
 import PropertyEdit from './PropertyEdit/PropertyEdit';
 import StageRenderer from "./StageRenderer/StageRenderer";
-import { array_copy, obj_copy } from '../../../../utils/utils';
+import { array_copy, obj_copy, array_remove_at } from '../../../../utils/utils';
 import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
@@ -79,6 +79,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleBossFormIndexChange = this.handleBossFormIndexChange.bind(this);
         this.handleAddBossForm = this.handleAddBossForm.bind(this);
         this.handleBossFormUpdate = this.handleBossFormUpdate.bind(this);
+        this.handleBossFormRemove = this.handleBossFormRemove.bind(this);
     }
 
     animate()
@@ -499,6 +500,23 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
+    handleBossFormRemove(index: number)
+    {
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        if (boss)
+        {
+            const forms = array_copy(boss.forms);
+            array_remove_at(forms, index);
+            const newBoss: BossModel = {
+                ...boss,
+                forms: forms
+            };
+
+            const { project } = ObjectHelper.updateObject(newBoss, this.props.project, []);
+            this.props.onProjectUpdate(project);
+        }
+    }
+
     private get selectedBossForm(): BossFormModel | null
     {
         if (this.state.selectedBossFormIndex === -1)
@@ -687,6 +705,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             bossForm={this.selectedBossForm}
                             index={this.state.selectedBossFormIndex}
                             onUpdate={this.handleBossFormUpdate}
+                            onRequestRemove={this.handleBossFormRemove}
                             project={this.props.project}
                         />
                     )}

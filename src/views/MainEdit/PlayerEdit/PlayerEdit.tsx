@@ -82,7 +82,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
     render()
     {
         return (
-            <div className="playerEdit">
+            <div className="playerEdit col">
                 <div className="row">
                     <span className="label">Name:</span>
                     <input
