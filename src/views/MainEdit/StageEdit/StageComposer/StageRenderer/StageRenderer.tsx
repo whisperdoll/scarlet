@@ -132,7 +132,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
             if (enemy.scriptId < 0)
             {
-                this.renderSpriteHaver(enemy.spriteId, Point.fromPointLike(enemyData.position), isSelected);
+                this.renderSpriteHaver(enemy.spriteId, Point.fromPointLike(enemyData.spawnPosition), isSelected);
                 return;
             }
             const enemyMethods = ScriptEngine.parseScript<EnemyScriptContext, EnemyScriptResult>(enemy.scriptId, this.props.project);
@@ -148,13 +148,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             {
                 let bulletIndexCounter = 0;
                 const minTime = enemyData.spawnTime + (1 / enemyData.spawnRate) * i;
-                const maxTime = minTime + enemyData.lifetime;
+                const maxTime = this.props.stage.lengthSeconds;
 
                 if (minTime <= this.props.time)
                 {
                     let isDead = this.props.time >= maxTime;
                     let scriptInfo = {
-                        position: enemyData.position
+                        position: enemyData.spawnPosition
                     };
                     // console.time("catchup loop");
                     for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
@@ -164,7 +164,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                             enemy: {
                                 age: _time - minTime,
                                 position: scriptInfo.position,
-                                spawnPosition: enemyData.position
+                                spawnPosition: enemyData.spawnPosition
                             },
                             stage: {
                                 age: _time,
@@ -178,11 +178,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         // console.time("eat results");
                         if (results)
                         {
-                            if (!results.alive)
-                            {
-                                isDead = true;
-                                break;
-                            }
                             if (results.position)
                             {
                                 scriptInfo.position = results.position;
@@ -197,6 +192,11 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                                     methods: bulletMethods,
                                     obj: enemyBullet
                                 });
+                            }
+                            if (!results.alive)
+                            {
+                                isDead = true;
+                                break;
                             }
                         }
                         // console.timeEnd("eat results");
@@ -231,8 +231,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (form.scriptId < 0)
         {
-            // TODO: SPAWN POINTS
-            this.renderSpriteHaver(form.spriteId, new Point(64, 64), false);
+            this.renderSpriteHaver(form.spriteId, Point.fromPointLike(this.props.stage.bossSpawnPosition), false);
             return [];
         }
         const bossMethods = ScriptEngine.parseScript<BossScriptContext, BossScriptResult>(form.scriptId, this.props.project);
@@ -258,7 +257,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             let isDead = this.props.time >= maxTime;
             let scriptInfo = {
-                position: { x: 64, y: 64 } // TODO: SPAWN POSITION
+                position: this.props.stage.bossSpawnPosition
             };
             // console.time("catchup loop");
             for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
@@ -283,10 +282,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 // console.time("eat results");
                 if (results)
                 {
-                    if (!results.alive)
-                    {
-                        isDead = true;
-                    }
                     if (results.position)
                     {
                         scriptInfo.position = results.position;
@@ -301,6 +296,11 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                             methods: bulletMethods,
                             obj: bossBullet
                         });
+                    }
+                    if (!results.alive)
+                    {
+                        isDead = true;
+                        break;
                     }
                 }
                 // console.timeEnd("eat results");

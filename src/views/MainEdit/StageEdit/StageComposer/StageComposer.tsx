@@ -59,6 +59,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleHeightChange = this.handleHeightChange.bind(this);
         this.handleSpawnXChange = this.handleSpawnXChange.bind(this);
         this.handleSpawnYChange = this.handleSpawnYChange.bind(this);
+        this.handleBossSpawnXChange = this.handleBossSpawnXChange.bind(this);
+        this.handleBossSpawnYChange = this.handleBossSpawnYChange.bind(this);
         this.handleBackgroundChange = this.handleBackgroundChange.bind(this);
         this.handlePlayerChange = this.handlePlayerChange.bind(this);
         this.handleBossChange = this.handleBossChange.bind(this);
@@ -253,6 +255,40 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handleBossSpawnXChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.stage.size.y;
+        }
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            bossSpawnPosition: {
+                ...this.props.stage.bossSpawnPosition,
+                x: val
+            }
+        });
+    }
+
+    handleBossSpawnYChange(e: ChangeEvent<HTMLInputElement>)
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.stage.size.y;
+        }
+
+        this.props.onUpdate({
+            ...this.props.stage,
+            bossSpawnPosition: {
+                ...this.props.stage.bossSpawnPosition,
+                y: val
+            }
+        });
+    }
+
     handleBackgroundChange(backgroundId: number)
     {
         this.props.onUpdate({
@@ -297,8 +333,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 enemies: this.props.stage.enemies.concat([{
                     id: this.state.selectedNewEnemyId,
                     instanceName: "New Enemy " + this.props.stage.enemies.length.toString(),
-                    lifetime: -1,
-                    position: {
+                    spawnPosition: {
                         x: 0,
                         y: 0
                     },
@@ -541,7 +576,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 onChange={this.handleSpawnXChange}
                                 value={this.props.stage.playerSpawnPosition.x.toString()}
                             />
-                            <span>x</span>
+                            <span>,</span>
                             <input
                                 type="number"
                                 onChange={this.handleSpawnYChange}
@@ -555,6 +590,20 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 objectType="boss"
                                 onChange={this.handleBossChange}
                                 project={this.props.project}
+                            />
+                        </div>
+                        <div className="row">
+                            <span className="label">Spawn Pos:</span>
+                            <input
+                                type="number"
+                                onChange={this.handleBossSpawnXChange}
+                                value={this.props.stage.bossSpawnPosition.x.toString()}
+                            />
+                            <span>,</span>
+                            <input
+                                type="number"
+                                onChange={this.handleBossSpawnYChange}
+                                value={this.props.stage.bossSpawnPosition.y.toString()}
                             />
                         </div>
                         {this.state.editMode === "enemy" && (<React.Fragment>
@@ -615,7 +664,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         />
                     </div>
                     {/* properties */}
-                    {this.state.editMode === "enemy" && (
+                    {this.state.editMode === "enemy" && (this.state.selectedEnemyIndex >= 0) && (
                         <PropertyEdit
                             enemyIndex={this.state.selectedEnemyIndex}
                             onUpdate={this.handleUpdateEnemy}

@@ -1,3 +1,5 @@
+import { PointLike } from "./point";
+
 export interface ProjectModel
 {
     name: string;
@@ -94,26 +96,17 @@ export interface StageModel extends ObjectModel
     bossId: number;
     lengthSeconds: number;
     enemies: StageEnemyData[]
-    size: {
-        x: number,
-        y: number
-    };
-    playerSpawnPosition: {
-        x: number,
-        y: number
-    };
+    size: PointLike;
+    playerSpawnPosition: PointLike;
+    bossSpawnPosition: PointLike;
 };
 
 export interface StageEnemyData
 {
     id: number;
     instanceName: string;
-    position: {
-        x: number,
-        y: number
-    };
     spawnTime: number;
+    spawnPosition: PointLike;
     spawnRate: number;
     spawnAmount: number;
-    lifetime: number;
 };

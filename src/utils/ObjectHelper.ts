@@ -91,6 +91,10 @@ export default class ObjectHelper
                     playerSpawnPosition: {
                         x: 384 / 2,
                         y: 400
+                    },
+                    bossSpawnPosition: {
+                        x: 384 / 2,
+                        y: 100
                     }
                 } as StageModel;
                 break;

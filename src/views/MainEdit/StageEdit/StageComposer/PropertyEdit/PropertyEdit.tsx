@@ -29,7 +29,6 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
 
         this.handleTypeChange = this.handleTypeChange.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleLifetimeChange = this.handleLifetimeChange.bind(this);
         this.handleSpawnAmountChange = this.handleSpawnAmountChange.bind(this);
         this.handleSpawnRateChange = this.handleSpawnRateChange.bind(this);
         this.handleSpawnTimeChange = this.handleSpawnTimeChange.bind(this);
@@ -74,13 +73,13 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.enemy?.position.x as number;
+            val = this.enemy?.spawnPosition.x as number;
         }
 
         this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
-            position: {
-                ...(this.enemy as StageEnemyData).position,
+            spawnPosition: {
+                ...(this.enemy as StageEnemyData).spawnPosition,
                 x: val
             }
         }, this.props.enemyIndex);
@@ -91,13 +90,13 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.enemy?.position.x as number;
+            val = this.enemy?.spawnPosition.x as number;
         }
 
         this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
-            position: {
-                ...(this.enemy as StageEnemyData).position,
+            spawnPosition: {
+                ...(this.enemy as StageEnemyData).spawnPosition,
                 y: val
             }
         }, this.props.enemyIndex);
@@ -145,20 +144,6 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleLifetimeChange(e: ChangeEvent<HTMLInputElement>)
-    {
-        let val = parseFloat(e.currentTarget.value);
-        if (isNaN(val))
-        {
-            val = this.enemy?.lifetime as number;
-        }
-
-        this.props.onUpdate({
-            ...(this.enemy as StageEnemyData),
-            lifetime: val
-        }, this.props.enemyIndex);
-    }
-
     handleDeselect()
     {
         this.props.onDeselectEnemy();
@@ -189,19 +174,17 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                         />
                     </div>
                     <div className="row">
-                        <span className="label">Position.X:</span>
+                        <span className="label">Spawn Pos:</span>
                         <input
                             type="number"
                             onChange={this.handleXChange}
-                            value={this.enemy.position.x.toString()}
+                            value={this.enemy.spawnPosition.x.toString()}
                         />
-                    </div>
-                    <div className="row">
-                        <span className="label">Position.Y:</span>
+                        <span>,</span>
                         <input
                             type="number"
                             onChange={this.handleYChange}
-                            value={this.enemy.position.y.toString()}
+                            value={this.enemy.spawnPosition.y.toString()}
                         />
                     </div>
                     <div className="row">
@@ -228,14 +211,6 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             type="number"
                             onChange={this.handleSpawnAmountChange}
                             value={this.enemy.spawnAmount.toString()}
-                        />
-                    </div>
-                    <div className="row">
-                        <span className="label">Lifetime:</span>
-                        <input
-                            type="number"
-                            onChange={this.handleLifetimeChange}
-                            value={this.enemy.lifetime.toString()}
                         />
                     </div>
                     <button
