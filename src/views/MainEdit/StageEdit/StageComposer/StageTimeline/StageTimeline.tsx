@@ -2,9 +2,6 @@ import React, { ChangeEvent } from 'react';
 import './StageTimeline.scss';
 import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel, BossModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
-import ObjectSelect from "../../../../../components/ObjectSelect/ObjectSelect";
-import { obj_copy, array_copy } from '../../../../../utils/utils';
-const { dialog } = require("electron").remote;
 
 interface Props
 {
@@ -110,6 +107,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                                     title={enemy.instanceName}
                                     key={i}
                                     className={i === this.props.selectedEntityIndex ? "selected" : ""}
+                                    alt="sprite"
                                 />
                             ) : null;
                         })}

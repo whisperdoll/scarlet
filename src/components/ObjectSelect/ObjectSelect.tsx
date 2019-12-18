@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from 'react';
-import { ObjectModel, ProjectModel, ObjectType } from '../../utils/datatypes';
+import { ProjectModel, ObjectType } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 
 interface Props
@@ -33,7 +33,7 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
         }
         else
         {
-            throw "uhhhh weird id!";
+            throw new Error("uhhhh weird id!");
         }
     }
 

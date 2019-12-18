@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import './StageComposer.scss';
-import { StageModel, ProjectModel, SpriteModel, StageEnemyData, BossModel, BossFormModel } from '../../../../utils/datatypes';
+import { StageModel, ProjectModel, StageEnemyData, BossModel, BossFormModel } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
@@ -11,8 +11,6 @@ import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
 import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
-import { PointLike } from '../../../../utils/point';
-const { dialog } = require("electron").remote;
 
 interface Props
 {
@@ -140,7 +138,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
                 if (!currObj || !prevObj)
                 {
-                    throw "somertthing bad happen,,,";
+                    throw new Error("somertthing bad happen,,,");
                 }
                 else if (currObj.type !== prevObj.type)
                 {
@@ -479,7 +477,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         if (boss)
         {
             boss.forms = boss.forms.concat([form]);
-            const { errors, project } = ObjectHelper.updateObject(boss, this.props.project, []);
+            const { project } = ObjectHelper.updateObject(boss, this.props.project, []);
             this.props.onProjectUpdate(project);
         }
     }

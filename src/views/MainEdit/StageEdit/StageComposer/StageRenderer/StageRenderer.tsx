@@ -1,15 +1,14 @@
-import React, { ChangeEvent, Ref } from 'react';
+import React from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, ObjectModel, EnemyModel, BulletModel, ScriptModel, StageEnemyData, BossModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, EnemyModel, BulletModel, StageEnemyData, BossModel } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
 import Point, { PointLike } from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import ScriptEngine, { BossScriptContext, BossScriptResult, BossScriptMethodCollection, EnemyScriptContext, EnemyScriptMethodCollection, EnemyScriptResult, ScriptResult, ScriptMethodCollection, BulletScriptMethodCollection, BulletScriptContext, BulletScriptResult } from '../../../../../utils/ScriptEngine';
-import { obj_copy, numberArray } from '../../../../../utils/utils';
-const { dialog } = require("electron").remote;
+import ScriptEngine, { BossScriptContext, BossScriptResult, EnemyScriptContext, EnemyScriptResult, ScriptMethodCollection, BulletScriptContext, BulletScriptResult } from '../../../../../utils/ScriptEngine';
+import { obj_copy } from '../../../../../utils/utils';
 
 interface Props
 {

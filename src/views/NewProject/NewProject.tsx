@@ -1,6 +1,5 @@
 import React, { ChangeEvent } from 'react';
 import './NewProject.scss';
-import * as npath from "path";
 import * as os from "os";
 import UserSettings from '../../utils/usersettings';
 import { ProjectModel } from '../../utils/datatypes';

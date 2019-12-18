@@ -1,10 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './PropertyEdit.scss';
-import { StageModel, ProjectModel, SpriteModel, StageEnemyData } from '../../../../../utils/datatypes';
-import ObjectHelper from '../../../../../utils/ObjectHelper';
+import { StageModel, ProjectModel, StageEnemyData } from '../../../../../utils/datatypes';
 import ObjectSelect from "../../../../../components/ObjectSelect/ObjectSelect";
-import { obj_copy, array_copy } from '../../../../../utils/utils';
-const { dialog } = require("electron").remote;
 
 interface Props
 {

@@ -1,14 +1,8 @@
 import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
-import { ProjectModel, ScriptModel, ObjectModel, EnemyModel, PlayerModel } from "./datatypes";
+import { ProjectModel, ScriptModel } from "./datatypes";
 import { PointLike } from "./point";
-
-interface FunctionData
-{
-    name: string;
-    body: string;
-};
 
 export interface StageScriptData
 {
@@ -150,11 +144,11 @@ export default class ScriptEngine
     {
         if (scriptId === -1)
         {
-            throw "tried to parse script for scriptless object ";
+            throw new Error("tried to parse script for scriptless object ");
         }
         if (!this.contextCache.has(scriptId))
         {
-            throw "fetch script first";
+            throw new Error("fetch script first");
         }
         
         return this.contextCache.get(scriptId) as ScriptMethodCollection<C, R>;

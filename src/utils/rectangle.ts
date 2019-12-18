@@ -111,7 +111,6 @@ export default class Rectangle
     {
         let ar = rect.aspectRatio;
         let center = this.center.copy(); // just being careful
-        let size = this.size.copy();
 
         if (ar > 1)
         {

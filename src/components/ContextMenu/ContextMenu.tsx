@@ -1,6 +1,5 @@
 import React from 'react';
 import "./ContextMenu.scss";
-import ContextMenuItem from './ContextMenuItem';
 
 interface Props
 {
@@ -14,12 +13,7 @@ interface State
 }
 
 export default class ContextMenu extends React.PureComponent<Props, State>
-{
-    constructor(props: Props)
-    {
-        super(props);
-    }
-    
+{    
     componentDidMount()
     {
     }

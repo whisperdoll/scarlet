@@ -1,12 +1,8 @@
 import React, { ChangeEvent } from 'react';
 import './BossEdit.scss';
-import { BossModel, ProjectModel, SpriteModel, BossFormModel } from '../../../utils/datatypes';
-import ObjectHelper from '../../../utils/ObjectHelper';
-import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
-import SpriteEdit from '../SpriteEdit/SpriteEdit';
+import { BossModel, ProjectModel, BossFormModel } from '../../../utils/datatypes';
 import { array_copy } from '../../../utils/utils';
 import BossFormEdit from './BossFormEdit/BossFormEdit';
-const { dialog } = require("electron").remote;
 
 interface Props
 {

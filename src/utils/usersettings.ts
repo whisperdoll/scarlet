@@ -10,13 +10,13 @@ export default class UserSettings
 
     private static get dataPath()
     {
-        if (!this.appName) throw "pls init w/ appname";
+        if (!this.appName) throw new Error("pls init w/ appname");
         return path.join(getUserDataPath(), this.appName);
     }
 
     private static get filePath()
     {
-        if (!this.appName) throw "pls init w/ appname";
+        if (!this.appName) throw new Error("pls init w/ appname");
         return path.join(this.dataPath, this.appName + ".json");
     }
 

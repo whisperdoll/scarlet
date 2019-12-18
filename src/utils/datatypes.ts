@@ -21,6 +21,12 @@ export const GameObjectTypes: ObjectType[] = [
     "background"
 ];
 
+export interface Hitbox
+{
+    position: PointLike;
+    radius: number;
+};
+
 export interface ObjectModel
 {
     id: number;
@@ -34,6 +40,7 @@ export interface SpriteModel extends ObjectModel
 {
     type: "sprite";
     path: string;
+    hitboxes: Hitbox[];
 };
 
 export interface BackgroundModel extends ObjectModel

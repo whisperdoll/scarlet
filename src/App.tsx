@@ -3,7 +3,7 @@ import './App.scss';
 import HomeView from './views/Home/Home';
 import NewProjectView from './views/NewProject/NewProject';
 import MainEditView from './views/MainEdit/MainEdit';
-import { ObjectModel, ProjectModel } from './utils/datatypes';
+import { ProjectModel } from './utils/datatypes';
 import UserSettings from './utils/usersettings';
 import * as fs from "fs";
 import * as path from "path";
@@ -285,7 +285,7 @@ export default class App extends React.PureComponent<Props, State>
                     />
                 )
             case "MainEdit":
-                if (this.state.project === null) throw "null project";
+                if (this.state.project === null) throw new Error("null project");
                 return (
                     <MainEditView
                         project={this.state.project}
@@ -293,7 +293,7 @@ export default class App extends React.PureComponent<Props, State>
                     />
                 );
             case "StageEdit":
-                if (this.state.project === null) throw "null project";
+                if (this.state.project === null) throw new Error("null project");
                 return (
                     <div>a</div>
                 );

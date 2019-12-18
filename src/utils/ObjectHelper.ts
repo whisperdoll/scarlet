@@ -1,5 +1,5 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, GameObjectTypes, StageModel, BackgroundModel } from "./datatypes";
-import { array_copy, obj_copy, array_ensureOne, array_remove } from "./utils";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from "./datatypes";
+import { array_copy, obj_copy, array_remove } from "./utils";
 
 export default class ObjectHelper
 {
@@ -23,7 +23,8 @@ export default class ObjectHelper
                     id: id,
                     name: "New Sprite " + this.getObjectsWithType(type, project).length,
                     type: "sprite",
-                    path: ""
+                    path: "",
+                    hitboxes: []
                 } as SpriteModel;
                 break;
             case "player":
@@ -107,7 +108,7 @@ export default class ObjectHelper
                 } as BackgroundModel;
                 break;
             default:
-                throw "fuck u";
+                throw new Error("fuck u");
         }
 
         // add to project //
@@ -175,6 +176,6 @@ export default class ObjectHelper
             }
         }
 
-        throw "max game objects";
+        throw new Error("max game objects");
     }
 }

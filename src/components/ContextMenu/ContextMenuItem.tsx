@@ -14,11 +14,6 @@ interface State
 
 export default class ContextMenuItem extends React.PureComponent<Props, State>
 {
-    constructor(props: Props)
-    {
-        super(props);
-    }
-
     handleClick(): void
     {
         this.props.onClick();

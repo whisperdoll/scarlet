@@ -1,10 +1,7 @@
-import React, { ChangeEvent } from 'react';
+import React from 'react';
 import './EnemyList.scss';
-import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, SpriteModel, EnemyModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
-import ObjectSelect from "../../../../../components/ObjectSelect/ObjectSelect";
-import { obj_copy, array_copy } from '../../../../../utils/utils';
-const { dialog } = require("electron").remote;
 
 interface Props
 {

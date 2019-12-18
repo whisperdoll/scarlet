@@ -3,7 +3,6 @@ import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
 import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
-import { obj_copy, array_copy, array_ensureOne } from '../../utils/utils';
 import SpriteEdit from './SpriteEdit/SpriteEdit';
 import PlayerEdit from './PlayerEdit/PlayerEdit';
 import ScriptEdit from './ScriptEdit/ScriptEdit';
