@@ -8,7 +8,7 @@ interface Props
     project: ProjectModel;
     stage: StageModel;
     time: number;
-    handleTimeChange: (time: number) => any;
+    onTimeScrub: (time: number) => any;
     selectedEntityIndex: number;
     editMode: "enemy" | "boss";
 }
@@ -23,16 +23,16 @@ export default class StageTimeline extends React.PureComponent<Props, State>
     {
         super(props);
 
-        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleTimeScrub = this.handleTimeScrub.bind(this);
         this.spritePathForEnemy = this.spritePathForEnemy.bind(this);
     }
 
-    handleTimeChange(e: ChangeEvent<HTMLInputElement>)
+    handleTimeScrub(e: ChangeEvent<HTMLInputElement>)
     {
         const timeSeconds = parseFloat(e.currentTarget.value);
         if (!isNaN(timeSeconds))
         {
-            this.props.handleTimeChange(timeSeconds);
+            this.props.onTimeScrub(timeSeconds);
         }
     }
 
@@ -115,7 +115,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                 )}
                 <input
                     type="range"
-                    onChange={this.handleTimeChange}
+                    onChange={this.handleTimeScrub}
                     min="0"
                     max={this.props.editMode === "enemy" ? this.props.stage.lengthSeconds.toString() : this.bossLength}
                     step="0.01"

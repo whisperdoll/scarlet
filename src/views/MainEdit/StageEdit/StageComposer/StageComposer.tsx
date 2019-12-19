@@ -36,6 +36,8 @@ interface State
 
 export default class StageComposer extends React.PureComponent<Props, State>
 {
+    private animationFrameHandle: number | null = null;
+
     constructor(props: Props)
     {
         super(props);
@@ -63,7 +65,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleBackgroundChange = this.handleBackgroundChange.bind(this);
         this.handlePlayerChange = this.handlePlayerChange.bind(this);
         this.handleBossChange = this.handleBossChange.bind(this);
-        this.handleTimeChange = this.handleTimeChange.bind(this);
+        this.handleTimeScrub = this.handleTimeScrub.bind(this);
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
         this.handleDeselectEnemy = this.handleDeselectEnemy.bind(this);
@@ -101,7 +103,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 };
             });
         }
-        requestAnimationFrame(this.animate);
+        this.animationFrameHandle = requestAnimationFrame(this.animate);
     }
 
     refreshScripts()
@@ -120,6 +122,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.refreshScripts();
         this.animate();
+    }
+
+    componentWillUnmount()
+    {
+        if (this.animationFrameHandle !== null)
+        {
+            cancelAnimationFrame(this.animationFrameHandle);
+            this.animationFrameHandle = null;
+        }
     }
 
     componentDidUpdate(prevProps: Props, prevState: State)
@@ -314,13 +325,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleTimeChange(time: number)
+    handleTimeScrub(time: number)
     {
         this.setState((state) =>
         {
             return {
                 ...state,
-                timeSeconds: time
+                timeSeconds: time,
+                playing: false
             };
         });
     }
@@ -731,7 +743,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 </div>
                 {/* timeline */}
                 <StageTimeline
-                    handleTimeChange={this.handleTimeChange}
+                    onTimeScrub={this.handleTimeScrub}
                     project={this.props.project}
                     stage={this.props.stage}
                     time={this.state.timeSeconds}

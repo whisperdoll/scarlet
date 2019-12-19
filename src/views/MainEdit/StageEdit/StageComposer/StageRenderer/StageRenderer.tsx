@@ -48,6 +48,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private ratio: number = 1;
     private keyDownMap: Map<string, boolean> = new Map();
     private playerPos: PointLike;
+    private animationFrameHandle: number | null = null;
 
     constructor(props: Props)
     {
@@ -95,7 +96,16 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     componentDidMount()
     {
         this.handleResize();
-        requestAnimationFrame(this.renderStage);
+        this.animationFrameHandle = requestAnimationFrame(this.renderStage);
+    }
+
+    componentWillUnmount()
+    {
+        if (this.animationFrameHandle !== null)
+        {
+            cancelAnimationFrame(this.animationFrameHandle);
+            this.animationFrameHandle = null;
+        }
     }
 
     grabCanvas(canvas: Canvas)
@@ -350,7 +360,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         if (!this.canvas || !this.dirty || this.rendering)
         {
-            requestAnimationFrame(this.renderStage);
+            this.animationFrameHandle = requestAnimationFrame(this.renderStage);
             return;
         }
 
@@ -473,7 +483,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.props.onInstanceCount(instanceCounter, bulletCounter);
 
         this.rendering = false;
-        requestAnimationFrame(this.renderStage);
+        this.animationFrameHandle = requestAnimationFrame(this.renderStage);
         // console.timeEnd("> stage render");
     }
 
