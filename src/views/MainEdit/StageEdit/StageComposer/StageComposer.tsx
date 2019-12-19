@@ -102,6 +102,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     timeSeconds: newTime
                 };
             });
+
         }
         this.animationFrameHandle = requestAnimationFrame(this.animate);
     }
@@ -121,7 +122,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
     componentDidMount()
     {
         this.refreshScripts();
-        this.animate();
     }
 
     componentWillUnmount()
@@ -135,6 +135,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentDidUpdate(prevProps: Props, prevState: State)
     {
+        // script refreshing //
         const currentEnemies = this.props.stage.enemies;
         const prevEnemies = prevProps.stage.enemies;
 
@@ -161,6 +162,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             }
         }
 
+        // boss stuff //
         const currentBoss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         const prevBoss = ObjectHelper.getObjectWithId<BossModel>(prevProps.stage.bossId, prevProps.project);
 
@@ -177,6 +179,16 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 const index = prevState.selectedBossFormIndex;
                 this.handleBossFormIndexChange(Math.max(0, index - 1));
             }
+        }
+
+        // animation //
+        if (this.state.playing && !prevState.playing)
+        {
+            this.animationFrameHandle = requestAnimationFrame(this.animate);
+        }
+        else if (prevState.playing && !this.state.playing && this.animationFrameHandle !== null)
+        {
+            cancelAnimationFrame(this.animationFrameHandle);
         }
     }
 

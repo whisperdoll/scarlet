@@ -104,7 +104,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         if (this.animationFrameHandle !== null)
         {
             cancelAnimationFrame(this.animationFrameHandle);
-            this.animationFrameHandle = null;
         }
     }
 
