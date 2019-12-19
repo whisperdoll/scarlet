@@ -11,6 +11,7 @@ import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
 import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
+import ImageCache from '../../../../utils/ImageCache';
 
 type PauseAction = "loopAndPause" | "pause";
 type DeathAction = "loopAndPause" | "pause" | "loop";
@@ -110,6 +111,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.syncLoopEnd = this.syncLoopEnd.bind(this);
         this.startAnimating = this.startAnimating.bind(this);
         this.stopAnimating = this.stopAnimating.bind(this);
+        this.handlePlayerDie = this.handlePlayerDie.bind(this);
     }
 
     private startAnimating()
@@ -171,9 +173,22 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    refreshImages()
+    {
+        ImageCache.updateCache(this.props.project);
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                refreshRenderer: !state.refreshRenderer
+            };
+        });
+    }
+
     componentDidMount()
     {
         this.refreshScripts();
+        this.refreshImages();
     }
 
     componentWillUnmount()
@@ -756,6 +771,32 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handlePlayerDie()
+    {
+        if (this.state.playing)
+        {
+            switch (this.state.deathAction)
+            {
+                case "loop":
+                    this.setState({
+                        timeSeconds: this.state.loopStart
+                    });
+                    break;
+                case "loopAndPause":
+                    this.setState({
+                        timeSeconds: this.state.loopStart,
+                        playing: false
+                    });
+                    break;
+                case "pause":
+                    this.setState({
+                        playing: false
+                    });
+                    break;
+            }
+        }
+    }
+
     private get selectedBossForm(): BossFormModel | null
     {
         return this.getBossForm(this.state.selectedBossFormIndex);
@@ -971,6 +1012,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             onInstanceCount={this.handleInstanceCount}
                             editMode={this.state.editMode}
                             playing={this.state.playing}
+                            onPlayerDie={this.handlePlayerDie}
                         />
                     </div>
                     {/* properties */}

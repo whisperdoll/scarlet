@@ -1,6 +1,6 @@
 import React from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, EnemyModel, BulletModel, StageEnemyData, BossModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, EnemyModel, BulletModel, StageEnemyData, BossModel, Hitbox } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
 import Point, { PointLike } from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
@@ -19,6 +19,7 @@ interface Props
     selectedEntityIndex: number;
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
+    onPlayerDie: () => any;
     playing: boolean;
 }
 
@@ -130,15 +131,12 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
         if (sprite)
         {
-            ImageCache.getImage(sprite.path, (img, wasCached) =>
+            const img = ImageCache.getImageSync(sprite.path);
+            this.canvas?.drawImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)));
+            if (hilite)
             {
-                this.canvas?.drawImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)));
-                if (hilite)
-                {
-                    this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
-                }
-                this.dirty = !wasCached; // draw order likely fucked up so let's
-            });
+                this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
+            }
         }
     }
 
@@ -198,9 +196,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                             index: i,
                             delta: delta
                         });
-                        // console.timeEnd("method call");
                         
-                        // console.time("eat results");
                         if (results)
                         {
                             if (results.position)
@@ -223,10 +219,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                                 isDead = true;
                             }
                         }
-                        // console.timeEnd("eat results");
                     };
-
-                    // console.time("catchup loop");
 
                     let _time;
 
@@ -242,9 +235,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         doStuff(Math.min(this.props.time, maxTime) - _time, Math.min(this.props.time, maxTime));
                     }
 
-                    // console.timeEnd("catchup loop");
-
-                    // console.time("render sprite");
                     if (!isDead)
                     {
                         
@@ -254,7 +244,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                             instanceCounter++;
                         }
                     }
-                    // console.timeEnd("render sprite");
                 }
             }
         });
@@ -304,7 +293,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
             const doStuff = (delta: number, _time: number) =>
             {
-                // console.time("method call");
                 const results = bossMethods.update({
                     boss: {
                         formAge: _time - minTime,
@@ -319,9 +307,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     },
                     delta: delta
                 });
-                // console.timeEnd("method call");
                 
-                // console.time("eat results");
                 if (results)
                 {
                     if (results.position)
@@ -344,11 +330,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         isDead = true;
                     }
                 }
-                // console.timeEnd("eat results");
             };
 
-            // console.time("catchup loop");
-            
             let _time;
 
             for (_time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
@@ -363,17 +346,142 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 doStuff(Math.min(this.props.time, maxTime) - _time, Math.min(this.props.time, maxTime));
             }
 
-            // console.timeEnd("catchup loop");
-
-            // console.time("render sprite");
             if (!isDead)
             {
                 this.renderSpriteHaver(form.spriteId, Point.fromPointLike(scriptInfo.position), false);
             }
-            // console.timeEnd("render sprite");
         }
 
         return bullets;
+    }
+
+    private renderBullets(bullets: BulletInfo[], delta: number, gameSize: PointLike): { count: number, playerDie: boolean }
+    {
+        let bulletCounter = 0;
+        let playerDie = false;
+        const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
+        const playerSprite = ObjectHelper.getObjectWithId<SpriteModel>(player ? player.spriteId : -1, this.props.project);
+        let playerSpriteSize: Point | null = null;
+        if (playerSprite)
+        {
+            playerSpriteSize = Point.fromSizeLike(ImageCache.getImageSync(playerSprite.path));
+        }
+
+        const maxTime = this.props.stage.lengthSeconds;
+        for (let i = 0; i < bullets.length; i++)
+        {
+            const bullet = bullets[i];
+
+            const age = this.props.time - bullet.spawnTime;
+            if (age > maxTime)
+            {
+                throw new Error("bad");
+            }
+
+            let scriptInfo = {
+                position: bullet.spawnPosition
+            };
+
+            let alive = true;
+
+            // console.time("bullet loop");
+            for (let _time = bullet.spawnTime; _time < bullet.spawnTime + age; _time += delta)
+            {
+                const results = bullet.methods.update({
+                    bullet: {
+                        age: _time - bullet.spawnTime,
+                        position: scriptInfo.position,
+                        spawnPosition: bullet.spawnPosition
+                    },
+                    stage: {
+                        age: _time,
+                        size: gameSize
+                    },
+                    delta: delta,
+                    index: bullet.index
+                });
+
+                if (results)
+                {
+                    if (!results.alive)
+                    {
+                        alive = false;
+                        break;
+                    }
+                    if (results.position) scriptInfo.position = results.position;
+                }
+            }
+            // console.timeEnd("bullet loop");
+
+            if (alive)
+            {
+                this.renderSpriteHaver(bullet.obj.spriteId, Point.fromPointLike(scriptInfo.position), false);
+
+                if (bullet.count)
+                {
+                    bulletCounter++;
+                }
+                
+                // console.time("bullet collision");
+                if (!playerDie)
+                {
+                    // console.time("bullet fetching");
+                    const bulletSprite = ObjectHelper.getObjectWithId<SpriteModel>(bullet.obj.spriteId, this.props.project);
+                    if (bulletSprite && playerSpriteSize)
+                    {
+                        // console.time("spriteimage");
+                        const bulletSpriteImage = ImageCache.getImageSync(bulletSprite.path);
+                        // console.timeEnd("spriteimage");
+                        // console.time("localcenter");
+                        const bulletSpriteLocalCenter = Point.fromSizeLike(bulletSpriteImage).dividedBy(2);
+                        // console.timeEnd("localcenter");
+                        // console.time("fetch hitbox");
+                        const hitboxes = bulletSprite.hitboxes;
+                        const playerHitboxes = this.playerHitboxes;
+                        // console.timeEnd("fetch hitbox");
+                        // console.timeEnd("bullet fetching");
+    
+                        // console.time("bullett hitboxes");
+                        const shouldDie = hitboxes.some((hitbox) => 
+                        {
+                            return playerHitboxes.some((playerHitbox) => 
+                            {
+                                // console.time("* make points");
+                                const hitboxPoint = {
+                                    x: hitbox.position.x + scriptInfo.position.x - bulletSpriteLocalCenter.x,
+                                    y: hitbox.position.y + scriptInfo.position.y - bulletSpriteLocalCenter.y
+                                };
+
+                                const playerHitboxPoint = {
+                                    x: playerHitbox.position.x + this.playerPos.x - (playerSpriteSize as Point).x / 2,
+                                    y: playerHitbox.position.y + this.playerPos.y - (playerSpriteSize as Point).y / 2
+                                };
+                                // console.timeEnd("* make points");
+
+                                // console.time("* calculate");
+                                const d = hitbox.radius + playerHitbox.radius
+                                const ret = Math.sqrt(Math.pow(hitboxPoint.x - playerHitboxPoint.x, 2) + Math.pow(hitboxPoint.y - playerHitboxPoint.y, 2)) < d;
+                                // console.timeEnd("* calculate");
+
+                                return ret;
+                            });
+                        });
+                        // console.timeEnd("bullett hitboxes");
+    
+                        if (shouldDie)
+                        {
+                            playerDie = true;
+                        }
+                    }
+                }
+                // console.timeEnd("bullet collision");
+            }
+        }
+
+        return {
+            count: bulletCounter,
+            playerDie: playerDie
+        };
     }
 
     private get playerSpeed(): number
@@ -387,6 +495,21 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             return 0;
         }
+    }
+
+    private get playerHitboxes(): Hitbox[]
+    {
+        const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
+        if (player)
+        {
+            const sprite = ObjectHelper.getObjectWithId<SpriteModel>(player.spriteId, this.props.project);
+            if (sprite)
+            {
+                return sprite.hitboxes;
+            }
+        }
+
+        return [];
     }
 
     renderStage()
@@ -456,63 +579,21 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
         else if (this.props.editMode === "boss")
         {
+            // console.time("boss");
             bullets = this.renderBoss(delta, gameSize);
             instanceCounter = 0;
+            // console.timeEnd("boss");
         }
 
-        const maxTime = this.props.stage.lengthSeconds;
-        bullets.forEach((bullet) =>
-        {
-            const age = this.props.time - bullet.spawnTime;
-            if (age > maxTime)
-            {
-                return; // TODO: SHOW ERROR
-            }
-
-            let scriptInfo = {
-                position: bullet.spawnPosition
-            };
-
-            let alive = true;
-
-            for (let _time = bullet.spawnTime; _time < bullet.spawnTime + age; _time += delta)
-            {
-                const results = bullet.methods.update({
-                    bullet: {
-                        age: _time - bullet.spawnTime,
-                        position: scriptInfo.position,
-                        spawnPosition: bullet.spawnPosition
-                    },
-                    stage: {
-                        age: _time,
-                        size: gameSize
-                    },
-                    delta: delta,
-                    index: bullet.index
-                });
-
-                if (results)
-                {
-                    if (!results.alive)
-                    {
-                        alive = false;
-                        break;
-                    }
-                    if (results.position) scriptInfo.position = results.position;
-                }
-            }
-
-            if (alive)
-            {
-                this.renderSpriteHaver(bullet.obj.spriteId, Point.fromPointLike(scriptInfo.position), false);
-
-                if (bullet.count)
-                {
-                    bulletCounter++;
-                }
-            }
-        });
+        // console.time("bullets");
+        const bulletRenderResult = this.renderBullets(bullets, delta, gameSize);
+        bulletCounter = bulletRenderResult.count;
+        // console.timeEnd("bullets");
         
+        if (bulletRenderResult.playerDie)
+        {
+            this.props.onPlayerDie();
+        }
         this.props.onInstanceCount(instanceCounter, bulletCounter);
 
         this.rendering = false;
