@@ -347,7 +347,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);
         if (player)
         {
-            return player.moveSpeed;
+            return this.keyDownMap.get("Shift") ? player.focusedMoveSpeed : player.moveSpeed;
         }
         else
         {

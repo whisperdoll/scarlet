@@ -53,6 +53,7 @@ export interface PlayerModel extends ObjectModel
 {
     type: "player";
     moveSpeed: number;
+    focusedMoveSpeed: number;
     spriteId: number;
     scriptId: number;
     bulletId: number;
