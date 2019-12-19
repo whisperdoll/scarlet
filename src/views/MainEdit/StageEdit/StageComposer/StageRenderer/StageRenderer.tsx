@@ -181,8 +181,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     let scriptInfo = {
                         position: enemyData.spawnPosition
                     };
-                    // console.time("catchup loop");
-                    for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
+
+                    const doStuff = (delta: number, _time: number) =>
                     {
                         // console.time("method call");
                         const results = enemyMethods.update({
@@ -221,12 +221,29 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                             if (!results.alive)
                             {
                                 isDead = true;
-                                break;
                             }
                         }
                         // console.timeEnd("eat results");
+                    };
+
+                    // console.time("catchup loop");
+
+                    let _time;
+
+                    for (_time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
+                    {
+                        doStuff(delta, _time);
+                        if (isDead) break;
                     }
+
+                    if (!isDead)
+                    {
+                        _time -= delta;
+                        doStuff(Math.min(this.props.time, maxTime) - _time, Math.min(this.props.time, maxTime));
+                    }
+
                     // console.timeEnd("catchup loop");
+
                     // console.time("render sprite");
                     if (!isDead)
                     {
@@ -284,8 +301,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             let scriptInfo = {
                 position: this.props.stage.bossSpawnPosition
             };
-            // console.time("catchup loop");
-            for (let _time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
+
+            const doStuff = (delta: number, _time: number) =>
             {
                 // console.time("method call");
                 const results = bossMethods.update({
@@ -325,12 +342,29 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     if (!results.alive)
                     {
                         isDead = true;
-                        break;
                     }
                 }
                 // console.timeEnd("eat results");
+            };
+
+            // console.time("catchup loop");
+            
+            let _time;
+
+            for (_time = minTime; _time < this.props.time && _time < maxTime; _time += delta)
+            {
+                doStuff(delta, _time);
+                if (isDead) break;
             }
+
+            if (!isDead)
+            {
+                _time -= delta;
+                doStuff(Math.min(this.props.time, maxTime) - _time, Math.min(this.props.time, maxTime));
+            }
+
             // console.timeEnd("catchup loop");
+
             // console.time("render sprite");
             if (!isDead)
             {

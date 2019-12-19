@@ -48,6 +48,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     private bufferedLoopTimes: number[] = [];
     private bufferedSync: boolean = false;
     private bufferedTime: number = 0;
+    private lastTime: number = -1;
 
     constructor(props: Props)
     {
@@ -107,15 +108,33 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.gotoLoopStart = this.gotoLoopStart.bind(this);
         this.syncLoopStart = this.syncLoopStart.bind(this);
         this.syncLoopEnd = this.syncLoopEnd.bind(this);
+        this.startAnimating = this.startAnimating.bind(this);
+        this.stopAnimating = this.stopAnimating.bind(this);
     }
 
-    animate()
+    private startAnimating()
+    {
+        this.lastTime = performance.now();
+        this.animationFrameHandle = requestAnimationFrame(this.animate);
+    }
+
+    private stopAnimating()
+    {
+        if (this.animationFrameHandle !== null)
+        {
+            cancelAnimationFrame(this.animationFrameHandle);
+            this.animationFrameHandle = null;
+        }
+    }
+
+    animate(time: number)
     {
         if (this.state.playing)
         {
+            const delta = (time - this.lastTime) / 1000;
             this.setState((state) =>
             {
-                let newTime = state.timeSeconds + 1/60;
+                let newTime = state.timeSeconds + delta;
 
                 if (this.state.loopStart < this.state.loopEnd)
                 {
@@ -126,7 +145,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 }
                 else if (newTime >= this.props.stage.lengthSeconds)
                 {
-                    newTime = this.props.stage.lengthSeconds - 1/60;
+                    newTime = this.props.stage.lengthSeconds - delta;
                 }
 
                 return {
@@ -136,6 +155,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             });
 
         }
+        this.lastTime = time;
         this.animationFrameHandle = requestAnimationFrame(this.animate);
     }
 
@@ -158,11 +178,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentWillUnmount()
     {
-        if (this.animationFrameHandle !== null)
-        {
-            cancelAnimationFrame(this.animationFrameHandle);
-            this.animationFrameHandle = null;
-        }
+        this.stopAnimating();
     }
 
     componentDidUpdate(prevProps: Props, prevState: State)
@@ -216,11 +232,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
         // animation //
         if (this.state.playing && !prevState.playing)
         {
-            this.animationFrameHandle = requestAnimationFrame(this.animate);
+            this.startAnimating();
         }
-        else if (prevState.playing && !this.state.playing && this.animationFrameHandle !== null)
+        else if (prevState.playing && !this.state.playing)
         {
-            cancelAnimationFrame(this.animationFrameHandle);
+            this.stopAnimating();
         }
     }
 
