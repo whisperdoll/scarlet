@@ -535,11 +535,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         // console.timeEnd("fetch background");
         if (background)
         {
-            ImageCache.getImage(background.path, (img, wasCached) =>
-            {
-                this.canvas?.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
-                this.dirty = !wasCached;
-            });
+            const img = ImageCache.getImageSync(background.path);
+            this.canvas?.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
         }
 
         const player = ObjectHelper.getObjectWithId<PlayerModel>(this.props.stage.playerId, this.props.project);

@@ -56,9 +56,9 @@ export default class ImageCache
 
         project.objects.forEach((obj) =>
         {
-            if (obj.type === "sprite")
+            if (obj.type === "sprite" || obj.type === "background")
             {
-                this.getImageSync((obj as SpriteModel).path);
+                this.getImageSync((obj as any).path);
             }
         });
     }

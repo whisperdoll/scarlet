@@ -92,6 +92,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handleAddEnemy = this.handleAddEnemy.bind(this);
         this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
         this.refreshScripts = this.refreshScripts.bind(this);
+        this.refreshImages = this.refreshImages.bind(this);
         this.handlePlayPause = this.handlePlayPause.bind(this);
         this.animate = this.animate.bind(this);
         this.handleInstanceCount = this.handleInstanceCount.bind(this);
@@ -828,6 +829,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         onClick={this.refreshScripts}
                     >
                         Refresh Scripts
+                    </button>
+                    <button
+                        className="refreshImage"
+                        onClick={this.refreshImages}
+                    >
+                        Refresh Images
                     </button>
                 </div>
                 {/* edit stuff */}
