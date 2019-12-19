@@ -117,10 +117,13 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                     </div>
                 )}
                 <div
-                    className="timelineLoop"
-                    style={{
-                        left: (this.props.loopStart / this.length * 100) .toString() + "%",
+                    className={this.props.loopStart <= this.props.loopEnd ? "timelineLoop" : "timelineLoop error"}
+                    style={this.props.loopStart <= this.props.loopEnd ? {
+                        left: (this.props.loopStart / this.length * 100).toString() + "%",
                         width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100).toString() + "%"
+                    } : {
+                        left: (this.props.loopEnd / this.length * 100).toString() + "%",
+                        width: ((this.props.loopStart - this.props.loopEnd) / this.length * 100).toString() + "%"
                     }}
                 />
                 <input

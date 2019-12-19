@@ -3,10 +3,9 @@ import './SpriteEdit.scss';
 import { SpriteModel, Hitbox } from '../../../utils/datatypes';
 import HitboxEdit from './HitboxEdit/HitboxEdit';
 import { array_copy, array_remove_at } from '../../../utils/utils';
-import ObjectHelper from '../../../utils/ObjectHelper';
 import ImageCache from '../../../utils/ImageCache';
 import PureCanvas from '../../../components/PureCanvas/PureCanvas';
-import Point, { PointLike } from '../../../utils/point';
+import Point from '../../../utils/point';
 import { Canvas } from '../../../utils/canvas';
 const { dialog } = require("electron").remote;
 

@@ -11,7 +11,6 @@ import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
 import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
-import ToggleButton from "../../../../components/ToggleButton/ToggleButton";
 
 type PauseAction = "loopAndPause" | "pause";
 type DeathAction = "loopAndPause" | "pause" | "loop";
@@ -106,6 +105,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.handlePauseActionChange = this.handlePauseActionChange.bind(this);
         this.handleDeathActionChange = this.handleDeathActionChange.bind(this);
         this.gotoLoopStart = this.gotoLoopStart.bind(this);
+        this.syncLoopStart = this.syncLoopStart.bind(this);
+        this.syncLoopEnd = this.syncLoopEnd.bind(this);
     }
 
     animate()
@@ -115,7 +116,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
             this.setState((state) =>
             {
                 let newTime = state.timeSeconds + 1/60;
-                if (newTime >= this.props.stage.lengthSeconds)
+
+                if (this.state.loopStart < this.state.loopEnd)
+                {
+                    if (newTime >= this.state.loopEnd)
+                    {
+                        newTime = this.state.loopStart;
+                    }
+                }
+                else if (newTime >= this.props.stage.lengthSeconds)
                 {
                     newTime = this.props.stage.lengthSeconds - 1/60;
                 }
@@ -709,6 +718,28 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    syncLoopStart()
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                loopStart: this.state.timeSeconds
+            };
+        });
+    }
+
+    syncLoopEnd()
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                loopEnd: this.state.timeSeconds
+            };
+        });
+    }
+
     private get selectedBossForm(): BossFormModel | null
     {
         return this.getBossForm(this.state.selectedBossFormIndex);
@@ -878,12 +909,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 value={this.state.loopStart}
                             />
                             <button onClick={this.gotoLoopStart}>Goto</button>
-                            <ToggleButton
-                                onToggle={this.handleLoopStartSyncToggle}
-                                toggled={this.state.loopStartSync}
-                            >
-                                Sync
-                            </ToggleButton>
+                            <button onClick={this.syncLoopStart}>Sync</button>
                         </div>
                         <div className="row">
                             <span className="label">Loop End:</span>
@@ -894,6 +920,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 onChange={this.handleLoopEndChange}
                                 value={this.state.loopEnd}
                             />
+                            <button onClick={this.syncLoopEnd}>Sync</button>
                         </div>
                         <div className="row">
                             <span className="label">On Pause:</span>
@@ -902,7 +929,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 value={this.state.pauseAction}
                             >
                                 <option value="loopAndPause">Return to loop start</option>
-                                <option value="pause">Pause in place (unsyncs)</option>
+                                <option value="pause">Pause in place</option>
                             </select>
                         </div>
                         <div className="row">
@@ -912,7 +939,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 value={this.state.deathAction}
                             >
                                 <option value="loopAndPause">Return to loop start</option>
-                                <option value="pause">Pause in place (unsyncs)</option>
+                                <option value="pause">Pause in place</option>
                                 <option value="loop">Restart loop without pausing</option>
                             </select>
                         </div>

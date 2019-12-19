@@ -36,12 +36,15 @@
     }
 }
 
-.error
+.mainEditView
 {
-    position: absolute;
-    top: 0;
-    left: 300px;
-    width: calc(100% - 300px);
-    background: red;
-    z-index: 1;
+    & > .error
+    {
+        position: absolute;
+        top: 0;
+        left: 300px;
+        width: calc(100% - 300px);
+        background: red;
+        z-index: 1;
+    }
 }

@@ -58,8 +58,13 @@
         position: absolute;
         bottom: 0;
         margin-bottom: 8px;
-        background: #9999AA;
+        background-color: #9999AA;
         height: 32px;
         z-index: -1;
+
+        &.error
+        {
+            background-color: #AA5555;
+        }
     }
 }
