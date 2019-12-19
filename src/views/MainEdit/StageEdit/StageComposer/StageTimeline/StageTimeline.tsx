@@ -11,6 +11,8 @@ interface Props
     onTimeScrub: (time: number) => any;
     selectedEntityIndex: number;
     editMode: "enemy" | "boss";
+    loopStart: number;
+    loopEnd: number;
 }
 
 interface State
@@ -77,14 +79,15 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         return 0;
     }
 
-    private get bossLength(): number
+    private get formLength(): number
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
-        if (boss)
-        {
-            return boss.forms.map(f => f.lifetime).reduce((l, r) => l + r);
-        }
-        return 0;
+        return boss?.forms[this.props.selectedEntityIndex]?.lifetime || 0;
+    }
+
+    private get length(): number
+    {
+        return this.props.editMode === "enemy" ? this.props.stage.lengthSeconds : this.formLength;
     }
 
     render()
@@ -113,11 +116,18 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                         })}
                     </div>
                 )}
+                <div
+                    className="timelineLoop"
+                    style={{
+                        left: (this.props.loopStart / this.length * 100) .toString() + "%",
+                        width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100).toString() + "%"
+                    }}
+                />
                 <input
                     type="range"
                     onChange={this.handleTimeScrub}
                     min="0"
-                    max={this.props.editMode === "enemy" ? this.props.stage.lengthSeconds.toString() : this.bossLength}
+                    max={this.length.toString()}
                     step="0.01"
                     value={this.props.time.toString()}
                 />

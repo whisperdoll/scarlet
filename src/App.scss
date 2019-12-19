@@ -29,6 +29,12 @@ button
             background: #773344;
         }
     }
+
+    &.toggled
+    {
+        background-color: $controlForeground;
+        color: $controlBackground;
+    }
 }
 
 input
