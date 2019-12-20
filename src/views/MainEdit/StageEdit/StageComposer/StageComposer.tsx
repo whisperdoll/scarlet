@@ -38,6 +38,7 @@ interface State
     selectedBossFormIndex: number;
     loopStart: number;
     loopEnd: number;
+    loopEnabled: boolean;
     deathAction: DeathAction;
     pauseAction: PauseAction;
 }
@@ -65,6 +66,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             selectedBossFormIndex: 0,
             loopStart: 0,
             loopEnd: props.stage.lengthSeconds,
+            loopEnabled: true,
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause"
         };
@@ -110,6 +112,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.startAnimating = this.startAnimating.bind(this);
         this.stopAnimating = this.stopAnimating.bind(this);
         this.handlePlayerDie = this.handlePlayerDie.bind(this);
+        this.toggleLoopEnabled = this.toggleLoopEnabled.bind(this);
     }
 
     private startAnimating()
@@ -136,14 +139,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
             {
                 let newTime = state.timeSeconds + delta;
 
-                if (this.state.loopStart < this.state.loopEnd)
+                if (this.state.loopEnabled && this.state.loopStart < this.state.loopEnd && newTime >= this.state.loopEnd)
                 {
-                    if (newTime >= this.state.loopEnd)
-                    {
-                        newTime = this.state.loopStart;
-                    }
+                    newTime = this.state.loopStart;
                 }
-                else if (newTime >= this.props.stage.lengthSeconds)
+                
+                if (newTime >= this.props.stage.lengthSeconds)
                 {
                     newTime = this.props.stage.lengthSeconds - delta;
                 }
@@ -535,7 +536,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             e.preventDefault();
             document.getElementById("renderer")?.focus();
         }
-        else
+        else if (this.state.loopEnabled)
         {
             switch (this.state.pauseAction)
             {
@@ -546,6 +547,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     time = this.state.timeSeconds;
                     break;
             }
+        }
+        else
+        {
+            time = this.state.timeSeconds;
         }
         
         this.setState((state) =>
@@ -763,26 +768,46 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         if (this.state.playing)
         {
-            switch (this.state.deathAction)
+            if (this.state.loopEnabled)
             {
-                case "loop":
-                    this.setState({
-                        timeSeconds: this.state.loopStart
-                    });
-                    break;
-                case "loopAndPause":
-                    this.setState({
-                        timeSeconds: this.state.loopStart,
-                        playing: false
-                    });
-                    break;
-                case "pause":
-                    this.setState({
-                        playing: false
-                    });
-                    break;
+                switch (this.state.deathAction)
+                {
+                    case "loop":
+                        this.setState({
+                            timeSeconds: this.state.loopStart
+                        });
+                        break;
+                    case "loopAndPause":
+                        this.setState({
+                            timeSeconds: this.state.loopStart,
+                            playing: false
+                        });
+                        break;
+                    case "pause":
+                        this.setState({
+                            playing: false
+                        });
+                        break;
+                }
+            }
+            else
+            {
+                this.setState({
+                    playing: false
+                });
             }
         }
+    }
+
+    toggleLoopEnabled()
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                loopEnabled: !state.loopEnabled
+            };
+        });
     }
 
     private get selectedBossForm(): BossFormModel | null
@@ -950,50 +975,53 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 bossId={this.props.stage.bossId}
                             />
                         </React.Fragment>)}
-                        <div className="row">
-                            <span className="label">Loop Start:</span>
-                            <input
-                                type="number"
-                                min="0"
-                                max={this.state.loopEnd}
-                                onChange={this.handleLoopStartChange}
-                                value={this.state.loopStart}
-                            />
-                            <button onClick={this.gotoLoopStart}>Goto</button>
-                            <button onClick={this.syncLoopStart}>Sync</button>
-                        </div>
-                        <div className="row">
-                            <span className="label">Loop End:</span>
-                            <input
-                                type="number"
-                                min={this.state.loopStart}
-                                max={this.props.stage.lengthSeconds}
-                                onChange={this.handleLoopEndChange}
-                                value={this.state.loopEnd}
-                            />
-                            <button onClick={this.syncLoopEnd}>Sync</button>
-                        </div>
-                        <div className="row">
-                            <span className="label">On Pause:</span>
-                            <select
-                                onChange={this.handlePauseActionChange}
-                                value={this.state.pauseAction}
-                            >
-                                <option value="loopAndPause">Return to loop start</option>
-                                <option value="pause">Pause in place</option>
-                            </select>
-                        </div>
-                        <div className="row">
-                            <span className="label">On Death:</span>
-                            <select
-                                onChange={this.handleDeathActionChange}
-                                value={this.state.deathAction}
-                            >
-                                <option value="loopAndPause">Return to loop start</option>
-                                <option value="pause">Pause in place</option>
-                                <option value="loop">Restart loop without pausing</option>
-                            </select>
-                        </div>
+                        {this.state.loopEnabled && (<React.Fragment>
+                            <div className="row">
+                                <span className="label">Loop Start:</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max={this.state.loopEnd}
+                                    onChange={this.handleLoopStartChange}
+                                    value={this.state.loopStart}
+                                />
+                                <button onClick={this.gotoLoopStart}>Goto</button>
+                                <button onClick={this.syncLoopStart}>Sync</button>
+                            </div>
+                            <div className="row">
+                                <span className="label">Loop End:</span>
+                                <input
+                                    type="number"
+                                    min={this.state.loopStart}
+                                    max={this.props.stage.lengthSeconds}
+                                    onChange={this.handleLoopEndChange}
+                                    value={this.state.loopEnd}
+                                />
+                                <button onClick={this.syncLoopEnd}>Sync</button>
+                            </div>
+                            <div className="row">
+                                <span className="label">On Pause:</span>
+                                <select
+                                    onChange={this.handlePauseActionChange}
+                                    value={this.state.pauseAction}
+                                >
+                                    <option value="loopAndPause">Return to loop start</option>
+                                    <option value="pause">Pause in place</option>
+                                </select>
+                            </div>
+                            <div className="row">
+                                <span className="label">On Death:</span>
+                                <select
+                                    onChange={this.handleDeathActionChange}
+                                    value={this.state.deathAction}
+                                >
+                                    <option value="loopAndPause">Return to loop start</option>
+                                    <option value="pause">Pause in place</option>
+                                    <option value="loop">Restart loop without pausing</option>
+                                </select>
+                            </div>
+                        </React.Fragment>)}
+                        <button onClick={this.toggleLoopEnabled}>{this.state.loopEnabled ? "Disable" : "Enable"} Loop Points</button>
                     </div>
                     {/* stage */}
                     <div className="stagePreview">
@@ -1042,6 +1070,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     editMode={this.state.editMode}
                     loopStart={this.state.loopStart}
                     loopEnd={this.state.loopEnd}
+                    loopEnabled={this.state.loopEnabled}
                 />
                 <button
                     className="play"

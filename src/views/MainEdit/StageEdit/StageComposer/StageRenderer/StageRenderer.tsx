@@ -69,7 +69,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     componentDidUpdate(prevProps: Props)
     {
-        if (!this.props.playing)
+        if (!this.props.playing || this.props.time < prevProps.time)
         {
             this.playerPos = obj_copy(this.props.stage.playerSpawnPosition);
         }

@@ -13,6 +13,7 @@ interface Props
     editMode: "enemy" | "boss";
     loopStart: number;
     loopEnd: number;
+    loopEnabled: boolean;
 }
 
 interface State
@@ -116,16 +117,18 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                         })}
                     </div>
                 )}
-                <div
-                    className={this.props.loopStart <= this.props.loopEnd ? "timelineLoop" : "timelineLoop error"}
-                    style={this.props.loopStart <= this.props.loopEnd ? {
-                        left: (this.props.loopStart / this.length * 100).toString() + "%",
-                        width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100).toString() + "%"
-                    } : {
-                        left: (this.props.loopEnd / this.length * 100).toString() + "%",
-                        width: ((this.props.loopStart - this.props.loopEnd) / this.length * 100).toString() + "%"
-                    }}
-                />
+                {this.props.loopEnabled && (
+                    <div
+                        className={this.props.loopStart <= this.props.loopEnd ? "timelineLoop" : "timelineLoop error"}
+                        style={this.props.loopStart <= this.props.loopEnd ? {
+                            left: (this.props.loopStart / this.length * 100).toString() + "%",
+                            width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100).toString() + "%"
+                        } : {
+                            left: (this.props.loopEnd / this.length * 100).toString() + "%",
+                            width: ((this.props.loopStart - this.props.loopEnd) / this.length * 100).toString() + "%"
+                        }}
+                    />
+                )}
                 <input
                     type="range"
                     onChange={this.handleTimeScrub}
