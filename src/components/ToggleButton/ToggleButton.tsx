@@ -15,11 +15,9 @@ export default class ToggleButton extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleClick = this.handleClick.bind(this);
     }
 
-    handleClick()
+    handleClick = () =>
     {
         this.props.onToggle(!this.props.toggled);
     }

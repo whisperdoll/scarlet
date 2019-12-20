@@ -25,12 +25,9 @@ export default class StageTimeline extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleTimeScrub = this.handleTimeScrub.bind(this);
-        this.spritePathForEnemy = this.spritePathForEnemy.bind(this);
     }
 
-    handleTimeScrub(e: ChangeEvent<HTMLInputElement>)
+    handleTimeScrub = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const timeSeconds = parseFloat(e.currentTarget.value);
         if (!isNaN(timeSeconds))
@@ -39,7 +36,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         }
     }
 
-    private spritePathForEnemy(enemyData: StageEnemyData)
+    private spritePathForEnemy = (enemyData: StageEnemyData) =>
     {
         const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
         if (enemy)
@@ -54,7 +51,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         return "";
     }
 
-    private spritePathForForm(formIndex: number): string
+    private spritePathForForm = (formIndex: number): string =>
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (!boss) return "";
@@ -63,7 +60,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         return sprite.path;
     }
 
-    private formSpawnTime(formIndex: number): number
+    private formSpawnTime = (formIndex: number): number =>
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (boss)

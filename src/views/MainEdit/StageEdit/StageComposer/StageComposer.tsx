@@ -70,58 +70,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause"
         };
-
-        this.handleBack = this.handleBack.bind(this);
-        this.handleLengthChange = this.handleLengthChange.bind(this);
-        this.handleWidthChange = this.handleWidthChange.bind(this);
-        this.handleHeightChange = this.handleHeightChange.bind(this);
-        this.handleSpawnXChange = this.handleSpawnXChange.bind(this);
-        this.handleSpawnYChange = this.handleSpawnYChange.bind(this);
-        this.handleBossSpawnXChange = this.handleBossSpawnXChange.bind(this);
-        this.handleBossSpawnYChange = this.handleBossSpawnYChange.bind(this);
-        this.handleBackgroundChange = this.handleBackgroundChange.bind(this);
-        this.handlePlayerChange = this.handlePlayerChange.bind(this);
-        this.handleBossChange = this.handleBossChange.bind(this);
-        this.handleTimeScrub = this.handleTimeScrub.bind(this);
-        this.handleAddEnemy = this.handleAddEnemy.bind(this);
-        this.handleSelectEnemy = this.handleSelectEnemy.bind(this);
-        this.handleDeselectEnemy = this.handleDeselectEnemy.bind(this);
-        this.handleRemoveEnemy = this.handleRemoveEnemy.bind(this);
-        this.handleSelectNewEnemy = this.handleSelectNewEnemy.bind(this);
-        this.handleAddEnemy = this.handleAddEnemy.bind(this);
-        this.handleUpdateEnemy = this.handleUpdateEnemy.bind(this);
-        this.refreshScripts = this.refreshScripts.bind(this);
-        this.refreshImages = this.refreshImages.bind(this);
-        this.handlePlayPause = this.handlePlayPause.bind(this);
-        this.animate = this.animate.bind(this);
-        this.handleInstanceCount = this.handleInstanceCount.bind(this);
-        this.handleBossEditMode = this.handleBossEditMode.bind(this);
-        this.handleEnemyEditMode = this.handleEnemyEditMode.bind(this);
-        this.handleBossFormIndexChange = this.handleBossFormIndexChange.bind(this);
-        this.handleAddBossForm = this.handleAddBossForm.bind(this);
-        this.handleBossFormUpdate = this.handleBossFormUpdate.bind(this);
-        this.handleBossFormRemove = this.handleBossFormRemove.bind(this);
-        this.handleLoopStartChange = this.handleLoopStartChange.bind(this);
-        this.handleLoopEndChange = this.handleLoopEndChange.bind(this);
-        this.handleLoopStartSyncToggle = this.handleLoopStartSyncToggle.bind(this);
-        this.handlePauseActionChange = this.handlePauseActionChange.bind(this);
-        this.handleDeathActionChange = this.handleDeathActionChange.bind(this);
-        this.gotoLoopStart = this.gotoLoopStart.bind(this);
-        this.syncLoopStart = this.syncLoopStart.bind(this);
-        this.syncLoopEnd = this.syncLoopEnd.bind(this);
-        this.startAnimating = this.startAnimating.bind(this);
-        this.stopAnimating = this.stopAnimating.bind(this);
-        this.handlePlayerDie = this.handlePlayerDie.bind(this);
-        this.toggleLoopEnabled = this.toggleLoopEnabled.bind(this);
     }
 
-    private startAnimating()
+    private startAnimating = () =>
     {
         this.lastTime = performance.now();
         this.animationFrameHandle = requestAnimationFrame(this.animate);
     }
 
-    private stopAnimating()
+    private stopAnimating = () =>
     {
         if (this.animationFrameHandle !== null)
         {
@@ -130,7 +87,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    animate(time: number)
+    animate = (time: number) =>
     {
         if (this.state.playing)
         {
@@ -160,7 +117,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.animationFrameHandle = requestAnimationFrame(this.animate);
     }
 
-    refreshScripts()
+    refreshScripts = () =>
     {
         ScriptEngine.updateCache(this.props.project);
         this.setState((state) =>
@@ -172,7 +129,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    refreshImages()
+    refreshImages = () =>
     {
         ImageCache.updateCache(this.props.project);
         this.setState((state) =>
@@ -184,18 +141,18 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    componentDidMount()
+    componentDidMount = () =>
     {
         this.refreshScripts();
         this.refreshImages();
     }
 
-    componentWillUnmount()
+    componentWillUnmount = () =>
     {
         this.stopAnimating();
     }
 
-    componentDidUpdate(prevProps: Props, prevState: State)
+    componentDidUpdate = (prevProps: Props, prevState: State) =>
     {
         // script refreshing //
         const currentEnemies = this.props.stage.enemies;
@@ -254,12 +211,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    handleBack()
+    handleBack = () =>
     {
         this.props.onBack();
     }
 
-    handleLengthChange(e: ChangeEvent<HTMLInputElement>)
+    handleLengthChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -273,7 +230,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleWidthChange(e: ChangeEvent<HTMLInputElement>)
+    handleWidthChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -290,7 +247,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleHeightChange(e: ChangeEvent<HTMLInputElement>)
+    handleHeightChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -307,7 +264,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleSpawnXChange(e: ChangeEvent<HTMLInputElement>)
+    handleSpawnXChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -324,7 +281,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleSpawnYChange(e: ChangeEvent<HTMLInputElement>)
+    handleSpawnYChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -341,7 +298,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleBossSpawnXChange(e: ChangeEvent<HTMLInputElement>)
+    handleBossSpawnXChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -358,7 +315,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleBossSpawnYChange(e: ChangeEvent<HTMLInputElement>)
+    handleBossSpawnYChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -375,7 +332,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleLoopStartChange(e: ChangeEvent<HTMLInputElement>)
+    handleLoopStartChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -392,7 +349,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleLoopEndChange(e: ChangeEvent<HTMLInputElement>)
+    handleLoopEndChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -409,7 +366,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleBackgroundChange(backgroundId: number)
+    handleBackgroundChange = (backgroundId: number) =>
     {
         this.props.onUpdate({
             ...this.props.stage,
@@ -417,7 +374,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayerChange(playerId: number)
+    handlePlayerChange = (playerId: number) =>
     {
         this.props.onUpdate({
             ...this.props.stage,
@@ -425,7 +382,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleBossChange(bossId: number)
+    handleBossChange = (bossId: number) =>
     {
         this.props.onUpdate({
             ...this.props.stage,
@@ -433,7 +390,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleTimeScrub(time: number)
+    handleTimeScrub = (time: number) =>
     {
         this.setState((state) =>
         {
@@ -445,7 +402,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleAddEnemy()
+    handleAddEnemy = () =>
     {
         if (this.state.selectedNewEnemyId >= 0)
         {
@@ -466,7 +423,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    handleSelectEnemy(index: number)
+    handleSelectEnemy = (index: number) =>
     {
         this.setState((state) =>
         {
@@ -477,7 +434,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleDeselectEnemy()
+    handleDeselectEnemy = () =>
     {
         this.setState((state) =>
         {
@@ -488,7 +445,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleRemoveEnemy(index: number)
+    handleRemoveEnemy = (index: number) =>
     {
         const enemies = array_copy(this.props.stage.enemies);
         array_remove_at(enemies, index);
@@ -505,7 +462,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleSelectNewEnemy(newEnemyId: number)
+    handleSelectNewEnemy = (newEnemyId: number) =>
     {
         this.setState((state) =>
         {
@@ -516,7 +473,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleUpdateEnemy(enemy: StageEnemyData, index: number)
+    handleUpdateEnemy = (enemy: StageEnemyData, index: number) =>
     {
         const enemies = array_copy(this.props.stage.enemies);
         enemies[index] = enemy;
@@ -527,7 +484,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayPause(e: React.MouseEvent)
+    handlePlayPause = (e: React.MouseEvent) =>
     {
         let time: number = this.state.timeSeconds;
         
@@ -564,7 +521,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleInstanceCount(instance: number, bullet: number)
+    handleInstanceCount = (instance: number, bullet: number) =>
     {
         this.setState((state) =>
         {
@@ -576,28 +533,37 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleBossEditMode()
+    handleBossEditMode = () =>
     {
-        if (this.props.stage.bossId >= 0)
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+
+        if (boss)
         {
-            let loopStart = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[0] : 0;
-            let loopEnd = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[1] : (this.selectedBossForm?.lifetime || 0);
-            let time = this.bufferedTime;
-
-            this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-            this.bufferedTime = this.state.timeSeconds;
-
-            this.setState((state) =>
+            if (boss.forms.length > 0)
             {
-                return {
-                    ...state,
-                    playing: false,
-                    timeSeconds: time,
-                    editMode: "boss",
-                    loopStart: loopStart,
-                    loopEnd: loopEnd
-                };
-            });
+                let loopStart = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[0] : 0;
+                let loopEnd = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[1] : (this.selectedBossForm?.lifetime || 0);
+                let time = this.bufferedTime;
+    
+                this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
+                this.bufferedTime = this.state.timeSeconds;
+    
+                this.setState((state) =>
+                {
+                    return {
+                        ...state,
+                        playing: false,
+                        timeSeconds: time,
+                        editMode: "boss",
+                        loopStart: loopStart,
+                        loopEnd: loopEnd
+                    };
+                });
+            }
+            else
+            {
+                alert("please add a form to the boss first!");
+            }
         }
         else
         {
@@ -605,7 +571,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    handleEnemyEditMode()
+    handleEnemyEditMode = () =>
     {
         const loopStart = this.bufferedLoopTimes[0];
         const loopEnd = this.bufferedLoopTimes[1];
@@ -627,7 +593,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleBossFormIndexChange(index: number)
+    handleBossFormIndexChange = (index: number) =>
     {
         if (index >= 0)
         {
@@ -642,7 +608,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    handleAddBossForm()
+    handleAddBossForm = () =>
     {
         const form: BossFormModel = {
             bulletId: -1,
@@ -661,7 +627,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    handleBossFormUpdate(bossForm: BossFormModel, index: number)
+    handleBossFormUpdate = (bossForm: BossFormModel, index: number) =>
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (boss)
@@ -678,7 +644,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    handleBossFormRemove(index: number)
+    handleBossFormRemove = (index: number) =>
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (boss)
@@ -692,10 +658,21 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
             const { project } = ObjectHelper.updateObject(newBoss, this.props.project, []);
             this.props.onProjectUpdate(project);
+
+            if (forms.length === 0)
+            {
+                this.setState((state) =>
+                {
+                    return {
+                        ...state,
+                        editMode: "enemy"
+                    };
+                });
+            }
         }
     }
 
-    handleLoopStartSyncToggle(toggled: boolean)
+    handleLoopStartSyncToggle = (toggled: boolean) =>
     {
         this.setState((state) =>
         {
@@ -707,7 +684,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePauseActionChange(e: React.ChangeEvent<HTMLSelectElement>)
+    handlePauseActionChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     {
         const index = e.currentTarget.selectedIndex;
         this.setState((state) =>
@@ -719,7 +696,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleDeathActionChange(e: React.ChangeEvent<HTMLSelectElement>)
+    handleDeathActionChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     {
         const index = e.currentTarget.selectedIndex;
         this.setState((state) =>
@@ -731,7 +708,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    gotoLoopStart()
+    gotoLoopStart = () =>
     {
         this.setState((state) =>
         {
@@ -742,7 +719,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    syncLoopStart()
+    syncLoopStart = () =>
     {
         this.setState((state) =>
         {
@@ -753,7 +730,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    syncLoopEnd()
+    syncLoopEnd = () =>
     {
         this.setState((state) =>
         {
@@ -764,7 +741,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayerDie()
+    handlePlayerDie = () =>
     {
         if (this.state.playing)
         {
@@ -799,7 +776,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }
     }
 
-    toggleLoopEnabled()
+    toggleLoopEnabled = () =>
     {
         this.setState((state) =>
         {
@@ -815,7 +792,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         return this.getBossForm(this.state.selectedBossFormIndex);
     }
 
-    private getBossForm(index: number): BossFormModel | null
+    private getBossForm = (index: number): BossFormModel | null =>
     {
         if (index === -1) return null;
 

@@ -26,14 +26,9 @@ export default class NewProjectView extends React.PureComponent<Props, State>
             name: "New Project",
             path: UserSettings.get("newProjectPath", os.homedir())
         };
-
-        this.handlePathChange = this.handlePathChange.bind(this);
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleBrowse = this.handleBrowse.bind(this);
-        this.handleCreate = this.handleCreate.bind(this);
     }
 
-    handlePathChange(e: ChangeEvent<HTMLInputElement>)
+    handlePathChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = e.currentTarget.value;
         this.setState((state) =>
@@ -45,7 +40,7 @@ export default class NewProjectView extends React.PureComponent<Props, State>
         });
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = e.currentTarget.value;
         this.setState((state) =>
@@ -57,7 +52,7 @@ export default class NewProjectView extends React.PureComponent<Props, State>
         });
     }
 
-    handleBrowse()
+    handleBrowse = () =>
     {
         let path = dialog.showOpenDialogSync({
             title: "Add Path...",
@@ -77,7 +72,7 @@ export default class NewProjectView extends React.PureComponent<Props, State>
         }
     }
 
-    handleCreate()
+    handleCreate = () =>
     {
         let project: ProjectModel = {
             name: this.state.name,
@@ -87,7 +82,7 @@ export default class NewProjectView extends React.PureComponent<Props, State>
         this.props.onCreate(project, this.state.path);
     }
 
-    render()
+    render = () =>
     {
         return (
             <div id="newProjectView">

@@ -32,10 +32,6 @@ export default class ObjectList extends React.PureComponent<Props, State>
             contextMenuPosition: new Point(),
             currentContextMenu: "none"
         };
-
-        this.handleContextMenu = this.handleContextMenu.bind(this);
-        this.handleCreate = this.handleCreate.bind(this);
-        this.handleSelect = this.handleSelect.bind(this);
     }
 
     // ADDTYPE //
@@ -101,7 +97,7 @@ export default class ObjectList extends React.PureComponent<Props, State>
         ];
     }
 
-    componentDidMount()
+    componentDidMount = () =>
     {
         document.addEventListener("click", () =>
         {
@@ -115,7 +111,7 @@ export default class ObjectList extends React.PureComponent<Props, State>
         });
     }
 
-    handleContextMenu(model: ObjectModel, position: Point)
+    handleContextMenu = (model: ObjectModel, position: Point) =>
     {
         if (model.type === "folder")
         {
@@ -131,18 +127,18 @@ export default class ObjectList extends React.PureComponent<Props, State>
         }
     }
 
-    handleCreate()
+    handleCreate = () =>
     {
         const type = this.state.contextHint as ObjectType;
         this.props.onCreate(type);
     }
 
-    handleSelect(obj: ObjectModel)
+    handleSelect = (obj: ObjectModel) =>
     {
         this.props.onSelect(obj);
     }
 
-    render()
+    render = () =>
     {
         const objs = this.rootObjects;
 

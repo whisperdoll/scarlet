@@ -19,12 +19,9 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleBrowse = this.handleBrowse.bind(this);
-        this.handleNameChange = this.handleNameChange.bind(this);
     }
 
-    handleBrowse()
+    handleBrowse = () =>
     {
         let paths = dialog.showOpenDialogSync({
             title: "Set Sprite...",
@@ -52,7 +49,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
         }
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.background,
@@ -60,7 +57,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
         });
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="backgroundEdit col">

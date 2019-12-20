@@ -25,13 +25,9 @@ export default class StageEdit extends React.PureComponent<Props, State>
         this.state = {
             showingComposer: false
         };
-
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleEditRequest = this.handleEditRequest.bind(this);
-        this.handleStageComposerBack = this.handleStageComposerBack.bind(this);
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.stage,
@@ -39,7 +35,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleEditRequest()
+    handleEditRequest = () =>
     {
         this.setState((state) =>
         {
@@ -50,7 +46,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleStageComposerBack()
+    handleStageComposerBack = () =>
     {
         this.setState((state) =>
         {
@@ -61,7 +57,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
         });
     }
 
-    render()
+    render = () =>
     {
         if (!this.state.showingComposer)
         {

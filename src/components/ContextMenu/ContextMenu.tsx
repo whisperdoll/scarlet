@@ -14,11 +14,7 @@ interface State
 
 export default class ContextMenu extends React.PureComponent<Props, State>
 {    
-    componentDidMount()
-    {
-    }
-
-    render()
+    render = () =>
     {
         return (
             <div

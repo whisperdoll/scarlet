@@ -25,7 +25,7 @@ export default class PureCanvas extends React.Component<Props, State>
         this.canvasRef = React.createRef();
     }
 
-    shouldComponentUpdate(nextProps: Props)
+    shouldComponentUpdate = (nextProps: Props) =>
     {
         if (this.canvas)
         {
@@ -39,7 +39,7 @@ export default class PureCanvas extends React.Component<Props, State>
         return false;
     }
 
-    componentDidMount()
+    componentDidMount = () =>
     {
         this.canvas = new Canvas({
             ...this.props.canvasOptions,
@@ -49,7 +49,7 @@ export default class PureCanvas extends React.Component<Props, State>
         this.props.canvasGrabber(this.canvas);
     }
 
-    render()
+    render = () =>
     {
         return <canvas id="renderer" ref={this.canvasRef}></canvas>;
     }

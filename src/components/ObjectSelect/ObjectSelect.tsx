@@ -19,11 +19,9 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleChange = this.handleChange.bind(this);
     }
 
-    handleChange(e: ChangeEvent<HTMLSelectElement>)
+    handleChange = (e: ChangeEvent<HTMLSelectElement>) =>
     {
         const id = parseInt(e.currentTarget.selectedOptions[0].value);
 
@@ -37,7 +35,7 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
         }
     }
 
-    render()
+    render = () =>
     {
         return (
             <select

@@ -20,11 +20,6 @@ export default class BulletEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleSpriteChange = this.handleSpriteChange.bind(this);
-        this.handleScriptChange = this.handleScriptChange.bind(this);
-        this.handleDamageChange = this.handleDamageChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
@@ -32,7 +27,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         return ObjectHelper.getObjectWithId<SpriteModel>(this.props.bullet.spriteId, this.props.project) || null;
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.bullet,
@@ -40,7 +35,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleSpriteChange(spriteId: number)
+    handleSpriteChange = (spriteId: number) =>
     {
         this.props.onUpdate({
             ...this.props.bullet,
@@ -48,7 +43,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleScriptChange(scriptId: number)
+    handleScriptChange = (scriptId: number) =>
     {
         this.props.onUpdate({
             ...this.props.bullet,
@@ -56,7 +51,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleDamageChange(e: ChangeEvent<HTMLInputElement>)
+    handleDamageChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -70,7 +65,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
         });
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="bulletEdit col">

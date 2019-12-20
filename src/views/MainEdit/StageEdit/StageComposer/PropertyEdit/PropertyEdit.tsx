@@ -24,16 +24,6 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleTypeChange = this.handleTypeChange.bind(this);
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleSpawnAmountChange = this.handleSpawnAmountChange.bind(this);
-        this.handleSpawnRateChange = this.handleSpawnRateChange.bind(this);
-        this.handleSpawnTimeChange = this.handleSpawnTimeChange.bind(this);
-        this.handleXChange = this.handleXChange.bind(this);
-        this.handleYChange = this.handleYChange.bind(this);
-        this.handleDeselect = this.handleDeselect.bind(this);
-        this.handleRequestRemove = this.handleRequestRemove.bind(this);
     }
 
     get enemy(): StageEnemyData | null
@@ -48,7 +38,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }
     }
 
-    handleTypeChange(enemyId: number)
+    handleTypeChange = (enemyId: number) =>
     {
         if (enemyId >= 0)
         {
@@ -59,7 +49,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
@@ -67,7 +57,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleXChange(e: ChangeEvent<HTMLInputElement>)
+    handleXChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -84,7 +74,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleYChange(e: ChangeEvent<HTMLInputElement>)
+    handleYChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -101,7 +91,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleSpawnTimeChange(e: ChangeEvent<HTMLInputElement>)
+    handleSpawnTimeChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -115,7 +105,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleSpawnAmountChange(e: ChangeEvent<HTMLInputElement>)
+    handleSpawnAmountChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
@@ -129,7 +119,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleSpawnRateChange(e: ChangeEvent<HTMLInputElement>)
+    handleSpawnRateChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -143,17 +133,17 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
         }, this.props.enemyIndex);
     }
 
-    handleDeselect()
+    handleDeselect = () =>
     {
         this.props.onDeselectEnemy();
     }
 
-    handleRequestRemove()
+    handleRequestRemove = () =>
     {
         this.props.onRequestRemoveEnemy(this.props.enemyIndex);
     }
 
-    render()
+    render = () =>
     {
         if (this.enemy)
         {

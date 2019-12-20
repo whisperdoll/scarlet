@@ -22,13 +22,6 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleSpriteChange = this.handleSpriteChange.bind(this);
-        this.handleScriptChange = this.handleScriptChange.bind(this);
-        this.handleBulletChange = this.handleBulletChange.bind(this);
-        this.handleHpChange = this.handleHpChange.bind(this);
-        this.handleLifetimeChange = this.handleLifetimeChange.bind(this);
-        this.handleRequestRemove = this.handleRequestRemove.bind(this);
     }
 
     private get sprite(): SpriteModel | null
@@ -36,7 +29,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         return ObjectHelper.getObjectWithId<SpriteModel>(this.props.bossForm.spriteId, this.props.project) || null;
     }
 
-    handleSpriteChange(spriteId: number)
+    handleSpriteChange = (spriteId: number) =>
     {
         this.props.onUpdate({
             ...this.props.bossForm,
@@ -44,7 +37,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleScriptChange(scriptId: number)
+    handleScriptChange = (scriptId: number) =>
     {
         this.props.onUpdate({
             ...this.props.bossForm,
@@ -52,7 +45,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleBulletChange(bulletId: number)
+    handleBulletChange = (bulletId: number) =>
     {
         this.props.onUpdate({
             ...this.props.bossForm,
@@ -60,7 +53,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleHpChange(e: ChangeEvent<HTMLInputElement>)
+    handleHpChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -74,7 +67,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleLifetimeChange(e: ChangeEvent<HTMLInputElement>)
+    handleLifetimeChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -88,7 +81,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleRequestRemove()
+    handleRequestRemove = () =>
     {
         this.props.onRequestRemove(this.props.index);
     }

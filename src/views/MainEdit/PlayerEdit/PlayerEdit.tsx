@@ -20,13 +20,6 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleMoveSpeedChange = this.handleMoveSpeedChange.bind(this);
-        this.handleFocusedMoveSpeedChange = this.handleFocusedMoveSpeedChange.bind(this);
-        this.handleSpriteChange = this.handleSpriteChange.bind(this);
-        this.handleScriptChange = this.handleScriptChange.bind(this);
-        this.handleBulletChange = this.handleBulletChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
@@ -34,7 +27,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         return ObjectHelper.getObjectWithId<SpriteModel>(this.props.player.spriteId, this.props.project) || null;
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.player,
@@ -42,7 +35,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleMoveSpeedChange(e: ChangeEvent<HTMLInputElement>)
+    handleMoveSpeedChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -56,7 +49,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleFocusedMoveSpeedChange(e: ChangeEvent<HTMLInputElement>)
+    handleFocusedMoveSpeedChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -70,7 +63,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleSpriteChange(spriteId: number)
+    handleSpriteChange = (spriteId: number) =>
     {
         this.props.onUpdate({
             ...this.props.player,
@@ -78,7 +71,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleScriptChange(scriptId: number)
+    handleScriptChange = (scriptId: number) =>
     {
         this.props.onUpdate({
             ...this.props.player,
@@ -86,7 +79,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleBulletChange(bulletId: number)
+    handleBulletChange = (bulletId: number) =>
     {
         this.props.onUpdate({
             ...this.props.player,
@@ -94,7 +87,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="playerEdit col">

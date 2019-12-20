@@ -34,14 +34,9 @@ export default class MainEditView extends React.PureComponent<Props, State>
             currentlyEditing: null,
             errors: []
         };
-
-        this.handleObjectCreate = this.handleObjectCreate.bind(this);
-        this.handleObjectUpdate = this.handleObjectUpdate.bind(this);
-        this.handleObjectSelect = this.handleObjectSelect.bind(this);
-        this.handleProjectUpdate = this.handleProjectUpdate.bind(this);
     }
 
-    handleObjectCreate(type: ObjectType)
+    handleObjectCreate = (type: ObjectType) =>
     {
         const { obj, project } = ObjectHelper.createAndAddObject(type, this.props.project);
 
@@ -56,7 +51,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
         this.props.onUpdate(project);
     }
 
-    handleObjectUpdate(obj: ObjectModel)
+    handleObjectUpdate = (obj: ObjectModel) =>
     {
         const { errors, project } = ObjectHelper.updateObject(obj, this.props.project, this.state.errors);
 
@@ -71,7 +66,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
         });
     }
 
-    handleObjectSelect(obj: ObjectModel)
+    handleObjectSelect = (obj: ObjectModel) =>
     {
         this.setState((state) =>
         {
@@ -82,7 +77,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
         });
     }
 
-    handleProjectUpdate(project: ProjectModel)
+    handleProjectUpdate = (project: ProjectModel) =>
     {
         this.props.onUpdate(project);
     }

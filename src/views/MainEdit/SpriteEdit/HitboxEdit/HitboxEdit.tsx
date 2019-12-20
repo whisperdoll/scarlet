@@ -19,14 +19,9 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handlePositionXChange = this.handlePositionXChange.bind(this);
-        this.handlePositionYChange = this.handlePositionYChange.bind(this);
-        this.handleRadiusChange = this.handleRadiusChange.bind(this);
-        this.handleRequestRemove = this.handleRequestRemove.bind(this);
     }
 
-    handlePositionXChange(e: React.ChangeEvent<HTMLInputElement>)
+    handlePositionXChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -43,7 +38,7 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handlePositionYChange(e: React.ChangeEvent<HTMLInputElement>)
+    handlePositionYChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -60,7 +55,7 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleRadiusChange(e: React.ChangeEvent<HTMLInputElement>)
+    handleRadiusChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -74,12 +69,12 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
         }, this.props.index);
     }
 
-    handleRequestRemove()
+    handleRequestRemove = () =>
     {
         this.props.onRequestRemove(this.props.index);
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="hitboxEdit col">

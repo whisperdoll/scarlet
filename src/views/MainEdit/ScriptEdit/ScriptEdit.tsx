@@ -24,17 +24,14 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         this.state = {
             code: ""
         };
-
-        this.handleBrowse = this.handleBrowse.bind(this);
-        this.handleNameChange = this.handleNameChange.bind(this);
     }
 
-    componentDidMount()
+    componentDidMount = () =>
     {
         this.loadPreview(this.props.script.path);
     }
 
-    loadPreview(filename: string)
+    loadPreview = (filename: string) =>
     {
         fs.readFile(filename, "utf8", (err, data) =>
         {
@@ -61,7 +58,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleBrowse()
+    handleBrowse = () =>
     {
         let paths = dialog.showOpenDialogSync({
             title: "Set Script...",
@@ -88,7 +85,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         }
     }
 
-    handlePathChange(e: ChangeEvent<HTMLInputElement>)
+    handlePathChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.script,
@@ -96,7 +93,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.script,
@@ -104,7 +101,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         });
     }
 
-    componentDidUpdate(prevProps: Props, prevState: State)
+    componentDidUpdate = (prevProps: Props, prevState: State) =>
     {
         if (this.props.script.path !== prevProps.script.path)
         {
@@ -112,7 +109,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         }
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="scriptEdit col">

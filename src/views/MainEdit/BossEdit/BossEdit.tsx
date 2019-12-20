@@ -20,14 +20,9 @@ export default class BossEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleFormUpdate = this.handleFormUpdate.bind(this);
-        this.handleFormRemove = this.handleFormRemove.bind(this);
-        this.addForm = this.addForm.bind(this);
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.boss,
@@ -35,7 +30,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
         });
     }
     
-    handleFormUpdate(form: BossFormModel, index: number)
+    handleFormUpdate = (form: BossFormModel, index: number) =>
     {
         const forms = array_copy(this.props.boss.forms);
         forms[index] = form;
@@ -46,7 +41,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleFormRemove(index: number)
+    handleFormRemove = (index: number) =>
     {
         const forms = array_copy(this.props.boss.forms);
         array_remove_at(forms, index);
@@ -57,7 +52,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
         });
     }
 
-    addForm()
+    addForm = () =>
     {
         const form: BossFormModel = {
             bulletId: -1,

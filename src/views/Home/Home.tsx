@@ -16,22 +16,19 @@ export default class HomeView extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleNew = this.handleNew.bind(this);
-        this.handleOpen = this.handleOpen.bind(this);
     }
 
-    handleNew()
+    handleNew = () =>
     {
         this.props.onNew();
     }
     
-    handleOpen()
+    handleOpen = () =>
     {
         this.props.onOpen();
     }
 
-    render()
+    render = () =>
     {
         return (
             <div id="homeView">

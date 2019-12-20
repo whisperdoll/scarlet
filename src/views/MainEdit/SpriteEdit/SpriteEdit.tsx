@@ -26,17 +26,9 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleBrowse = this.handleBrowse.bind(this);
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleHitboxUpdate = this.handleHitboxUpdate.bind(this);
-        this.handleAddHitbox = this.handleAddHitbox.bind(this);
-        this.handleRemoveHitbox = this.handleRemoveHitbox.bind(this);
-        this.canvasGrabber = this.canvasGrabber.bind(this);
-        this.renderSprite = this.renderSprite.bind(this);
     }
 
-    handleBrowse()
+    handleBrowse = () =>
     {
         let paths = dialog.showOpenDialogSync({
             title: "Set Sprite...",
@@ -64,7 +56,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         }
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.sprite,
@@ -72,7 +64,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleHitboxUpdate(hitbox: Hitbox, index: number)
+    handleHitboxUpdate = (hitbox: Hitbox, index: number) =>
     {
         const newHitboxes = array_copy(this.props.sprite.hitboxes);
         newHitboxes[index] = hitbox;
@@ -83,7 +75,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleAddHitbox()
+    handleAddHitbox = () =>
     {
         ImageCache.getImage(this.props.sprite.path, (img) =>
         {
@@ -100,7 +92,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleRemoveHitbox(index: number)
+    handleRemoveHitbox = (index: number) =>
     {
         const newHitboxes = array_copy(this.props.sprite.hitboxes);
         array_remove_at(newHitboxes, index);
@@ -111,18 +103,18 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         });
     }
 
-    canvasGrabber(canvas: Canvas)
+    canvasGrabber = (canvas: Canvas) =>
     {
         this.canvas = canvas;
         this.renderSprite();
     }
 
-    componentDidUpdate()
+    componentDidUpdate = () =>
     {
         this.renderSprite();
     }
 
-    renderSprite()
+    renderSprite = () =>
     {
         if (this.props.sprite.path)
         {
@@ -139,7 +131,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         }
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="spriteEdit col-8">

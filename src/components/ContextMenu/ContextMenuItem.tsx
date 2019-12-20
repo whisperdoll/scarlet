@@ -14,7 +14,7 @@ interface State
 
 export default class ContextMenuItem extends React.PureComponent<Props, State>
 {
-    handleClick(): void
+    handleClick = () =>
     {
         this.props.onClick();
     }
@@ -24,7 +24,7 @@ export default class ContextMenuItem extends React.PureComponent<Props, State>
         return (
             <div
                 className="contextMenuItem"
-                onClick={this.handleClick.bind(this)}
+                onClick={this.handleClick}
                 style={{
                     display: this.props.showing ? "" : "none"
                 }}

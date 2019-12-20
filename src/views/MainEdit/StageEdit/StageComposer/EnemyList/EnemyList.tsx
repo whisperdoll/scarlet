@@ -23,24 +23,21 @@ export default class EnemyList extends React.PureComponent<Props, State>
         this.state = {
             selectedNewEnemyId: -1
         };
-
-        this.handleEnemySelect = this.handleEnemySelect.bind(this);
-        this.handleEnemyDeselect = this.handleEnemyDeselect.bind(this);
     }
 
-    handleEnemySelect(e: React.MouseEvent<HTMLDivElement, MouseEvent>)
+    handleEnemySelect = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
     {
         e.stopPropagation();
         const index = parseInt(e.currentTarget.dataset.index as string);
         this.props.onSelectEnemy(index);
     }
 
-    handleEnemyDeselect()
+    handleEnemyDeselect = () =>
     {
         this.props.onSelectEnemy(-1);
     }
 
-    private spritePathForEnemy(enemyId: number): string
+    spritePathForEnemy = (enemyId: number): string =>
     {
         const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyId, this.props.project);
         if (!enemy) return "";

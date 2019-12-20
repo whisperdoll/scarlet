@@ -67,7 +67,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.containerRef = React.createRef();
     }
 
-    componentDidUpdate(prevProps: Props)
+    componentDidUpdate = (prevProps: Props) =>
     {
         if (!this.props.playing || this.props.time < prevProps.time)
         {
@@ -77,7 +77,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.handleResize();
     }
 
-    handleResize()
+    handleResize = () =>
     {
         if (this.containerRef.current && this.canvas)
         {
@@ -94,13 +94,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
     }
 
-    componentDidMount()
+    componentDidMount = () =>
     {
         this.handleResize();
         this.animationFrameHandle = requestAnimationFrame(this.renderStage);
     }
 
-    componentWillUnmount()
+    componentWillUnmount = () =>
     {
         if (this.animationFrameHandle !== null)
         {
@@ -108,7 +108,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
     }
 
-    grabCanvas(canvas: Canvas)
+    grabCanvas = (canvas: Canvas) =>
     {
         this.canvas = canvas;
         this.canvas.canvas.tabIndex = -1;
@@ -126,7 +126,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         });
     }
 
-    renderSpriteHaver(spriteId: number, pos: Point, hilite: boolean)
+    renderSpriteHaver = (spriteId: number, pos: Point, hilite: boolean) =>
     {
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
         if (sprite)
@@ -140,7 +140,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
     }
 
-    renderEnemies(delta: number, gameSize: PointLike): { bullets: BulletInfo[], instances: number }
+    renderEnemies = (delta: number, gameSize: PointLike): { bullets: BulletInfo[], instances: number } =>
     {
         const bullets: BulletInfo[] = [];
         let instanceCounter = 0;
@@ -251,7 +251,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         return { bullets: bullets, instances: instanceCounter };
     }
 
-    renderBoss(delta: number, gameSize: PointLike): BulletInfo[]
+    renderBoss = (delta: number, gameSize: PointLike): BulletInfo[] =>
     {
         const bullets: BulletInfo[] = [];
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
@@ -355,7 +355,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         return bullets;
     }
 
-    private renderBullets(bullets: BulletInfo[], delta: number, gameSize: PointLike): { count: number, playerDie: boolean }
+    private renderBullets = (bullets: BulletInfo[], delta: number, gameSize: PointLike): { count: number, playerDie: boolean } =>
     {
         let bulletCounter = 0;
         let playerDie = false;
@@ -512,7 +512,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         return [];
     }
 
-    renderStage()
+    renderStage = () =>
     {
         if (!this.canvas || !this.dirty || this.rendering)
         {
@@ -598,12 +598,12 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         // console.timeEnd("> stage render");
     }
 
-    handleUpdate()
+    handleUpdate = () =>
     {
         this.dirty = true;
     }
     
-    render()
+    render = () =>
     {
         return (
             <div className="stageRenderer" ref={this.containerRef}>

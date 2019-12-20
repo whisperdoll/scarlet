@@ -20,12 +20,6 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.handleNameChange = this.handleNameChange.bind(this);
-        this.handleSpriteChange = this.handleSpriteChange.bind(this);
-        this.handleScriptChange = this.handleScriptChange.bind(this);
-        this.handleBulletChange = this.handleBulletChange.bind(this);
-        this.handleHpChange = this.handleHpChange.bind(this);
     }
 
     private get sprite(): SpriteModel | null
@@ -33,7 +27,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         return ObjectHelper.getObjectWithId<SpriteModel>(this.props.enemy.spriteId, this.props.project) || null;
     }
 
-    handleNameChange(e: ChangeEvent<HTMLInputElement>)
+    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
             ...this.props.enemy,
@@ -41,7 +35,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleSpriteChange(spriteId: number)
+    handleSpriteChange = (spriteId: number) =>
     {
         this.props.onUpdate({
             ...this.props.enemy,
@@ -49,7 +43,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleScriptChange(scriptId: number)
+    handleScriptChange = (scriptId: number) =>
     {
         this.props.onUpdate({
             ...this.props.enemy,
@@ -57,7 +51,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleBulletChange(bulletId: number)
+    handleBulletChange = (bulletId: number) =>
     {
         this.props.onUpdate({
             ...this.props.enemy,
@@ -65,7 +59,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleHpChange(e: ChangeEvent<HTMLInputElement>)
+    handleHpChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
@@ -79,7 +73,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         });
     }
 
-    render()
+    render = () =>
     {
         return (
             <div className="enemyEdit col">
