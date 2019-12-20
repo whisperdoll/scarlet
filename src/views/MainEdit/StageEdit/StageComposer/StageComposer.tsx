@@ -38,7 +38,6 @@ interface State
     selectedBossFormIndex: number;
     loopStart: number;
     loopEnd: number;
-    loopStartSync: boolean;
     deathAction: DeathAction;
     pauseAction: PauseAction;
 }
@@ -47,7 +46,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
 {
     private animationFrameHandle: number | null = null;
     private bufferedLoopTimes: number[] = [];
-    private bufferedSync: boolean = false;
     private bufferedTime: number = 0;
     private lastTime: number = -1;
 
@@ -67,7 +65,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
             selectedBossFormIndex: 0,
             loopStart: 0,
             loopEnd: props.stage.lengthSeconds,
-            loopStartSync: false,
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause"
         };
@@ -442,8 +439,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             return {
                 ...state,
                 timeSeconds: time,
-                playing: false,
-                loopStart: this.state.loopStartSync ? time : this.state.loopStart
+                playing: false
             };
         });
     }
@@ -533,7 +529,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
     handlePlayPause(e: React.MouseEvent)
     {
         let time: number = this.state.timeSeconds;
-        let sync: boolean = this.state.loopStartSync;
         
         if (!this.state.playing)
         {
@@ -549,7 +544,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     break;
                 case "pause":
                     time = this.state.timeSeconds;
-                    sync = false;
                     break;
             }
         }
@@ -560,8 +554,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 ...state,
                 playerTempPosition: obj_copy(this.props.stage.playerSpawnPosition),
                 playing: !state.playing,
-                timeSeconds: time,
-                loopStartSync: sync
+                timeSeconds: time
             };
         });
     }
@@ -584,11 +577,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             let loopStart = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[0] : 0;
             let loopEnd = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[1] : (this.selectedBossForm?.lifetime || 0);
-            let sync = this.bufferedSync;
             let time = this.bufferedTime;
 
             this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-            this.bufferedSync = this.state.loopStartSync;
             this.bufferedTime = this.state.timeSeconds;
 
             this.setState((state) =>
@@ -599,8 +590,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     timeSeconds: time,
                     editMode: "boss",
                     loopStart: loopStart,
-                    loopEnd: loopEnd,
-                    loopStartSync: sync
+                    loopEnd: loopEnd
                 };
             });
         }
@@ -614,11 +604,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         const loopStart = this.bufferedLoopTimes[0];
         const loopEnd = this.bufferedLoopTimes[1];
-        const sync = this.bufferedSync;
         const time = this.bufferedTime;
 
         this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-        this.bufferedSync = this.state.loopStartSync;
         this.bufferedTime = this.state.timeSeconds;
 
         this.setState((state) =>
@@ -629,8 +617,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 timeSeconds: time,
                 editMode: "enemy",
                 loopStart: loopStart,
-                loopEnd: loopEnd,
-                loopStartSync: sync
+                loopEnd: loopEnd
             };
         });
     }
