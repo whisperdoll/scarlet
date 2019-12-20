@@ -15,94 +15,34 @@ export interface PlayerScriptData
     position: PointLike;
 };
 
-export interface ScriptResult {};
-export type ScriptMethodCollection<C extends ScriptContext, R extends ScriptResult> = {[key: string]: (context: C) => R};
+export interface ScriptMethodCollection
+{
+    update: (context: ScriptContext) => ScriptResult;
+};
+
 export interface ScriptContext
 {
+    stage: StageScriptData;
+    delta: number;
+    entity: ScriptEntityData;
 };
 
-export interface EnemyScriptData
+export interface ScriptEntityData
 {
     age: number;
     spawnPosition: PointLike;
     position: PointLike;
-};
-
-export interface EnemyScriptContext extends ScriptContext
-{
     index: number;
-    enemy: EnemyScriptData;
-    stage: StageScriptData;
-    delta: number;
 };
 
-export interface EnemyScriptResult extends ScriptResult
+export interface ScriptResult
 {
     position?: PointLike;
-    store?: any;
     fire?: boolean;
     alive?: boolean;
 };
 
-export interface EnemyScriptMethodCollection extends ScriptMethodCollection<EnemyScriptContext, EnemyScriptResult>
-{
-    update: (context: EnemyScriptContext) => EnemyScriptResult;
-};
-
-export interface BossScriptData
-{
-    totalAge: number;
-    formAge: number;
-    formIndex: number;
-    spawnPosition: PointLike;
-    position: PointLike;
-};
-
-export interface BossScriptContext extends ScriptContext
-{
-    boss: BossScriptData;
-    stage: StageScriptData;
-    delta: number;
-};
-
-export interface BossScriptResult extends ScriptResult
-{
-    position?: PointLike;
-    store?: any;
-    fire?: boolean;
-    alive?: boolean;
-};
-
-export interface BossScriptMethodCollection extends ScriptMethodCollection<BossScriptContext, BossScriptResult>
-{
-    update: (context: BossScriptContext) => BossScriptResult;
-};
-
-export interface BulletScriptData
-{
-    age: number;
-    position: PointLike;
-    spawnPosition: PointLike;
-};
-
-export interface BulletScriptContext extends ScriptContext
-{
-    index: number;
-    bullet: BulletScriptData;
-    stage: StageScriptData;
-    delta: number;
-};
-
-export interface BulletScriptResult extends ScriptResult
-{
-    position?: PointLike;
-    alive?: boolean;
-}
-
-export interface BulletScriptMethodCollection extends ScriptMethodCollection<BulletScriptContext, BulletScriptResult>
-{
-    update: (context: BulletScriptContext) => BulletScriptResult;
-}
+// engine //
 
 export default class ScriptEngine
 {
@@ -140,7 +80,7 @@ export default class ScriptEngine
         return true;
     }
 
-    public static parseScript<C extends ScriptContext, R extends ScriptResult>(scriptId: number, project: ProjectModel): ScriptMethodCollection<C, R>
+    public static parseScript(scriptId: number, project: ProjectModel): ScriptMethodCollection
     {
         if (scriptId === -1)
         {
@@ -151,23 +91,6 @@ export default class ScriptEngine
             throw new Error("fetch script first");
         }
         
-        return this.contextCache.get(scriptId) as ScriptMethodCollection<C, R>;
-    }
-
-    public static executeScript<C extends ScriptContext, R extends ScriptResult>(methodCollection: ScriptMethodCollection<C, R>, method: string, context: C): R
-    {
-        return methodCollection[method](context);
-        /*const cacheKey = context._uniq;
-        const cached = this.resultCache.get(cacheKey);
-        if (cached)
-        {
-            return cached;
-        }
-        else
-        {
-            const results = methodCollection[method](context);
-            this.resultCache.set(cacheKey, results);
-            return results;
-        }*/
+        return this.contextCache.get(scriptId) as ScriptMethodCollection;
     }
 }

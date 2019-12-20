@@ -17,7 +17,7 @@ export interface SizeLike
  *
  * Any operations such as [[times]] that act on two points will perform their operations element-wise. So, in the example of [[times]], the x-coordinates will be multiplied together and the y-coordinates will be multiplied together.
  */
-export default class Point
+export default class Point implements PointLike
 {
     /** The x-coordinate of the point. */
     public x : number;

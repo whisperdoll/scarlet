@@ -27,6 +27,21 @@ export interface Hitbox
     radius: number;
 };
 
+export interface ScriptHaver
+{
+    scriptId: number;
+};
+
+export interface SpriteHaver
+{
+    spriteId: number;
+};
+
+export interface BulletHaver
+{
+    bulletId: number;
+};
+
 export interface ObjectModel
 {
     id: number;
