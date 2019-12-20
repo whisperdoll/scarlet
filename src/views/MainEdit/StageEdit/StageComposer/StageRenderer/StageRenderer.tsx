@@ -1,15 +1,13 @@
 import React from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, PlayerModel, SpriteModel, EnemyModel, BulletModel, StageEnemyData, BossModel, Hitbox, ObjectModel, ScriptHaver } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, SpriteModel } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
-import Point, { PointLike } from '../../../../../utils/point';
+import Point from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import ScriptEngine, { ScriptMethodCollection } from '../../../../../utils/ScriptEngine';
-import { obj_copy } from '../../../../../utils/utils';
-import GameEngine from '../../../../../utils/GameEngine';
+import GameEngine, { UpdateResult } from '../../../../../utils/GameEngine';
 
 interface Props
 {
@@ -21,6 +19,7 @@ interface Props
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
+    onPlayFrame: (delta: number) => any;
     playing: boolean;
 }
 
@@ -38,6 +37,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private keyDownMap: Map<string, boolean> = new Map();
     private animationFrameHandle: number | null = null;
     private engine: GameEngine;
+    private lastTime: number = -1;
 
     constructor(props: Props)
     {
@@ -58,6 +58,21 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     componentDidUpdate = (prevProps: Props) =>
     {
         this.handleResize();
+
+        if (this.props.playing && !prevProps.playing)
+        {
+            this.startPlaying();
+        }
+        else if (!this.props.playing && prevProps.playing)
+        {
+            this.stopPlaying();
+        }
+
+        if (this.props.playing && this.props.time < prevProps.time)
+        {
+            // we looped //
+            this.startPlaying();
+        }
     }
 
     handleResize = () =>
@@ -89,6 +104,18 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             cancelAnimationFrame(this.animationFrameHandle);
         }
+    }
+
+    startPlaying = () =>
+    {
+        this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
+        this.engine.fastForwardTo(this.props.time);
+        this.lastTime = performance.now();
+    }
+
+    stopPlaying = () =>
+    {
+
     }
 
     grabCanvas = (canvas: Canvas) =>
@@ -123,7 +150,12 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
     }
 
-    renderStage = () =>
+    resetEngine = () =>
+    {
+        this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
+    }
+
+    renderStage = (time: number) =>
     {
         if (!this.canvas || !this.dirty || this.rendering)
         {
@@ -131,46 +163,46 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             return;
         }
 
-        console.time("> stage render");
+        // console.time("> stage render");
+
         this.rendering = true;
-        this.dirty = false;
-        // console.time("clear canvas");
         this.canvas.clear();
-        // console.timeEnd("clear canvas");
-
-        const emptyMap = new Map();
-
-        // console.time("reset engine");
-        this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
-        // console.timeEnd("reset engine");
-
-        // console.time("loop");
-        let _time;
-        for (_time = 0; _time < this.props.time; _time += GameEngine.defaultDelta)
-        {
-            this.engine.update({
-                delta: GameEngine.defaultDelta,
-                keys: emptyMap,
-                playerInvincible: true
-            });
-        }
-        _time -= GameEngine.defaultDelta;
-        const results = this.engine.update({
-            delta: this.props.time - _time,
-            keys: emptyMap,
-            playerInvincible: true
-        });
-        // console.timeEnd("loop");
-
-        // console.time("fetch background");
+    
         const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
-        // console.timeEnd("fetch background");
         if (background)
         {
             const img = ImageCache.getImageSync(background.path);
-            this.canvas?.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
+            this.canvas.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
         }
 
+        let results: UpdateResult;
+
+        if (this.props.playing)
+        {
+            this.dirty = true;
+            const delta = (time - this.lastTime) / 1000;
+
+            results = this.engine.update({
+                delta: delta,
+                keys: this.keyDownMap,
+                playerInvincible: false
+            });
+
+            this.props.onPlayFrame(delta);
+            this.lastTime = time;
+        }
+        else
+        {
+            this.dirty = false;
+            // console.time("reset engine");
+            this.resetEngine();
+            // console.timeEnd("reset engine");
+    
+            // console.time("loop");
+            results = this.engine.fastForwardTo(this.props.time);
+            // console.timeEnd("loop");
+        }
+    
         // console.time("render entities");
         results.entities.forEach((entity) =>
         {
@@ -186,10 +218,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             this.props.onPlayerDie();
         }
         this.props.onInstanceCount(0, 0);
-
+    
         this.rendering = false;
         this.animationFrameHandle = requestAnimationFrame(this.renderStage);
-        console.timeEnd("> stage render");
+        // console.timeEnd("> stage render");
     }
 
     handleUpdate = () =>

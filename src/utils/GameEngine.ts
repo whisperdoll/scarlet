@@ -7,7 +7,7 @@ import { obj_copy, array_remove_multiple } from "./utils";
 
 type GameEntityType = "player" | "enemy" | "boss" | "bullet";
 
-interface GameEntity
+export interface GameEntity
 {
     obj: ScriptHaver & SpriteHaver & BulletHaver;
     index: number;
@@ -23,17 +23,18 @@ interface GameEntity
 
 type KeyStruct = Map<string, boolean>;
 
-interface UpdateContext
+export interface UpdateContext
 {
     delta: number;
     playerInvincible: boolean;
     keys: KeyStruct;
 };
 
-interface UpdateResult
+export interface UpdateResult
 {
     playerAlive: boolean;
     entities: GameEntity[];
+    stageAge: number;
 };
 
 type EngineMode = "previewEnemies" | "previewBoss" | "full";
@@ -174,12 +175,55 @@ export default class GameEngine
         this.entitiesToAdd = [];
     }
 
+    public fastForwardTo(time: number): UpdateResult
+    {
+        const emptyMap = new Map();
+        let _time;
+
+        const context = {
+            delta: GameEngine.defaultDelta,
+            keys: emptyMap,
+            playerInvincible: true
+        };
+
+        for (_time = 0; _time < time; _time += GameEngine.defaultDelta)
+        {
+            this.update(context);
+        }
+
+        _time -= GameEngine.defaultDelta;
+
+        return this.update({
+            delta: time - _time,
+            keys: emptyMap,
+            playerInvincible: true
+        });
+    }
+
+    public startGameLoop(startTime: number, callback: (result: UpdateResult) => any)
+    {
+        if (startTime > 0)
+        {
+            this.fastForwardTo(startTime);
+        }
+    }
+
+    public stopGameLoop()
+    {
+
+    }
+
     public update(context: UpdateContext): UpdateResult
     {
         if (!this.hasReset) throw new Error("reset engine before use");
 
-        this.stageAge += context.delta;
         let playerAlive = true;
+
+        this.stageAge += context.delta;
+        if (this.stage && this.stageAge >= this.stage.lengthSeconds)
+        {
+
+        }
 
         this.entities.forEach((entity, i) =>
         {
@@ -318,8 +362,8 @@ export default class GameEngine
                                 y: hitbox.position.y + entity.position.y - bulletSpriteLocalCenter.y
                             };
                             const playerHitboxPoint = {
-                                x: playerHitbox.position.x + (this.playerEntity as GameEntity).position.x - playerSpriteLocalCenter.x / 2,
-                                y: playerHitbox.position.y + (this.playerEntity as GameEntity).position.y - playerSpriteLocalCenter.y / 2
+                                x: playerHitbox.position.x + (this.playerEntity as GameEntity).position.x - playerSpriteLocalCenter.x,
+                                y: playerHitbox.position.y + (this.playerEntity as GameEntity).position.y - playerSpriteLocalCenter.y
                             };
 
                             const d = hitbox.radius + playerHitbox.radius
@@ -345,7 +389,8 @@ export default class GameEngine
         // console.timeEnd("remove queued");
         return {
             playerAlive: playerAlive,
-            entities: this.entities
+            entities: this.entities,
+            stageAge: this.stageAge
         };
     }
 }

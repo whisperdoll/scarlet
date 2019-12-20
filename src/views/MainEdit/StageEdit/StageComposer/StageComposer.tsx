@@ -45,10 +45,8 @@ interface State
 
 export default class StageComposer extends React.PureComponent<Props, State>
 {
-    private animationFrameHandle: number | null = null;
     private bufferedLoopTimes: number[] = [];
     private bufferedTime: number = 0;
-    private lastTime: number = -1;
 
     constructor(props: Props)
     {
@@ -70,51 +68,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause"
         };
-    }
-
-    private startAnimating = () =>
-    {
-        this.lastTime = performance.now();
-        this.animationFrameHandle = requestAnimationFrame(this.animate);
-    }
-
-    private stopAnimating = () =>
-    {
-        if (this.animationFrameHandle !== null)
-        {
-            cancelAnimationFrame(this.animationFrameHandle);
-            this.animationFrameHandle = null;
-        }
-    }
-
-    animate = (time: number) =>
-    {
-        if (this.state.playing)
-        {
-            const delta = (time - this.lastTime) / 1000;
-            this.setState((state) =>
-            {
-                let newTime = state.timeSeconds + delta;
-
-                if (this.state.loopEnabled && this.state.loopStart < this.state.loopEnd && newTime >= this.state.loopEnd)
-                {
-                    newTime = this.state.loopStart;
-                }
-                
-                if (newTime >= this.props.stage.lengthSeconds)
-                {
-                    newTime = this.props.stage.lengthSeconds - delta;
-                }
-
-                return {
-                    ...state,
-                    timeSeconds: newTime
-                };
-            });
-
-        }
-        this.lastTime = time;
-        this.animationFrameHandle = requestAnimationFrame(this.animate);
     }
 
     refreshScripts = () =>
@@ -149,7 +102,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentWillUnmount = () =>
     {
-        this.stopAnimating();
     }
 
     componentDidUpdate = (prevProps: Props, prevState: State) =>
@@ -198,16 +150,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 const index = prevState.selectedBossFormIndex;
                 this.handleBossFormIndexChange(Math.max(0, index - 1));
             }
-        }
-
-        // animation //
-        if (this.state.playing && !prevState.playing)
-        {
-            this.startAnimating();
-        }
-        else if (prevState.playing && !this.state.playing)
-        {
-            this.stopAnimating();
         }
     }
 
@@ -686,24 +628,24 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handlePauseActionChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     {
-        const index = e.currentTarget.selectedIndex;
+        const action = e.currentTarget.value as PauseAction;
         this.setState((state) =>
         {
             return {
                 ...state,
-                pauseAction: ["loopAndPause", "pause"][index] as PauseAction
+                pauseAction: action
             };
         });
     }
 
     handleDeathActionChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     {
-        const index = e.currentTarget.selectedIndex;
+        const action = e.currentTarget.value as DeathAction;
         this.setState((state) =>
         {
             return {
                 ...state,
-                deathAction: ["loopAndPause", "pause", "loop"][index] as DeathAction
+                deathAction: action
             };
         });
     }
@@ -784,6 +726,25 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 ...state,
                 loopEnabled: !state.loopEnabled
             };
+        });
+    }
+
+    handlePlayFrame = (delta: number) =>
+    {
+        this.setState((state) => {
+            const ret = obj_copy(state) as State;
+            ret.timeSeconds += delta;
+
+            if (this.state.loopEnabled
+                && ret.timeSeconds >= this.state.loopEnd
+                && ret.timeSeconds - delta < this.state.loopEnd
+                && ret.loopEnd > ret.loopStart
+            )
+            {
+                ret.timeSeconds = this.state.loopStart;
+            }
+
+            return ret;
         });
     }
 
@@ -992,9 +953,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                     onChange={this.handleDeathActionChange}
                                     value={this.state.deathAction}
                                 >
-                                    <option value="loopAndPause">Return to loop start</option>
+                                    <option value="loopAndPause">Restart loop and pause</option>
                                     <option value="pause">Pause in place</option>
-                                    <option value="loop">Restart loop without pausing</option>
+                                    <option value="loop">Restart loop (no pause)</option>
                                 </select>
                             </div>
                         </React.Fragment>)}
@@ -1012,6 +973,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             editMode={this.state.editMode}
                             playing={this.state.playing}
                             onPlayerDie={this.handlePlayerDie}
+                            onPlayFrame={this.handlePlayFrame}
                         />
                     </div>
                     {/* properties */}
