@@ -231,11 +231,20 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         this.dirty = true;
     }
+
+    handleClick = () =>
+    {
+        this.canvas?.canvas.focus();
+    }
     
     render = () =>
     {
         return (
-            <div className="stageRenderer" ref={this.containerRef}>
+            <div
+                className="stageRenderer"
+                ref={this.containerRef}
+                onClick={this.handleClick}
+            >
                 <PureCanvas
                     canvasGrabber={this.grabCanvas}
                     canvasOptions={{
