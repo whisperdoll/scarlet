@@ -5,7 +5,7 @@ import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
 import { obj_copy, array_remove_multiple } from "./utils";
 
-type GameEntityType = "player" | "enemy" | "boss" | "bullet";
+type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
 export interface GameEntity
 {
@@ -339,26 +339,29 @@ export default class GameEngine
                     
                     if (results.fire)
                     {
-                        const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.obj.bulletId, this.project as ProjectModel);
-                        if (bullet)
+                        for (let i = 0; i < results.fire; i++)
                         {
-                            this.entitiesToAdd.push({
-                                age: 0,
-                                index: entity.bulletsFired++,
-                                obj: {
-                                    bulletId: entity.obj.bulletId,
-                                    scriptId: bullet.scriptId,
-                                    spriteId: bullet.spriteId
-                                },
-                                position: entity.position,
-                                spawnPosition: entity.position,
-                                spawnTime: this.stageAge,
-                                lifetime: -1,
-                                tags: [],
-                                bulletsFired: 0,
-                                alive: true,
-                                type: "bullet"
-                            });
+                            const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.obj.bulletId, this.project as ProjectModel);
+                            if (bullet)
+                            {
+                                this.entitiesToAdd.push({
+                                    age: 0,
+                                    index: entity.bulletsFired++,
+                                    obj: {
+                                        bulletId: entity.obj.bulletId,
+                                        scriptId: bullet.scriptId,
+                                        spriteId: bullet.spriteId
+                                    },
+                                    position: entity.position,
+                                    spawnPosition: entity.position,
+                                    spawnTime: this.stageAge,
+                                    lifetime: -1,
+                                    tags: [],
+                                    bulletsFired: 0,
+                                    alive: true,
+                                    type: entity.type === "player" ? "playerBullet" : "enemyBullet"
+                                });
+                            }
                         }
                     }
 
@@ -371,7 +374,7 @@ export default class GameEngine
             // console.timeEnd("run script");
 
             // console.time("bullet collision");
-            if (entity.type === "bullet" && this.playerEntity && !context.playerInvincible)
+            if (entity.type === "enemyBullet" && this.playerEntity && !context.playerInvincible)
             {
                 const bulletSprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.obj.spriteId, this.project as ProjectModel);
                 const playerSprite = ObjectHelper.getObjectWithId<SpriteModel>(this.playerEntity.obj.spriteId, this.project as ProjectModel);

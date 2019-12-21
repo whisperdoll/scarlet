@@ -38,7 +38,7 @@ export interface ScriptEntityData
 export interface ScriptResult
 {
     position?: PointLike;
-    fire?: boolean;
+    fire?: number;
     alive?: boolean;
 };
 
