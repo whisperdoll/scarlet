@@ -57,6 +57,7 @@ export default class App extends React.PureComponent<Props, State>
 
     componentDidMount()
     {
+        console.log(process.version);
         const fileMenu = new Menu();
 
         fileMenu.append(new MenuItem({
@@ -115,7 +116,6 @@ export default class App extends React.PureComponent<Props, State>
 
     setTitle()
     {
-        console.log(process.version);
         if (this.state.project)
         {
             remote.getCurrentWindow().setTitle((this.state.dirty ? "*" : "") + "Scarlet - " + this.state.project.name);

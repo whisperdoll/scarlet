@@ -19,7 +19,7 @@ interface Props
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
-    onPlayFrame: (delta: number, isLastFrame: boolean) => any;
+    onPlayFrame: (time: number, delta: number, isLastFrame: boolean) => any;
     playing: boolean;
 }
 
@@ -38,6 +38,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private animationFrameHandle: number | null = null;
     private engine: GameEngine;
     private lastTime: number = -1;
+    private playingDone: boolean = false;
 
     constructor(props: Props)
     {
@@ -111,6 +112,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
         const r = this.engine.fastForwardTo(this.props.time);
         this.lastTime = performance.now();
+        this.playingDone = false;
     }
 
     stopPlaying = () =>
@@ -157,7 +159,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     renderStage = (time: number) =>
     {
-        if (!this.canvas || !this.dirty || this.rendering)
+        if (!this.canvas || !this.dirty || this.rendering || (this.props.playing && this.playingDone))
         {
             this.animationFrameHandle = requestAnimationFrame(this.renderStage);
             return;
@@ -179,7 +181,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (this.props.playing)
         {
-            this.dirty = true;
             const delta = (time - this.lastTime) / 1000;
 
             results = this.engine.update({
@@ -188,8 +189,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 playerInvincible: false
             });
 
-            this.props.onPlayFrame(delta, results.isLastUpdate);
+            this.props.onPlayFrame(results.offsetStageAge, results.delta, results.isLastUpdate);
             this.lastTime = time;
+            this.playingDone = results.isLastUpdate;
+            this.dirty = !results.isLastUpdate;
         }
         else
         {

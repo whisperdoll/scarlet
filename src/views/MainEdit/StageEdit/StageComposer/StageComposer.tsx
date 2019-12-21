@@ -729,11 +729,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayFrame = (delta: number, isLastFrame: boolean) =>
+    handlePlayFrame = (time: number, delta: number, isLastFrame: boolean) =>
     {
         this.setState((state) => {
             const ret = obj_copy(state) as State;
-            ret.timeSeconds += delta;
+            const _ts = ret.timeSeconds;
+
+            ret.timeSeconds = time;
 
             if (this.state.loopEnabled
                 && ret.timeSeconds >= this.state.loopEnd
@@ -745,7 +747,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
             }
             else if (isLastFrame)
             {
-                console.log(delta, ret.timeSeconds, this.state.loopEnd);
                 ret.playing = false;
             }
 
