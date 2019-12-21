@@ -1,5 +1,7 @@
 import { PointLike } from "./point";
 
+export type ObjectMap<T> = { [key: string]: T };
+
 export interface ProjectModel
 {
     name: string;

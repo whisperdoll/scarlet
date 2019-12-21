@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
-import { ProjectModel, ScriptModel } from "./datatypes";
+import { ProjectModel, ScriptModel, ObjectMap } from "./datatypes";
 import { PointLike } from "./point";
 
 export interface StageScriptData
@@ -17,6 +17,7 @@ export interface PlayerScriptData
 
 export interface ScriptMethodCollection
 {
+    init: (context: ScriptContext) => ScriptResult;
     update: (context: ScriptContext) => ScriptResult;
 };
 
@@ -33,11 +34,13 @@ export interface ScriptEntityData
     spawnPosition: PointLike;
     position: PointLike;
     index: number;
+    store: ObjectMap<any>;
 };
 
 export interface ScriptResult
 {
     position?: PointLike;
+    store?: ObjectMap<any>;
     fire?: number;
     alive?: boolean;
 };

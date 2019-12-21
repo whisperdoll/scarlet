@@ -1,5 +1,5 @@
 import { PointLike } from "./point";
-import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel } from "./datatypes";
+import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, ObjectMap } from "./datatypes";
 import ScriptEngine from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
@@ -20,6 +20,7 @@ export interface GameEntity
     bulletsFired: number;
     alive: boolean;
     type: GameEntityType;
+    store: ObjectMap<any>;
 };
 
 type KeyStruct = Map<string, boolean>;
@@ -84,7 +85,8 @@ export default class GameEngine
                 spawnTime: 0,
                 lifetime: -1,
                 tags: [],
-                type: "player"
+                type: "player",
+                store: {}
             };
 
             this.entities.push(this.playerEntity);
@@ -109,7 +111,8 @@ export default class GameEngine
                         spawnTime: spawnTime,
                         lifetime: form.lifetime,
                         tags: [],
-                        type: "boss"
+                        type: "boss",
+                        store: {}
                     });
 
                     spawnTime += form.lifetime + GameEngine.bossTransitionTime;
@@ -137,7 +140,8 @@ export default class GameEngine
                             spawnTime: spawnTime,
                             lifetime: form.lifetime,
                             tags: [],
-                            type: "boss"
+                            type: "boss",
+                            store: {}
                         });
                         
                         this.stageAge = spawnTime;
@@ -168,12 +172,50 @@ export default class GameEngine
                             spawnTime: enemyData.spawnTime + i * (1 / enemyData.spawnRate),
                             lifetime: -1,
                             tags: [],
-                            type: "enemy"
+                            type: "enemy",
+                            store: {}
                         });
                     }
                 }
             });
         }
+
+        this.entities.forEach((entity) =>
+        {
+            if (entity.obj.scriptId >= 0)
+            {
+                const methods = ScriptEngine.parseScript(entity.obj.scriptId, project);
+                if (methods.init)
+                {
+                    const results = methods.init({
+                        delta: -1,
+                        entity: {
+                            age: -1,
+                            index: entity.index,
+                            position: entity.spawnPosition,
+                            spawnPosition: entity.spawnPosition,
+                            store: entity.store
+                        },
+                        stage: {
+                            age: -1,
+                            size: stage.size
+                        }
+                    });
+    
+                    if (results)
+                    {
+                        if (results.position)
+                        {
+                            entity.position = results.position;
+                        }
+                        if (results.store)
+                        {
+                            entity.store = results.store;
+                        }
+                    }
+                }
+            }
+        });
 
         this.gameSize = stage.size;
         this.project = project;
@@ -322,7 +364,8 @@ export default class GameEngine
                         age: entity.age,
                         index: entity.index,
                         position: entity.position,
-                        spawnPosition: entity.spawnPosition
+                        spawnPosition: entity.spawnPosition,
+                        store: entity.store
                     },
                     stage: {
                         age: this.stageAge,
@@ -335,6 +378,11 @@ export default class GameEngine
                     if (results.position)
                     {
                         entity.position = results.position;
+                    }
+
+                    if (results.store)
+                    {
+                        entity.store = results.store;
                     }
                     
                     if (results.fire)
@@ -359,7 +407,8 @@ export default class GameEngine
                                     tags: [],
                                     bulletsFired: 0,
                                     alive: true,
-                                    type: entity.type === "player" ? "playerBullet" : "enemyBullet"
+                                    type: entity.type === "player" ? "playerBullet" : "enemyBullet",
+                                    store: {}
                                 });
                             }
                         }
