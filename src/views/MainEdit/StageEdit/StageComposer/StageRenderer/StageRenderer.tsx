@@ -19,7 +19,7 @@ interface Props
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
-    onPlayFrame: (delta: number) => any;
+    onPlayFrame: (delta: number, isLastFrame: boolean) => any;
     playing: boolean;
 }
 
@@ -109,7 +109,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     startPlaying = () =>
     {
         this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
-        this.engine.fastForwardTo(this.props.time);
+        const r = this.engine.fastForwardTo(this.props.time);
         this.lastTime = performance.now();
     }
 
@@ -188,7 +188,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 playerInvincible: false
             });
 
-            this.props.onPlayFrame(delta);
+            this.props.onPlayFrame(delta, results.isLastUpdate);
             this.lastTime = time;
         }
         else

@@ -12,6 +12,7 @@ export interface GameEntity
     obj: ScriptHaver & SpriteHaver & BulletHaver;
     index: number;
     spawnTime: number;
+    lifetime: number;
     age: number;
     spawnPosition: PointLike;
     position: PointLike;
@@ -35,6 +36,7 @@ export interface UpdateResult
     playerAlive: boolean;
     entities: GameEntity[];
     stageAge: number;
+    isLastUpdate: boolean;
 };
 
 type EngineMode = "previewEnemies" | "previewBoss" | "full";
@@ -53,6 +55,7 @@ export default class GameEngine
     private hasReset: boolean = false;
     private playerEntity: GameEntity | null = null;
     private bossFormIndex: number = -1;
+    private mode: EngineMode = "full";
 
     constructor()
     {
@@ -63,6 +66,7 @@ export default class GameEngine
         this.entities = [];
         this.stageAge = 0;
         this.bossFormIndex = bossFormIndex;
+        this.mode = mode;
 
         const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId, project);
         if (player)
@@ -76,6 +80,7 @@ export default class GameEngine
                 position: obj_copy(stage.playerSpawnPosition),
                 spawnPosition: obj_copy(stage.playerSpawnPosition),
                 spawnTime: 0,
+                lifetime: -1,
                 tags: [],
                 type: "player"
             };
@@ -100,6 +105,7 @@ export default class GameEngine
                         position: obj_copy(stage.bossSpawnPosition),
                         spawnPosition: obj_copy(stage.bossSpawnPosition),
                         spawnTime: spawnTime,
+                        lifetime: form.lifetime,
                         tags: [],
                         type: "boss"
                     });
@@ -127,6 +133,7 @@ export default class GameEngine
                             position: obj_copy(stage.bossSpawnPosition),
                             spawnPosition: obj_copy(stage.bossSpawnPosition),
                             spawnTime: spawnTime,
+                            lifetime: form.lifetime,
                             tags: [],
                             type: "boss"
                         });
@@ -155,6 +162,7 @@ export default class GameEngine
                             position: obj_copy(enemyData.spawnPosition),
                             spawnPosition: obj_copy(enemyData.spawnPosition),
                             spawnTime: enemyData.spawnTime + i * (1 / enemyData.spawnRate),
+                            lifetime: -1,
                             tags: [],
                             type: "enemy"
                         });
@@ -186,12 +194,10 @@ export default class GameEngine
             playerInvincible: true
         };
 
-        for (_time = 0; _time < time; _time += GameEngine.defaultDelta)
+        for (_time = 0; _time < time - GameEngine.defaultDelta; _time += GameEngine.defaultDelta)
         {
             this.update(context);
         }
-
-        _time -= GameEngine.defaultDelta;
 
         return this.update({
             delta: time - _time,
@@ -218,11 +224,34 @@ export default class GameEngine
         if (!this.hasReset) throw new Error("reset engine before use");
 
         let playerAlive = true;
+        let isLastUpdate = false;
 
         this.stageAge += context.delta;
-        if (this.stage && this.stageAge >= this.stage.lengthSeconds)
+        if (this.stage)
         {
-
+            if (this.mode === "previewEnemies" && this.stageAge >= this.stage.lengthSeconds)
+            {
+                context.delta = this.stageAge - this.stage.lengthSeconds;
+                this.stageAge = this.stage.lengthSeconds;
+                isLastUpdate = true;
+            }
+            else if (this.mode === "previewBoss")
+            {
+                const boss = this.entities.find(e => e.type === "boss");
+                if (boss)
+                {
+                    if (this.stageAge >= boss.spawnTime + boss.lifetime)
+                    {
+                        context.delta = this.stageAge - boss.spawnTime + boss.lifetime;
+                        this.stageAge = boss.spawnTime + boss.lifetime;
+                        isLastUpdate = true;
+                    }
+                }
+                else
+                {
+                    throw new Error("no boss?");
+                }
+            }
         }
 
         this.entities.forEach((entity, i) =>
@@ -315,6 +344,7 @@ export default class GameEngine
                                 position: entity.position,
                                 spawnPosition: entity.position,
                                 spawnTime: this.stageAge,
+                                lifetime: -1,
                                 tags: [],
                                 bulletsFired: 0,
                                 alive: true,
@@ -390,7 +420,8 @@ export default class GameEngine
         return {
             playerAlive: playerAlive,
             entities: this.entities,
-            stageAge: this.stageAge
+            stageAge: this.stageAge,
+            isLastUpdate: this.stageAge === this.stage?.lengthSeconds
         };
     }
 }
