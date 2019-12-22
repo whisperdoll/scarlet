@@ -131,7 +131,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                     onChange={this.handleTimeScrub}
                     min="0"
                     max={this.length.toString()}
-                    step="0.01"
+                    step={(1 / 60).toString()}
                     value={this.props.time.toString()}
                 />
             </div>

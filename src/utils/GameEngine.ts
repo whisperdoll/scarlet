@@ -245,24 +245,15 @@ export default class GameEngine
             this.update(context);
         }
 
-        return this.update({
+        const ret = this.update({
             delta: time - _time,
             keys: emptyMap,
             playerInvincible: true
         });
-    }
 
-    public startGameLoop(startTime: number, callback: (result: UpdateResult) => any)
-    {
-        if (startTime > 0)
-        {
-            this.fastForwardTo(startTime);
-        }
-    }
+        console.log("ff >>", this.stageAge);
 
-    public stopGameLoop()
-    {
-
+        return ret;
     }
 
     public update(context: UpdateContext): UpdateResult
@@ -282,6 +273,7 @@ export default class GameEngine
             {
                 this.stageAge = this.stage.lengthSeconds;
                 context.delta = this.stageAge - _sa;
+                offsetTime = this.stageAge;
                 isLastUpdate = true;
             }
             else if (this.mode === "previewBoss")
@@ -294,6 +286,7 @@ export default class GameEngine
                     if (this.stageAge >= boss.spawnTime + boss.lifetime)
                     {
                         this.stageAge = boss.spawnTime + boss.lifetime;
+                        offsetTime = this.stageAge - boss.spawnTime;
                         context.delta = this.stageAge - _sa;
                         isLastUpdate = true;
                     }
@@ -408,7 +401,7 @@ export default class GameEngine
                                     bulletsFired: 0,
                                     alive: true,
                                     type: entity.type === "player" ? "playerBullet" : "enemyBullet",
-                                    store: {}
+                                    store: results.fireStores ? results.fireStores[i] || {} : {}
                                 });
                             }
                         }

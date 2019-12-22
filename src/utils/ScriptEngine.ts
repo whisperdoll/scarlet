@@ -42,6 +42,7 @@ export interface ScriptResult
     position?: PointLike;
     store?: ObjectMap<any>;
     fire?: number;
+    fireStores?: ObjectMap<any>[];
     alive?: boolean;
 };
 

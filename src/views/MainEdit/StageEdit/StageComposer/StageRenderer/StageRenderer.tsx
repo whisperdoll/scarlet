@@ -109,15 +109,16 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     startPlaying = () =>
     {
+        console.log("maybe we eat a hot dog");
         this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
         const r = this.engine.fastForwardTo(this.props.time);
-        this.lastTime = performance.now();
+        this.lastTime = -1;
         this.playingDone = false;
     }
 
     stopPlaying = () =>
     {
-
+        this.lastTime = -1;
     }
 
     grabCanvas = (canvas: Canvas) =>
@@ -181,7 +182,17 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (this.props.playing)
         {
-            const delta = (time - this.lastTime) / 1000;
+            /*if (this.lastTime === -1)
+            {
+                this.rendering = false;
+                this.lastTime = time;
+                this.dirty = true;
+                this.animationFrameHandle = requestAnimationFrame(this.renderStage);
+                return;
+            }*/
+
+            const delta = 1 / 60;
+            this.lastTime = time;
 
             results = this.engine.update({
                 delta: delta,
@@ -190,7 +201,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             });
 
             this.props.onPlayFrame(results.offsetStageAge, results.delta, results.isLastUpdate);
-            this.lastTime = time;
             this.playingDone = results.isLastUpdate;
             this.dirty = !results.isLastUpdate;
         }
