@@ -2,6 +2,7 @@ import * as electron from "electron"
 import * as path from "path"
 import * as fs from "fs"
 import { SafeWriter } from "./safewriter";
+import * as v8 from "v8";
 let exec = require("child_process").exec;
 
 export type SortFunction<T> = (a : T, b : T) => boolean;
@@ -26,6 +27,11 @@ export function jsonToMap(json: { [key: string]: any }): Map<string, any>
     }
 
     return ret;
+}
+
+export function deepCopy<T>(obj: T): T
+{
+    return v8.deserialize(v8.serialize(obj)) as T;
 }
 
 export function isFileNotFoundError(err : NodeJS.ErrnoException) : boolean

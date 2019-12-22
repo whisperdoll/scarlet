@@ -69,6 +69,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause"
         };
+
+        ScriptEngine.updateCache(this.props.project);
+        ImageCache.updateCache(this.props.project);
     }
 
     refreshScripts = () =>
@@ -97,8 +100,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentDidMount = () =>
     {
-        this.refreshScripts();
-        this.refreshImages();
     }
 
     componentWillUnmount = () =>

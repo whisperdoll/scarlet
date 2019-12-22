@@ -3,7 +3,7 @@ import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletM
 import ScriptEngine from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
-import { obj_copy, array_remove_multiple, array_last, array_copy } from "./utils";
+import { obj_copy, array_remove_multiple, array_last, array_copy, deepCopy } from "./utils";
 
 type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
@@ -65,6 +65,7 @@ export default class GameEngine
     private playerEntity: GameEntity | null = null;
     private bossFormIndex: number = -1;
     private mode: EngineMode = "full";
+    private cacheInterval: number = 30;
 
     // time, mode, bossFormIndex
     private cache: Map<number, Map<EngineMode, Map<number, GameState>>> = new Map();
@@ -77,7 +78,7 @@ export default class GameEngine
     {
         return {
             bossFormIndex: this.bossFormIndex,
-            entities: array_copy(this.entities),
+            entities: deepCopy(this.entities),
             mode: this.mode,
             playerEntity: this.playerEntity,
             stageAge: this.stageAge
@@ -87,15 +88,31 @@ export default class GameEngine
     private loadGameState(gameState: GameState)
     {
         this.bossFormIndex = gameState.bossFormIndex;
-        this.entities = array_copy(gameState.entities);
+        this.entities = deepCopy(gameState.entities);
         this.mode = gameState.mode;
         this.playerEntity = gameState.playerEntity;
         this.stageAge = gameState.stageAge;
     }
 
+    /**
+     * Reset the engine sometime after calling this and before doing an update.
+     */
     public invalidateCache()
     {
         this.cache.clear();
+        
+        /*if (this.mode === "previewBoss")
+        {
+            const boss = this.entities.find(e => e.type === "boss");
+            if (boss)
+            {
+                this.fastForwardTo(boss.lifetime - 1);
+            }
+        }
+        else if (this.mode === "previewEnemies" && this.stage)
+        {
+            this.fastForwardTo(this.stage.length - 1);
+        }*/
     }
 
     private cacheSelf(frame: number)
@@ -293,54 +310,72 @@ export default class GameEngine
         this.hasReset = true;
     }
 
+    private get offsetFrames(): number
+    {
+        if (this.mode === "previewBoss")
+        {
+            const boss = this.entities.find(e => e.type === "boss");
+            if (boss)
+            {
+                return boss.spawnFrame;
+            }
+
+            return 0;
+        }
+        
+        return 0;
+    }
+
     public fastForwardTo(frame: number): UpdateResult
     {
+        // handle 0 frame //
         if (frame === 0)
         {
-            // TODO: fix this
             return {
                 entities: this.entities,
                 isLastUpdate: false,
                 offsetStageAge: 0,
                 playerAlive: true,
-                stageAge: 0
+                stageAge: this.offsetFrames
             };
         }
 
-        const cached = this.retrieveFromCache(frame);
+        // start from closest cached frame //
+        let startFrame = 0;
+        const cachedFrame = Math.floor(frame / this.cacheInterval) * this.cacheInterval;
+        const cached = this.retrieveFromCache(cachedFrame);
         if (cached)
         {
-            // TODO: fix this
             this.loadGameState(cached);
-            console.log({
-                entities: this.entities,
-                isLastUpdate: false,
-                offsetStageAge: this.stageAge,
-                playerAlive: true,
-                stageAge: this.stageAge
-            });
-            return {
-                entities: this.entities,
-                isLastUpdate: false,
-                offsetStageAge: this.stageAge,
-                playerAlive: true,
-                stageAge: this.stageAge
-            };
+            startFrame = cachedFrame;
+
+            if (startFrame === frame)
+            {
+                return {
+                    entities: this.entities,
+                    isLastUpdate: startFrame === this.stageAge - this.offsetFrames - 1,
+                    offsetStageAge: this.stageAge - this.offsetFrames,
+                    playerAlive: true,
+                    stageAge: this.stageAge
+                };
+            }
         }
 
+        // update loop //
+        let ret;
         const emptyMap = new Map();
-
         const context = {
             keys: emptyMap,
             playerInvincible: true
         };
 
-        let ret;
-
-        for (let i = 0; i < frame; i++)
+        for (let i = startFrame; i < frame; i++)
         {
+            if (i % this.cacheInterval === 0 && i !== 0)
+            {
+                this.cacheSelf(i);
+            }
             ret = this.advanceFrame(context);
-            this.cacheSelf(i);
         }
 
         return ret as UpdateResult;
@@ -421,6 +456,7 @@ export default class GameEngine
                     throw new Error("no boss?");
                 }
             }
+            // TODO: full
         }
 
         const ret = {

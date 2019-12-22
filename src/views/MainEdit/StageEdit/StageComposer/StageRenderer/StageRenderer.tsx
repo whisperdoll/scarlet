@@ -71,6 +71,14 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             this.startPlaying();
         }
 
+        if (this.props.project !== prevProps.project
+            || this.props.refresh !== prevProps.refresh
+            || this.props.stage !== prevProps.stage)
+        {
+            this.resetEngine();
+            this.engine.invalidateCache();
+        }
+
         this.dirty = true;
     }
 
@@ -95,6 +103,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         this.handleResize();
         this.requestRender();
+        this.resetEngine();
+        this.engine.invalidateCache();
     }
 
     componentWillUnmount = () =>
