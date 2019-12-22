@@ -42,6 +42,7 @@ interface State
     loopEnabled: boolean;
     deathAction: DeathAction;
     pauseAction: PauseAction;
+    playerInvincible: boolean;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -67,7 +68,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             loopEnd: props.stage.length - 1,
             loopEnabled: true,
             deathAction: "loopAndPause",
-            pauseAction: "loopAndPause"
+            pauseAction: "loopAndPause",
+            playerInvincible: true
         };
 
         ScriptEngine.updateCache(this.props.project);
@@ -753,6 +755,18 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    handlePlayerInvincibleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        const checked = e.currentTarget.checked;
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                playerInvincible: checked
+            };
+        });
+    }
+
     private get selectedBossForm(): BossFormModel | null
     {
         return this.getBossForm(this.state.selectedBossFormIndex);
@@ -965,6 +979,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             </div>
                         </React.Fragment>)}
                         <button onClick={this.toggleLoopEnabled}>{this.state.loopEnabled ? "Disable" : "Enable"} Loop Points</button>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={this.state.playerInvincible}
+                                onChange={this.handlePlayerInvincibleChange}
+                                name="playerInvincible"
+                            />
+                            Player Invincible During Play
+                        </label>
                     </div>
                     {/* stage */}
                     <div className="stagePreview">
@@ -979,6 +1002,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             playing={this.state.playing}
                             onPlayerDie={this.handlePlayerDie}
                             onPlayFrame={this.handlePlayFrame}
+                            playerInvincible={this.state.playerInvincible}
                         />
                     </div>
                     {/* properties */}

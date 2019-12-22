@@ -21,6 +21,7 @@ interface Props
     onPlayerDie: () => any;
     onPlayFrame: (frame: number, isLastFrame: boolean) => any;
     playing: boolean;
+    playerInvincible: boolean;
 }
 
 interface State
@@ -196,7 +197,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             this.drawBackground();
             const r = this.engine.advanceFrame({
                 keys: this.keyDownMap,
-                playerInvincible: false
+                playerInvincible: this.props.playerInvincible
             });
 
             entities = r.entities;

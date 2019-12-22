@@ -37,7 +37,7 @@ button
     }
 }
 
-input
+input:not([type=checkbox])
 {
     background-color: $controlBackground;
     color: $controlForeground;
