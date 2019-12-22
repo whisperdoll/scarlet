@@ -64,6 +64,27 @@ export default class StageTimeline extends React.PureComponent<Props, State>
 
     render()
     {
+        const s = this.props.loopStart <= this.props.loopEnd ? {
+            left: (this.props.loopStart / this.length * 100),
+            width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100),
+            color: "#9999AA"
+        } : {
+            left: (this.props.loopEnd / this.length * 100),
+            width: ((this.props.loopStart - this.props.loopEnd) / this.length * 100),
+            color: "#AA5555"
+        };
+
+        const style = this.props.loopEnabled ? {
+            backgroundImage: `linear-gradient(
+                to right,
+                transparent,
+                transparent ${s.left}%,
+                ${s.color} ${s.left}%,
+                ${s.color} ${s.left + s.width}%,
+                transparent ${s.left + s.width}%
+            )`
+        } : {};
+
         return (
             <div className="timeline">
                 {this.props.editMode === "enemy" && (
@@ -88,26 +109,25 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                         })}
                     </div>
                 )}
-                {this.props.loopEnabled && (
-                    <div
-                        className={this.props.loopStart <= this.props.loopEnd ? "timelineLoop" : "timelineLoop error"}
-                        style={this.props.loopStart <= this.props.loopEnd ? {
-                            left: (this.props.loopStart / this.length * 100).toString() + "%",
-                            width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100).toString() + "%"
-                        } : {
-                            left: (this.props.loopEnd / this.length * 100).toString() + "%",
-                            width: ((this.props.loopStart - this.props.loopEnd) / this.length * 100).toString() + "%"
-                        }}
+                <div className="row">
+                    <input
+                        type="range"
+                        onChange={this.handleScrub}
+                        min="0"
+                        max={this.length.toString()}
+                        step={1}
+                        value={this.props.frame.toString()}
+                        style={style}
                     />
-                )}
-                <input
-                    type="range"
-                    onChange={this.handleScrub}
-                    min="0"
-                    max={this.length.toString()}
-                    step={1}
-                    value={this.props.frame.toString()}
-                />
+                    <input
+                        type="number"
+                        onChange={this.handleScrub}
+                        min="0"
+                        max={this.length.toString()}
+                        step={1}
+                        value={this.props.frame.toString()}
+                    />
+                </div>
             </div>
         );
     }

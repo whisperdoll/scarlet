@@ -19,19 +19,16 @@
         box-sizing: border-box;
     }
 
-    input
+    input[type="range"]
     {
         display: block;
-        width: 100%;
         box-sizing: border-box;
         
         padding: 0;
-        -webkit-appearance: none;
-        margin: 0;
-        box-sizing: border-box;
         border: 0;
+        -webkit-appearance: none;
+        box-sizing: border-box;
         background: transparent;
-        margin: 0px;
         
         &::-webkit-slider-runnable-track {
             width: 100%;
@@ -51,6 +48,12 @@
             -webkit-appearance: none;
             margin-top: 0px;
         }
+    }
+
+    input[type="number"]
+    {
+        flex-grow: 0;
+        flex-basis: 64px;
     }
 
     .timelineLoop

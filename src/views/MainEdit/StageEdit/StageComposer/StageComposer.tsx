@@ -938,7 +938,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 <input
                                     type="number"
                                     min="0"
-                                    max={this.state.loopEnd}
+                                    max={this.state.loopEnd - 1}
                                     onChange={this.handleLoopStartChange}
                                     value={this.state.loopStart}
                                 />
@@ -949,8 +949,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 <span className="label">Loop End:</span>
                                 <input
                                     type="number"
-                                    min={this.state.loopStart}
-                                    max={this.props.stage.length}
+                                    min={this.state.loopStart + 1}
+                                    max={this.props.stage.length - 1}
                                     onChange={this.handleLoopEndChange}
                                     value={this.state.loopEnd}
                                 />
