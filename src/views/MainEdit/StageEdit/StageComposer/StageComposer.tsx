@@ -28,7 +28,7 @@ interface Props
 
 interface State
 {
-    timeSeconds: number;
+    frame: number;
     selectedEnemyIndex: number;
     selectedNewEnemyId: number;
     playing: boolean;
@@ -54,7 +54,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         super(props);
         
         this.state = {
-            timeSeconds: 0,
+            frame: 0,
             selectedEnemyIndex: -1,
             selectedNewEnemyId: -1,
             playing: false,
@@ -64,7 +64,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             editMode: "enemy",
             selectedBossFormIndex: 0,
             loopStart: 0,
-            loopEnd: props.stage.lengthSeconds,
+            loopEnd: props.stage.length - 1,
             loopEnabled: true,
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause"
@@ -161,15 +161,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleLengthChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        let val = parseFloat(e.currentTarget.value);
+        let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.stage.lengthSeconds;
+            val = this.props.stage.length;
         }
 
         this.props.onUpdate({
             ...this.props.stage,
-            lengthSeconds: val
+            length: val
         });
     }
 
@@ -277,7 +277,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleLoopStartChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        const val = parseFloat(e.currentTarget.value);
+        const val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
             return;
@@ -294,7 +294,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleLoopEndChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        const val = parseFloat(e.currentTarget.value);
+        const val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
             return;
@@ -333,13 +333,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handleTimeScrub = (time: number) =>
+    handleFrameScrub = (frame: number) =>
     {
         this.setState((state) =>
         {
             return {
                 ...state,
-                timeSeconds: time,
+                frame: frame,
                 playing: false
             };
         });
@@ -360,7 +360,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     },
                     spawnAmount: 1,
                     spawnRate: 0,
-                    spawnTime: this.state.timeSeconds
+                    spawnFrame: this.state.frame
                 }])
             });
         }
@@ -429,7 +429,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handlePlayPause = (e: React.MouseEvent) =>
     {
-        let time: number = this.state.timeSeconds;
+        let frame: number = this.state.frame;
         
         if (!this.state.playing)
         {
@@ -441,16 +441,16 @@ export default class StageComposer extends React.PureComponent<Props, State>
             switch (this.state.pauseAction)
             {
                 case "loopAndPause":
-                    time = this.state.loopStart;
+                    frame = this.state.loopStart;
                     break;
                 case "pause":
-                    time = this.state.timeSeconds;
+                    frame = this.state.frame;
                     break;
             }
         }
         else
         {
-            time = this.state.timeSeconds;
+            frame = this.state.frame;
         }
         
         this.setState((state) =>
@@ -459,7 +459,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 ...state,
                 playerTempPosition: obj_copy(this.props.stage.playerSpawnPosition),
                 playing: !state.playing,
-                timeSeconds: time
+                frame: frame
             };
         });
     }
@@ -485,18 +485,18 @@ export default class StageComposer extends React.PureComponent<Props, State>
             if (boss.forms.length > 0)
             {
                 let loopStart = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[0] : 0;
-                let loopEnd = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[1] : (this.selectedBossForm?.lifetime || 0);
+                let loopEnd = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[1] : (this.selectedBossForm?.lifetime || 1) - 1;
                 let time = this.bufferedTime;
     
                 this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-                this.bufferedTime = this.state.timeSeconds;
+                this.bufferedTime = this.state.frame;
     
                 this.setState((state) =>
                 {
                     return {
                         ...state,
                         playing: false,
-                        timeSeconds: time,
+                        frame: time,
                         editMode: "boss",
                         loopStart: loopStart,
                         loopEnd: loopEnd
@@ -521,14 +521,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
         const time = this.bufferedTime;
 
         this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-        this.bufferedTime = this.state.timeSeconds;
+        this.bufferedTime = this.state.frame;
 
         this.setState((state) =>
         {
             return {
                 ...state,
                 playing: false,
-                timeSeconds: time,
+                frame: time,
                 editMode: "enemy",
                 loopStart: loopStart,
                 loopEnd: loopEnd
@@ -545,7 +545,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 return {
                     ...state,
                     selectedBossFormIndex: index,
-                    timeSeconds: 0
+                    frame: 0
                 };
             });
         }
@@ -558,7 +558,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             hp: 10,
             scriptId: -1,
             spriteId: -1,
-            lifetime: 10
+            lifetime: 10 * 60
         };
 
         const boss = obj_copy(ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project));
@@ -622,7 +622,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             return {
                 ...state,
                 loopStartSync: toggled,
-                loopStart: toggled ? this.state.timeSeconds : this.state.loopStart
+                loopStart: toggled ? this.state.frame : this.state.loopStart
             };
         });
     }
@@ -657,7 +657,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             return {
                 ...state,
-                timeSeconds: this.state.loopStart
+                frame: this.state.loopStart
             };
         });
     }
@@ -668,7 +668,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             return {
                 ...state,
-                loopStart: this.state.timeSeconds
+                loopStart: this.state.frame
             };
         });
     }
@@ -679,7 +679,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             return {
                 ...state,
-                loopEnd: this.state.timeSeconds
+                loopEnd: this.state.frame
             };
         });
     }
@@ -688,34 +688,37 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         if (this.state.playing)
         {
+            let frame: number = this.state.frame;
+            let playing: boolean = this.state.playing;
+
             if (this.state.loopEnabled)
             {
                 switch (this.state.deathAction)
                 {
                     case "loop":
-                        this.setState({
-                            timeSeconds: this.state.loopStart
-                        });
+                        frame = this.state.loopStart;
                         break;
                     case "loopAndPause":
-                        this.setState({
-                            timeSeconds: this.state.loopStart,
-                            playing: false
-                        });
+                        frame = this.state.loopStart;
+                        playing = false;
                         break;
                     case "pause":
-                        this.setState({
-                            playing: false
-                        });
+                        playing = false;
                         break;
                 }
             }
             else
             {
-                this.setState({
-                    playing: false
-                });
+                playing = false;
             }
+
+            this.setState((state) => {
+                return {
+                    ...state,
+                    frame: frame,
+                    playing: playing
+                };
+            });
         }
     }
 
@@ -730,30 +733,22 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayFrame = (time: number, delta: number, isLastFrame: boolean) =>
+    handlePlayFrame = (frame: number, isLastFrame: boolean) =>
     {
-        this.setState((state) => {
-            const ret = obj_copy(state) as State;
-            const _ts = ret.timeSeconds;
+        this.setState(function(_state) {
+            const state = obj_copy(_state) as State;
+            state.frame = frame;
 
-            ret.timeSeconds = time;
-
-            if (this.state.loopEnabled
-                && ret.timeSeconds >= this.state.loopEnd
-                && ret.timeSeconds - delta < this.state.loopEnd
-                && ret.loopEnd > ret.loopStart
-            )
+            if (state.loopEnabled && state.frame === state.loopEnd && state.loopEnd > state.loopStart)
             {
-                ret.timeSeconds = this.state.loopStart;
+                state.frame = state.loopStart;
             }
             else if (isLastFrame)
             {
-                ret.playing = false;
+                state.playing = false;
             }
 
-            console.log(">>>", ret.timeSeconds);
-
-            return ret;
+            return state;
         });
     }
 
@@ -819,9 +814,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             <input
                                 type="number"
                                 onChange={this.handleLengthChange}
-                                value={this.props.stage.lengthSeconds.toString()}
+                                value={this.props.stage.length.toString()}
                             />
-                            <span>seconds</span>
+                            <span>frames</span>
                         </div>
                         <div className="row">
                             <span className="label">Background:</span>
@@ -940,7 +935,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 <input
                                     type="number"
                                     min={this.state.loopStart}
-                                    max={this.props.stage.lengthSeconds}
+                                    max={this.props.stage.length}
                                     onChange={this.handleLoopEndChange}
                                     value={this.state.loopEnd}
                                 />
@@ -975,7 +970,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         <StageRenderer
                             project={this.props.project}
                             stage={this.props.stage}
-                            time={this.state.timeSeconds}
+                            frame={this.state.frame}
                             refresh={this.state.refreshRenderer}
                             selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
                             onInstanceCount={this.handleInstanceCount}
@@ -1010,10 +1005,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 </div>
                 {/* timeline */}
                 <StageTimeline
-                    onTimeScrub={this.handleTimeScrub}
+                    onScrub={this.handleFrameScrub}
                     project={this.props.project}
                     stage={this.props.stage}
-                    time={this.state.timeSeconds}
+                    frame={this.state.frame}
                     selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
                     editMode={this.state.editMode}
                     loopStart={this.state.loopStart}

@@ -7,19 +7,19 @@ import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import GameEngine, { UpdateResult } from '../../../../../utils/GameEngine';
+import GameEngine, { UpdateResult, GameEntity } from '../../../../../utils/GameEngine';
 
 interface Props
 {
     project: ProjectModel;
     stage: StageModel;
-    time: number;
+    frame: number;
     refresh: boolean;
     selectedEntityIndex: number;
     editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
-    onPlayFrame: (time: number, delta: number, isLastFrame: boolean) => any;
+    onPlayFrame: (frame: number, isLastFrame: boolean) => any;
     playing: boolean;
 }
 
@@ -37,23 +37,19 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private keyDownMap: Map<string, boolean> = new Map();
     private animationFrameHandle: number | null = null;
     private engine: GameEngine;
-    private lastTime: number = -1;
-    private playingDone: boolean = false;
 
     constructor(props: Props)
     {
         super(props);
         
         this.engine = new GameEngine();
-
-        this.grabCanvas = this.grabCanvas.bind(this);
-        this.renderStage = this.renderStage.bind(this);
-        this.handleResize = this.handleResize.bind(this);
-        this.handleUpdate = this.handleUpdate.bind(this);
-
         window.addEventListener("resize", this.handleResize);
-
         this.containerRef = React.createRef();
+    }
+
+    requestRender = () =>
+    {
+        this.animationFrameHandle = requestAnimationFrame(this.renderStage);
     }
 
     componentDidUpdate = (prevProps: Props) =>
@@ -69,11 +65,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             this.stopPlaying();
         }
 
-        if (this.props.playing && this.props.time < prevProps.time)
+        if (this.props.playing && this.props.frame < prevProps.frame)
         {
             // we looped //
             this.startPlaying();
         }
+
+        this.dirty = true;
     }
 
     handleResize = () =>
@@ -96,7 +94,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     componentDidMount = () =>
     {
         this.handleResize();
-        this.animationFrameHandle = requestAnimationFrame(this.renderStage);
+        this.requestRender();
     }
 
     componentWillUnmount = () =>
@@ -109,16 +107,14 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     startPlaying = () =>
     {
-        console.log("maybe we eat a hot dog");
-        this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
-        const r = this.engine.fastForwardTo(this.props.time);
-        this.lastTime = -1;
-        this.playingDone = false;
+        console.log("play start");
+        this.resetEngine();
+        this.engine.fastForwardTo(this.props.frame);
     }
 
     stopPlaying = () =>
     {
-        this.lastTime = -1;
+        console.log("play stop");
     }
 
     grabCanvas = (canvas: Canvas) =>
@@ -158,83 +154,66 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
     }
 
+    drawBackground = () =>
+    {
+        if (this.canvas)
+        {
+            const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
+            if (background)
+            {
+                const img = ImageCache.getImageSync(background.path);
+                this.canvas.drawImage(img, new Rectangle(new Point(0), Point.fromPointLike(this.props.stage.size)));
+            }
+        }
+    }
+
     renderStage = (time: number) =>
     {
-        if (!this.canvas || !this.dirty || this.rendering || (this.props.playing && this.playingDone))
+        if (this.rendering)
         {
-            this.animationFrameHandle = requestAnimationFrame(this.renderStage);
+            this.requestRender();
             return;
         }
-
-        // console.time("> stage render");
-
+        
         this.rendering = true;
-        this.canvas.clear();
-    
-        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
-        if (background)
-        {
-            const img = ImageCache.getImageSync(background.path);
-            this.canvas.drawImage(img, new Rectangle(new Point(0), this.canvas.size));
-        }
+        let dirtyBuffer = false;
 
-        let results: UpdateResult;
+        let entities: GameEntity[] = [];
 
         if (this.props.playing)
         {
-            /*if (this.lastTime === -1)
-            {
-                this.rendering = false;
-                this.lastTime = time;
-                this.dirty = true;
-                this.animationFrameHandle = requestAnimationFrame(this.renderStage);
-                return;
-            }*/
-
-            const delta = 1 / 60;
-            this.lastTime = time;
-
-            results = this.engine.update({
-                delta: delta,
+            this.canvas?.clear();
+            this.drawBackground();
+            const r = this.engine.advanceFrame({
                 keys: this.keyDownMap,
                 playerInvincible: false
             });
 
-            this.props.onPlayFrame(results.offsetStageAge, results.delta, results.isLastUpdate);
-            this.playingDone = results.isLastUpdate;
-            this.dirty = !results.isLastUpdate;
-        }
-        else
-        {
-            this.dirty = false;
-            // console.time("reset engine");
-            this.resetEngine();
-            // console.timeEnd("reset engine");
-    
-            // console.time("loop");
-            results = this.engine.fastForwardTo(this.props.time);
-            // console.timeEnd("loop");
-        }
-    
-        // console.time("render entities");
-        results.entities.forEach((entity) =>
-        {
-            if (entity.alive)
+            entities = r.entities;
+            this.props.onPlayFrame(r.offsetStageAge, r.isLastUpdate);
+            if (!r.playerAlive)
             {
-                this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), false);
+                this.props.onPlayerDie();
+                dirtyBuffer = true;
             }
-        });
-        // console.timeEnd("render entities");
-        
-        if (!results.playerAlive)
-        {
-            this.props.onPlayerDie();
         }
-        this.props.onInstanceCount(0, 0);
-    
+        else if (this.dirty)
+        {
+            this.canvas?.clear();
+            this.drawBackground();
+            this.resetEngine();
+            const r = this.engine.fastForwardTo(this.props.frame);
+            entities = r.entities;
+        }
+
+        entities.forEach((entity) =>
+        {
+            this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), false);
+        });
+
+        this.dirty = dirtyBuffer;
         this.rendering = false;
-        this.animationFrameHandle = requestAnimationFrame(this.renderStage);
-        // console.timeEnd("> stage render");
+        this.requestRender();
     }
 
     handleUpdate = () =>

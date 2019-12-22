@@ -120,7 +120,7 @@ export interface StageModel extends ObjectModel
     backgroundId: number;
     playerId: number;
     bossId: number;
-    lengthSeconds: number;
+    length: number;
     enemies: StageEnemyData[]
     size: PointLike;
     playerSpawnPosition: PointLike;
@@ -131,7 +131,7 @@ export interface StageEnemyData
 {
     id: number;
     instanceName: string;
-    spawnTime: number;
+    spawnFrame: number;
     spawnPosition: PointLike;
     spawnRate: number;
     spawnAmount: number;

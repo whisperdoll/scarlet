@@ -7,8 +7,8 @@ interface Props
 {
     project: ProjectModel;
     stage: StageModel;
-    time: number;
-    onTimeScrub: (time: number) => any;
+    frame: number;
+    onScrub: (frame: number) => any;
     selectedEntityIndex: number;
     editMode: "enemy" | "boss";
     loopStart: number;
@@ -27,12 +27,12 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         super(props);
     }
 
-    handleTimeScrub = (e: ChangeEvent<HTMLInputElement>) =>
+    handleScrub = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        const timeSeconds = parseFloat(e.currentTarget.value);
-        if (!isNaN(timeSeconds))
+        const frame = parseInt(e.currentTarget.value);
+        if (!isNaN(frame))
         {
-            this.props.onTimeScrub(timeSeconds);
+            this.props.onScrub(frame);
         }
     }
 
@@ -51,32 +51,6 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         return "";
     }
 
-    private spritePathForForm = (formIndex: number): string =>
-    {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
-        if (!boss) return "";
-        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(boss.forms[formIndex].spriteId, this.props.project);
-        if (!sprite) return "";
-        return sprite.path;
-    }
-
-    private formSpawnTime = (formIndex: number): number =>
-    {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
-        if (boss)
-        {
-            let ret = 0;
-            for (let i = 0; i < formIndex; i++)
-            {
-                ret += boss.forms[i].lifetime;
-            }
-
-            return ret;
-        }
-
-        return 0;
-    }
-
     private get formLength(): number
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
@@ -85,7 +59,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
 
     private get length(): number
     {
-        return this.props.editMode === "enemy" ? this.props.stage.lengthSeconds : this.formLength;
+        return (this.props.editMode === "enemy" ? this.props.stage.length : this.formLength) - 1;
     }
 
     render()
@@ -101,7 +75,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                                     src={this.spritePathForEnemy(enemy)}
                                     style={{
                                         position: "absolute",
-                                        left: (enemy.spawnTime / this.props.stage.lengthSeconds * 100).toString() + "%",
+                                        left: (enemy.spawnFrame / this.props.stage.length * 100).toString() + "%",
                                         transform: "translate(-50%, 0)",
                                         height: "32px"
                                     }}
@@ -128,11 +102,11 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                 )}
                 <input
                     type="range"
-                    onChange={this.handleTimeScrub}
+                    onChange={this.handleScrub}
                     min="0"
                     max={this.length.toString()}
-                    step={(1 / 60).toString()}
-                    value={this.props.time.toString()}
+                    step={1}
+                    value={this.props.frame.toString()}
                 />
             </div>
         );

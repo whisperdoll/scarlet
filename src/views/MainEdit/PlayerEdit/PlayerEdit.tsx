@@ -116,7 +116,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                         onChange={this.handleMoveSpeedChange}
                         value={this.props.player.moveSpeed}
                     />
-                    <span>pixels per second</span>
+                    <span>pixels per frame</span>
                 </div>
                 <div className="row">
                     <span className="label">Focused Speed:</span>
@@ -125,7 +125,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                         onChange={this.handleFocusedMoveSpeedChange}
                         value={this.props.player.focusedMoveSpeed}
                     />
-                    <span>pixels per second</span>
+                    <span>pixels per frame</span>
                 </div>
                 <div className="row">
                     <span className="label">Bullet:</span>

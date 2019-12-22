@@ -24,7 +24,6 @@ export interface ScriptMethodCollection
 export interface ScriptContext
 {
     stage: StageScriptData;
-    delta: number;
     entity: ScriptEntityData;
 };
 

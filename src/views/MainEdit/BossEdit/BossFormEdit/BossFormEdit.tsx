@@ -69,7 +69,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
 
     handleLifetimeChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        let val = parseFloat(e.currentTarget.value);
+        let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
             val = this.props.bossForm.lifetime;

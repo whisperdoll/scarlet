@@ -85,7 +85,7 @@ export default class ObjectHelper
                     backgroundId: -1,
                     bossId: -1,
                     playerId: -1,
-                    lengthSeconds: 60,
+                    length: 60 * 60,
                     enemies: [],
                     size: {
                         x: 384,

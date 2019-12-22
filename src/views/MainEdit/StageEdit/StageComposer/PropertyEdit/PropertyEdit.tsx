@@ -93,15 +93,15 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
 
     handleSpawnTimeChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        let val = parseFloat(e.currentTarget.value);
+        let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.enemy?.spawnTime as number;
+            val = this.enemy?.spawnFrame as number;
         }
 
         this.props.onUpdate({
             ...(this.enemy as StageEnemyData),
-            spawnTime: val
+            spawnFrame: val
         }, this.props.enemyIndex);
     }
 
@@ -121,7 +121,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
 
     handleSpawnRateChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        let val = parseFloat(e.currentTarget.value);
+        let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
             val = this.enemy?.spawnRate as number;
@@ -186,8 +186,8 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                         <input
                             type="number"
                             onChange={this.handleSpawnTimeChange}
-                            value={this.enemy.spawnTime.toString()}
-                            step="0.1"
+                            value={this.enemy.spawnFrame.toString()}
+                            step="1"
                         />
                     </div>
                     <div className="row">
@@ -196,7 +196,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             type="number"
                             onChange={this.handleSpawnRateChange}
                             value={this.enemy.spawnRate.toString()}
-                            step="0.1"
+                            step="1"
                         />
                     </div>
                     <div className="row">
