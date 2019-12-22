@@ -1,6 +1,6 @@
 import { PointLike } from "./point";
 import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, ObjectMap, StageEnemyData } from "./datatypes";
-import ScriptEngine from "./ScriptEngine";
+import ScriptEngine, { KeyContext } from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
 import { obj_copy, array_remove_multiple, array_last, array_copy, deepCopy } from "./utils";
@@ -152,6 +152,17 @@ export default class GameEngine
         return map3.get(this.bossFormIndex) || null;
     }
 
+    private getKeyContext(keyMap: Map<string, boolean>): KeyContext
+    {
+        const keys = [ "bomb", "fire", "left", "up", "down", "right", "left", "focus" ];
+        const ret: ObjectMap<boolean> = {};
+        keys.forEach((key) =>
+        {
+            ret[key] = !!this.project && !!keyMap.get(this.project.keyBindings[key]);
+        });
+        return ret as KeyContext;
+    }
+
     public reset(stage: StageModel, project: ProjectModel, mode: EngineMode, bossFormIndex: number)
     {
         this.entities = [];
@@ -286,7 +297,8 @@ export default class GameEngine
                         stage: {
                             age: 0,
                             size: stage.size
-                        }
+                        },
+                        keys: this.getKeyContext(new Map())
                     });
     
                     if (results)
@@ -472,26 +484,28 @@ export default class GameEngine
 
     private updatePlayer(entity: GameEntity, context: UpdateContext)
     {
+        if (!this.project) return;
+
         let speed = 0;
         const player = ObjectHelper.getObjectWithId<PlayerModel>((this.stage as StageModel).playerId, this.project as ProjectModel);
         if (player)
         {
-            speed = context.keys.get("Shift") ? player.focusedMoveSpeed : player.moveSpeed;
+            speed = context.keys.get(this.project.keyBindings.focus) ? player.focusedMoveSpeed : player.moveSpeed;
         }
 
-        if (context.keys.get("ArrowLeft"))
+        if (context.keys.get(this.project.keyBindings.left))
         {
             entity.position.x -= speed;
         }
-        if (context.keys.get("ArrowRight"))
+        if (context.keys.get(this.project.keyBindings.right))
         {
             entity.position.x += speed;
         }
-        if (context.keys.get("ArrowUp"))
+        if (context.keys.get(this.project.keyBindings.up))
         {
             entity.position.y -= speed;
         }
-        if (context.keys.get("ArrowDown"))
+        if (context.keys.get(this.project.keyBindings.down))
         {
             entity.position.y += speed;
         }
@@ -511,7 +525,8 @@ export default class GameEngine
             stage: {
                 age: this.stageAge,
                 size: this.gameSize
-            }
+            },
+            keys: this.getKeyContext(context.keys)
         });
 
         if (results)

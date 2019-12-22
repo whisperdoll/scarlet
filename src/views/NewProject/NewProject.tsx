@@ -76,7 +76,16 @@ export default class NewProjectView extends React.PureComponent<Props, State>
     {
         let project: ProjectModel = {
             name: this.state.name,
-            objects: []
+            objects: [],
+            keyBindings: {
+                up: "ArrowUp",
+                down: "ArrowDown",
+                left: "ArrowLeft",
+                right: "ArrowRight",
+                fire: "z",
+                bomb: "x",
+                focus: "Shift"
+            }
         };
 
         this.props.onCreate(project, this.state.path);

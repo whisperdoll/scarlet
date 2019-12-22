@@ -11,6 +11,7 @@ import BulletEdit from './BulletEdit/BulletEdit';
 import BossEdit from './BossEdit/BossEdit';
 import StageEdit from './StageEdit/StageEdit';
 import BackgroundEdit from './BackgroundEdit/BackgroundEdit';
+import KeyBindEdit from './KeyBindEdit/KeyBindEdit';
 
 interface Props
 {
@@ -20,7 +21,7 @@ interface Props
 
 interface State
 {
-    currentlyEditing: ObjectModel | null;
+    currentlyEditing: ObjectModel | null | "keyBinds";
     errors: ErrorTypes[];
 }
 
@@ -82,18 +83,53 @@ export default class MainEditView extends React.PureComponent<Props, State>
         this.props.onUpdate(project);
     }
 
+    handleEditKeyBinds = () =>
+    {
+        this.setState((state) =>
+        {
+            return {
+                ...state,
+                currentlyEditing: "keyBinds"
+            };
+        });
+    }
+
     render()
     {
         // ADDTYPE
         return (
             <div className="mainEditView">
+                <div className="headerBar">
+                    <div className="header">{this.props.project.name}</div>
+                    <button onClick={this.handleEditKeyBinds}>Edit Key Bindings</button>
+                </div>
                 <div className="error">{this.state.errors.join(", ")}</div>
                 <ObjectList
                     project={this.props.project}
                     onCreate={this.handleObjectCreate}
                     onSelect={this.handleObjectSelect}
                 />
-                {this.state.currentlyEditing && (
+                {this.state.currentlyEditing && typeof(this.state.currentlyEditing) === "string" && (
+                    <div className="objectEdit">
+                        <h1 className="noEmpty">{this.state.currentlyEditing}</h1>
+                        {(() =>
+                        {
+                            switch (this.state.currentlyEditing)
+                            {
+                                case "keyBinds":
+                                    return (
+                                        <KeyBindEdit
+                                            onUpdate={this.handleProjectUpdate}
+                                            project={this.props.project}
+                                        />
+                                    );
+                            }
+
+                            return null;
+                        })()}
+                    </div>
+                )}
+                {this.state.currentlyEditing && typeof(this.state.currentlyEditing) !== "string" && (
                     <div className="objectEdit">
                         <h1 className="noEmpty">{this.state.currentlyEditing.name}</h1>
                         {(() => {

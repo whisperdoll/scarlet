@@ -157,7 +157,7 @@ body, html, #container, #root, .fullSize, .dialog-backdrop {
         width: 0;
     }
 
-    & > *
+    & > *, & > input:not([type=checkbox])
     {
         margin-right: 8px;
 
@@ -201,4 +201,9 @@ body, html, #container, #root, .fullSize, .dialog-backdrop {
             margin-bottom: 0;
         }
     }
+}
+
+.noScroll
+{
+    overflow: none;
 }

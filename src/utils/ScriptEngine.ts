@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
-import { ProjectModel, ScriptModel, ObjectMap } from "./datatypes";
+import { ProjectModel, ScriptModel, ObjectMap, KeyBindings } from "./datatypes";
 import { PointLike } from "./point";
 
 export interface StageScriptData
@@ -21,10 +21,22 @@ export interface ScriptMethodCollection
     update: (context: ScriptContext) => ScriptResult;
 };
 
+export interface KeyContext extends ObjectMap<boolean>
+{
+    fire: boolean;
+    bomb: boolean;
+    focus: boolean;
+    left: boolean;
+    right: boolean;
+    down: boolean;
+    up: boolean;
+};
+
 export interface ScriptContext
 {
     stage: StageScriptData;
     entity: ScriptEntityData;
+    keys: KeyContext;
 };
 
 export interface ScriptEntityData

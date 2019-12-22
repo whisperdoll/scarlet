@@ -2,10 +2,22 @@ import { PointLike } from "./point";
 
 export type ObjectMap<T> = { [key: string]: T };
 
+export interface KeyBindings extends ObjectMap<string>
+{
+    fire: string;
+    bomb: string;
+    left: string;
+    right: string;
+    up: string;
+    down: string;
+    focus: string;
+};
+
 export interface ProjectModel
 {
     name: string;
     objects: ObjectModel[];
+    keyBindings: KeyBindings;
 };
 
 export type ErrorTypes = "Duplicate name" | "Empty name";

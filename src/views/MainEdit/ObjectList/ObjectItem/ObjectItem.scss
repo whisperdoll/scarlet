@@ -1,6 +1,6 @@
 .children > *
 {
-    padding-left: 24px;
+    margin-left: 24px;
 }
 
 .objectItem
@@ -8,6 +8,8 @@
     user-select: none;
     cursor: pointer;
     font-size: 18px;
+    padding-top: 4px;
+    padding-left: 4px;
 
     &:hover
     {

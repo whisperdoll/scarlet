@@ -162,7 +162,7 @@ export default class ObjectList extends React.PureComponent<Props, State>
         })
 
         return (
-            <div className="fullSize">
+            <div className="fullSize noScroll">
                 <div className="objectList">
                     {objEls}
                 </div>
