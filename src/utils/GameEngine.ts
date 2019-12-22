@@ -3,7 +3,7 @@ import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletM
 import ScriptEngine from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
-import { obj_copy, array_remove_multiple, array_last } from "./utils";
+import { obj_copy, array_remove_multiple, array_last, array_copy } from "./utils";
 
 type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
@@ -40,6 +40,15 @@ export interface UpdateResult
     isLastUpdate: boolean;
 };
 
+export interface GameState
+{
+    entities: GameEntity[];
+    stageAge: number;
+    bossFormIndex: number;
+    mode: EngineMode;
+    playerEntity: GameEntity | null;
+};
+
 type EngineMode = "previewEnemies" | "previewBoss" | "full";
 
 export default class GameEngine
@@ -50,7 +59,6 @@ export default class GameEngine
     private entities: GameEntity[] = [];
     private stageAge: number = 0;
     private gameSize: PointLike = { x: 0, y: 0 };
-    private entitiesToAdd: GameEntity[] = [];
     private stage: StageModel | null = null;
     private project: ProjectModel | null = null;
     private hasReset: boolean = false;
@@ -58,8 +66,73 @@ export default class GameEngine
     private bossFormIndex: number = -1;
     private mode: EngineMode = "full";
 
+    // time, mode, bossFormIndex
+    private cache: Map<number, Map<EngineMode, Map<number, GameState>>> = new Map();
+
     constructor()
     {
+    }
+
+    private toGameState(): GameState
+    {
+        return {
+            bossFormIndex: this.bossFormIndex,
+            entities: array_copy(this.entities),
+            mode: this.mode,
+            playerEntity: this.playerEntity,
+            stageAge: this.stageAge
+        };
+    }
+
+    private loadGameState(gameState: GameState)
+    {
+        this.bossFormIndex = gameState.bossFormIndex;
+        this.entities = array_copy(gameState.entities);
+        this.mode = gameState.mode;
+        this.playerEntity = gameState.playerEntity;
+        this.stageAge = gameState.stageAge;
+    }
+
+    public invalidateCache()
+    {
+        this.cache.clear();
+    }
+
+    private cacheSelf(frame: number)
+    {
+        if (!this.cache.has(frame))
+        {
+            this.cache.set(frame, new Map());
+        }
+
+        const map2 = this.cache.get(frame) as Map<EngineMode, Map<number, GameState>>;
+        if (!map2.has(this.mode))
+        {
+            map2.set(this.mode, new Map());
+        }
+
+        const map3 = map2.get(this.mode) as Map<number, GameState>;
+        if (!map3.has(this.bossFormIndex))
+        {
+            map3.set(this.bossFormIndex, this.toGameState());
+        }
+    }
+
+    private retrieveFromCache(frame: number): GameState | null
+    {
+        if (!this.cache.has(frame))
+        {
+            return null;
+        }
+
+        const map2 = this.cache.get(frame) as Map<EngineMode, Map<number, GameState>>;
+        if (!map2.has(this.mode))
+        {
+            return null;
+        }
+
+        const map3 = map2.get(this.mode) as Map<number, GameState>;
+        return map3.get(this.bossFormIndex) || null;
     }
 
     public reset(stage: StageModel, project: ProjectModel, mode: EngineMode, bossFormIndex: number)
@@ -220,12 +293,6 @@ export default class GameEngine
         this.hasReset = true;
     }
 
-    private addQueuedEntities()
-    {
-        this.entities = this.entities.concat(this.entitiesToAdd);
-        this.entitiesToAdd = [];
-    }
-
     public fastForwardTo(frame: number): UpdateResult
     {
         if (frame === 0)
@@ -237,6 +304,27 @@ export default class GameEngine
                 offsetStageAge: 0,
                 playerAlive: true,
                 stageAge: 0
+            };
+        }
+
+        const cached = this.retrieveFromCache(frame);
+        if (cached)
+        {
+            // TODO: fix this
+            this.loadGameState(cached);
+            console.log({
+                entities: this.entities,
+                isLastUpdate: false,
+                offsetStageAge: this.stageAge,
+                playerAlive: true,
+                stageAge: this.stageAge
+            });
+            return {
+                entities: this.entities,
+                isLastUpdate: false,
+                offsetStageAge: this.stageAge,
+                playerAlive: true,
+                stageAge: this.stageAge
             };
         }
 
@@ -252,6 +340,7 @@ export default class GameEngine
         for (let i = 0; i < frame; i++)
         {
             ret = this.advanceFrame(context);
+            this.cacheSelf(i);
         }
 
         return ret as UpdateResult;
