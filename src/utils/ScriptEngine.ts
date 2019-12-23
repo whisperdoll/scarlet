@@ -4,6 +4,7 @@ import ObjectHelper from "./ObjectHelper";
 import { ProjectModel, ScriptModel, ObjectMap, KeyBindings } from "./datatypes";
 import { PointLike } from "./point";
 import PathHelper from "../utils/PathHelper";
+import { obj_copy } from "../utils/utils";
 
 export interface StageScriptData
 {
@@ -66,6 +67,8 @@ export default class ScriptEngine
     private static scriptMap: Map<number, vm.Script> = new Map();
     private static resultCache: Map<string, any> = new Map();
     private static contextCache: Map<number, vm.Context> = new Map();
+    private static contextNameCache: Map<string, vm.Context> = new Map();
+    private static waitingImports: Map<string, string[][]> = new Map(); // scriptName, (scriptName, asName)[]
 
     public static updateCache(project: ProjectModel)
     {
@@ -73,6 +76,37 @@ export default class ScriptEngine
         this.resultCache.clear();
         const scripts = ObjectHelper.getObjectsWithType<ScriptModel>("script", project);
         scripts.forEach(script => this.fetchScriptFor(script, project));
+        this.resolveImports();
+    }
+
+    private static resolveImports()
+    {
+        const importlessContexts: Map<string, vm.Context> = new Map();
+
+        this.contextNameCache.forEach((context, name) =>
+        {
+            importlessContexts.set(name, obj_copy(context));
+        });
+
+        this.waitingImports.forEach((scriptImportNames, scriptName) =>
+        {
+            const scriptContext = this.contextNameCache.get(scriptName);
+            if (scriptContext)
+            {
+                scriptImportNames.forEach((scriptImportName) =>
+                {
+                    const scriptImportContext = importlessContexts.get(scriptImportName[0]);
+                    if (scriptImportContext)
+                    {
+                        scriptContext[scriptImportName[1]] = scriptImportContext;
+                    }
+                    else
+                    {
+                        // TODO: error
+                    }
+                });
+            }
+        });
     }
 
     private static fetchScriptFor(scriptObject: ScriptModel, project: ProjectModel): boolean
@@ -87,6 +121,30 @@ export default class ScriptEngine
             const context = vm.createContext();
             script.runInContext(context);
             this.contextCache.set(scriptObject.id, context);
+            this.contextNameCache.set(scriptObject.name, context);
+
+            // imports //
+            const lines = code.replace(/\r/, "").split("\n");
+            const prefix = "// import ";
+            for (let i = 0; i < lines.length; i++)
+            {
+                if (lines[i].startsWith(prefix) && lines[i].length > prefix.length)
+                {
+                    const asIndex = lines[i].indexOf(" as ");
+                    const importName = lines[i].substr(prefix.length, asIndex - prefix.length);
+                    const contextName = lines[i].substr(asIndex + " as ".length);
+                    if (!this.waitingImports.has(scriptObject.name))
+                    {
+                        this.waitingImports.set(scriptObject.name, []);
+                    }
+
+                    this.waitingImports.get(scriptObject.name)?.push([ importName, contextName ]);
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
         catch (e)
         {

@@ -176,7 +176,7 @@ export default class GameEngine
         {
             this.playerEntity = {
                 age: 0,
-                alive: true,
+                alive: false,
                 bulletsFired: 0,
                 index: 0,
                 obj: player,
@@ -233,7 +233,7 @@ export default class GameEngine
                     {
                         this.entities.push({
                             age: 0,
-                            alive: true,
+                            alive: false,
                             bulletsFired: 0,
                             index: i,
                             obj: form,
@@ -266,7 +266,7 @@ export default class GameEngine
                     {
                         this.entities.push({
                             age: 0,
-                            alive: enemyData.spawnFrame === 0,
+                            alive: false,
                             bulletsFired: 0,
                             index: i,
                             obj: enemy,
@@ -283,43 +283,6 @@ export default class GameEngine
                 }
             });
         }
-
-        this.entities.forEach((entity) =>
-        {
-            if (entity.obj.scriptId >= 0)
-            {
-                const methods = ScriptEngine.parseScript(entity.obj.scriptId, project);
-                if (methods.init)
-                {
-                    const results = methods.init({
-                        entity: {
-                            age: 0,
-                            index: entity.index,
-                            position: entity.spawnPosition,
-                            spawnPosition: entity.spawnPosition,
-                            store: entity.store
-                        },
-                        stage: {
-                            age: 0,
-                            size: stage.size
-                        },
-                        keys: this.getKeyContext(new Map())
-                    });
-    
-                    if (results)
-                    {
-                        if (results.position)
-                        {
-                            entity.position = results.position;
-                        }
-                        if (results.store)
-                        {
-                            entity.store = results.store;
-                        }
-                    }
-                }
-            }
-        });
 
         this.gameSize = stage.size;
         this.project = project;
@@ -345,9 +308,13 @@ export default class GameEngine
 
     public fastForwardTo(frame: number): UpdateResult
     {
+        const emptyMap = new Map();
+
         // handle 0 frame //
         if (frame === 0)
         {
+            this.entities.forEach(entity => this.trySpawnEntity(entity, emptyMap));
+            
             return {
                 entities: this.entities,
                 isLastUpdate: false,
@@ -380,7 +347,6 @@ export default class GameEngine
 
         // update loop //
         let ret;
-        const emptyMap = new Map();
         const context = {
             keys: emptyMap,
             playerInvincible: true
@@ -409,11 +375,7 @@ export default class GameEngine
         {
             const entity = this.entities[i];
 
-            if (!entity.alive && entity.spawnFrame === this.stageAge)
-            {
-                entity.alive = true;
-            }
-            else if (entity.spawnFrame > this.stageAge || !entity.alive)
+            if (!this.trySpawnEntity(entity, context.keys) && entity.spawnFrame > this.stageAge || !entity.alive)
             {
                 continue;
             }
@@ -537,6 +499,61 @@ export default class GameEngine
         };
         
         return ret;
+    }
+
+    private trySpawnEntity(entity: GameEntity, keys: Map<string, boolean>): boolean
+    {
+        if (!this.project || !this.stage) return false;
+
+        if (!entity.alive && entity.spawnFrame === this.stageAge)
+        {
+            entity.alive = true;
+            if (entity.obj.scriptId >= 0)
+            {
+                const methods = ScriptEngine.parseScript(entity.obj.scriptId, this.project);
+                if (methods.init)
+                {
+                    const results = methods.init({
+                        entity: {
+                            age: 0,
+                            index: entity.index,
+                            position: entity.spawnPosition,
+                            spawnPosition: entity.spawnPosition,
+                            store: entity.store
+                        },
+                        stage: {
+                            age: this.stageAge,
+                            size: this.stage.size
+                        },
+                        keys: this.getKeyContext(keys)
+                    });
+    
+                    if (results)
+                    {
+                        if (results.position)
+                        {
+                            entity.position = results.position;
+                        }
+                        if (results.store)
+                        {
+                            entity.store = results.store;
+                        }
+                        if (results.fire)
+                        {
+                            this.handleFire(entity, results.fire, results.fireStores);
+                        }
+                        if (results.alive === false)
+                        {
+                            entity.alive = false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private updatePlayer(entity: GameEntity, context: UpdateContext)
