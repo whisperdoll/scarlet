@@ -37,24 +37,18 @@ export default class StageEdit extends React.PureComponent<Props, State>
 
     handleEditRequest = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                showingComposer: true
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            showingComposer: true
+        }));
     }
 
     handleStageComposerBack = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                showingComposer: false
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            showingComposer: false
+        }));
     }
 
     render = () =>

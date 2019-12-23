@@ -34,13 +34,10 @@ export default class ObjectItem extends React.PureComponent<Props, State>
         e.stopPropagation();
         if (this.props.model.type === "folder")
         {
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    isShowingChildren: !state.isShowingChildren
-                };
-            });
+            this.setState(state => ({
+                ...state,
+                isShowingChildren: !state.isShowingChildren
+            }));
         }
         else
         {

@@ -8,7 +8,7 @@ import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
 import GameEngine, { UpdateResult, GameEntity } from '../../../../../utils/GameEngine';
-import { obj_copy, array_copy } from '../../../../../utils/utils';
+import update from "immutability-helper";
 
 interface Props
 {
@@ -295,22 +295,34 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             if (this.selectedEntityType !== "none")
             {
                 const pt = this.selectedEntityPos.plus(this.mouseDelta).toObject();
-                const stage = obj_copy(this.props.stage) as StageModel;
+                let stage = this.props.stage;
 
                 switch (this.selectedEntityType)
                 {
                     case "player":
-                        stage.playerSpawnPosition = pt;
+                        stage = update(stage, {
+                            playerSpawnPosition: {
+                                $set: pt
+                            }
+                        });
                         break;
                     case "enemy":
-                        stage.enemies = array_copy(stage.enemies);
-                        stage.enemies[this.selectedIndex] = {
-                            ...stage.enemies[this.selectedIndex],
-                            spawnPosition: pt
-                        };
+                        stage = update(stage, {
+                            enemies: {
+                                [this.selectedIndex]: {
+                                    spawnPosition: {
+                                        $set: pt
+                                    }
+                                }
+                            }
+                        });
                         break;
                     case "boss":
-                        stage.bossSpawnPosition = pt;
+                        stage = update(stage, {
+                            bossSpawnPosition: {
+                                $set: pt
+                            }
+                        });
                         break;
                 }
 

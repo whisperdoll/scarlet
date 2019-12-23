@@ -11,6 +11,7 @@ import ObjectHelper from './utils/ObjectHelper';
 import ImageCache from './utils/ImageCache';
 import ScriptEngine from './utils/ScriptEngine';
 import PathHelper from './utils/PathHelper';
+import update from "immutability-helper";
 const { remote } = require('electron');
 const { Menu, MenuItem, dialog } = remote;
 
@@ -137,16 +138,13 @@ export default class App extends React.PureComponent<Props, State>
             this.handleSaveProject();
         }
 
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                project: null,
-                currentView: "NewProject",
-                dirty: false,
-                projectFilename: ""
-            }
-        });
+        this.setState(state => ({
+            ...state,
+            project: null,
+            currentView: "NewProject",
+            dirty: false,
+            projectFilename: ""
+        }));
     }
 
     handleOpenProject()
@@ -179,16 +177,13 @@ export default class App extends React.PureComponent<Props, State>
             }
 
             project = ObjectHelper.init(project);
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    project: project,
-                    currentView: "MainEdit",
-                    dirty: false,
-                    projectFilename: paths[0]
-                };
-            });
+            this.setState(state => ({
+                ...state,
+                project: project,
+                currentView: "MainEdit",
+                dirty: false,
+                projectFilename: paths[0]
+            }));
         }
     }
 
@@ -217,28 +212,22 @@ export default class App extends React.PureComponent<Props, State>
 
         project = ObjectHelper.init(project);
         const filename = this.genProjectFilename(project, folderPath);
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                currentView: "MainEdit",
-                project: project,
-                projectFilename: filename
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            currentView: "MainEdit",
+            project: project,
+            projectFilename: filename
+        }));
         this.handleSaveProject(project, filename);
     }
 
     handleUpdateProject(project: ProjectModel)
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                project: project,
-                dirty: true
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            project: project,
+            dirty: true
+        }));
     }
 
     handleSaveProject(project?: ProjectModel | null, filename?: string)
@@ -253,13 +242,10 @@ export default class App extends React.PureComponent<Props, State>
                 JSON.stringify(project),
                 "utf8"
             );
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    dirty: false
-                };
-            })
+            this.setState(state => ({
+                ...state,
+                dirty: false
+            }));
         }
         else
         {

@@ -1,9 +1,7 @@
-import React, { ChangeEvent } from 'react';
+import React from 'react';
 import './KeyBindEdit.scss';
-import { PlayerModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
-import ObjectHelper from '../../../utils/ObjectHelper';
-import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
-import { obj_copy } from '../../../utils/utils';
+import { ProjectModel, SpriteModel } from '../../../utils/datatypes';
+import update from "immutability-helper";
 
 interface Props
 {
@@ -24,9 +22,14 @@ export default class KeyBindEdit extends React.PureComponent<Props, State>
 
     handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
     {
-        const project = obj_copy(this.props.project) as ProjectModel;
-        project.keyBindings = obj_copy(project.keyBindings);
-        project.keyBindings[e.currentTarget.dataset.key as string] = e.key;
+        const project = update(this.props.project, {
+            keyBindings: {
+                [e.currentTarget.dataset.key as string]: {
+                    $set: e.key
+                }
+            }
+        });
+
         this.props.onUpdate(project);
     }
 

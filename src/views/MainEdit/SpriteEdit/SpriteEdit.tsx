@@ -10,6 +10,7 @@ import { Canvas } from '../../../utils/canvas';
 import * as npath from "path";
 import * as fs from "fs";
 import PathHelper from '../../../utils/PathHelper';
+import update from "immutability-helper";
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -71,12 +72,13 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
     handleHitboxUpdate = (hitbox: Hitbox, index: number) =>
     {
-        const newHitboxes = array_copy(this.props.sprite.hitboxes);
-        newHitboxes[index] = hitbox;
-
         this.props.onUpdate({
             ...this.props.sprite,
-            hitboxes: newHitboxes
+            hitboxes: update(this.props.sprite.hitboxes, {
+                [index]: {
+                    $set: hitbox
+                }
+            })
         });
     }
 
@@ -86,25 +88,24 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         {
             this.props.onUpdate({
                 ...this.props.sprite,
-                hitboxes: this.props.sprite.hitboxes.concat([{
+                hitboxes: [...this.props.sprite.hitboxes, {
                     position: {
                         x: img.width / 2,
                         y: img.height / 2
                     },
                     radius: 4
-                }])
+                }]
             });
         });
     }
 
     handleRemoveHitbox = (index: number) =>
     {
-        const newHitboxes = array_copy(this.props.sprite.hitboxes);
-        array_remove_at(newHitboxes, index);
-
         this.props.onUpdate({
             ...this.props.sprite,
-            hitboxes: newHitboxes
+            hitboxes: update(this.props.sprite.hitboxes, {
+                $splice: [[index, 1]]
+            })
         });
     }
 

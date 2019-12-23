@@ -13,6 +13,7 @@ import BossFormList from './BossFormList/BossFormList';
 import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
 import ImageCache from '../../../../utils/ImageCache';
 import GameEngine from '../../../../utils/GameEngine';
+import update from "immutability-helper";
 
 type PauseAction = "loopAndPause" | "pause";
 type DeathAction = "loopAndPause" | "pause" | "loop";
@@ -83,25 +84,19 @@ export default class StageComposer extends React.PureComponent<Props, State>
         {
             this.handlePlayPause();
         }
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                refreshRenderer: !state.refreshRenderer
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            refreshRenderer: !state.refreshRenderer
+        }));
     }
 
     refreshImages = () =>
     {
         ImageCache.updateCache(this.props.project);
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                refreshRenderer: !state.refreshRenderer
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            refreshRenderer: !state.refreshRenderer
+        }));
     }
 
     componentDidMount = () =>
@@ -290,13 +285,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
             return;
         }
         
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                loopStart: val
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            loopStart: val
+        }));
     }
 
     handleLoopEndChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -307,13 +299,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
             return;
         }
         
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                loopEnd: val
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            loopEnd: val
+        }));
     }
 
     handleBackgroundChange = (backgroundId: number) =>
@@ -342,70 +331,59 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleFrameScrub = (frame: number) =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                frame: frame,
-                playing: false
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            frame: frame,
+            playing: false
+        }));
     }
 
     handleAddEnemy = () =>
     {
         if (this.state.selectedNewEnemyId >= 0)
         {
-            this.props.onUpdate({
-                ...this.props.stage,
-                enemies: this.props.stage.enemies.concat([{
-                    id: this.state.selectedNewEnemyId,
-                    instanceName: "New Enemy " + this.props.stage.enemies.length.toString(),
-                    spawnPosition: {
-                        x: 0,
-                        y: 0
-                    },
-                    spawnAmount: 1,
-                    spawnRate: 0,
-                    spawnFrame: this.state.frame
-                }])
-            });
+            this.props.onUpdate(update(this.props.stage, {
+                enemies: {
+                    $push: [{
+                        id: this.state.selectedNewEnemyId,
+                        instanceName: "New Enemy " + this.props.stage.enemies.length.toString(),
+                        spawnPosition: {
+                            x: 0,
+                            y: 0
+                        },
+                        spawnAmount: 1,
+                        spawnRate: 0,
+                        spawnFrame: this.state.frame
+                    }]
+                }
+            }));
         }
     }
 
     handleSelectEnemy = (index: number) =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                selectedEnemyIndex: index
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            selectedEnemyIndex: index
+        }));
     }
 
     handleDeselectEnemy = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                selectedEnemyIndex: -1
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            selectedEnemyIndex: -1
+        }));
     }
 
     handleRemoveEnemy = (index: number) =>
     {
         const enemies = array_copy(this.props.stage.enemies);
         array_remove_at(enemies, index);
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                selectedEnemyIndex: -1
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            selectedEnemyIndex: -1
+        }));
         this.props.onUpdate({
             ...this.props.stage,
             enemies: enemies
@@ -414,7 +392,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleSelectNewEnemy = (newEnemyId: number) =>
     {
-        this.setState((state) =>
+        this.setState(state =>
         {
             return {
                 ...state,
@@ -460,27 +438,21 @@ export default class StageComposer extends React.PureComponent<Props, State>
             frame = this.state.frame;
         }
         
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                playerTempPosition: obj_copy(this.props.stage.playerSpawnPosition),
-                playing: !state.playing,
-                frame: frame
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            playerTempPosition: obj_copy(this.props.stage.playerSpawnPosition),
+            playing: !state.playing,
+            frame: frame
+        }));
     }
 
     handleInstanceCount = (instance: number, bullet: number) =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                selectedEnemyAliveCount: instance,
-                selectedEnemyBulletAliveCount: bullet
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            selectedEnemyAliveCount: instance,
+            selectedEnemyBulletAliveCount: bullet
+        }));
     }
 
     handleBossEditMode = () =>
@@ -498,17 +470,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
                 this.bufferedTime = this.state.frame;
     
-                this.setState((state) =>
-                {
-                    return {
-                        ...state,
-                        playing: false,
-                        frame: time,
-                        editMode: "boss",
-                        loopStart: loopStart,
-                        loopEnd: loopEnd
-                    };
-                });
+                this.setState(state => ({
+                    ...state,
+                    playing: false,
+                    frame: time,
+                    editMode: "boss",
+                    loopStart: loopStart,
+                    loopEnd: loopEnd
+                }));
             }
             else
             {
@@ -530,31 +499,25 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
         this.bufferedTime = this.state.frame;
 
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                playing: false,
-                frame: time,
-                editMode: "enemy",
-                loopStart: loopStart,
-                loopEnd: loopEnd
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            playing: false,
+            frame: time,
+            editMode: "enemy",
+            loopStart: loopStart,
+            loopEnd: loopEnd
+        }));
     }
 
     handleBossFormIndexChange = (index: number) =>
     {
         if (index >= 0)
         {
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    selectedBossFormIndex: index,
-                    frame: 0
-                };
-            });
+            this.setState(state => ({
+                ...state,
+                selectedBossFormIndex: index,
+                frame: 0
+            }));
         }
     }
 
@@ -568,11 +531,16 @@ export default class StageComposer extends React.PureComponent<Props, State>
             lifetime: 10 * 60
         };
 
-        const boss = obj_copy(ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project));
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (boss)
         {
-            boss.forms = boss.forms.concat([form]);
-            const { project } = ObjectHelper.updateObject(boss, this.props.project, []);
+            const newBoss = update(boss, {
+                forms: {
+                    $push: [ form ]
+                }
+            });
+            
+            const { project } = ObjectHelper.updateObject(newBoss, this.props.project, []);
             this.props.onProjectUpdate(project);
         }
     }
@@ -582,12 +550,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (boss)
         {
-            const forms = array_copy(boss.forms);
-            forms[index] = bossForm;
-            const newBoss: BossModel = {
-                ...boss,
-                forms: forms
-            };
+            const newBoss = update(boss, {
+                forms: {
+                    [index]: {
+                        $set: bossForm
+                    }
+                }
+            });
 
             const { project } = ObjectHelper.updateObject(newBoss, this.props.project, []);
             this.props.onProjectUpdate(project);
@@ -599,96 +568,74 @@ export default class StageComposer extends React.PureComponent<Props, State>
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
         if (boss)
         {
-            const forms = array_copy(boss.forms);
-            array_remove_at(forms, index);
-            const newBoss: BossModel = {
-                ...boss,
-                forms: forms
-            };
+            const newBoss = update(boss, {
+                forms: {
+                    $splice: [[index, 1]]
+                }
+            });
 
             const { project } = ObjectHelper.updateObject(newBoss, this.props.project, []);
             this.props.onProjectUpdate(project);
 
-            if (forms.length === 0)
+            if (newBoss.forms.length === 0)
             {
-                this.setState((state) =>
-                {
-                    return {
-                        ...state,
-                        editMode: "enemy"
-                    };
-                });
+                this.setState(state => ({
+                    ...state,
+                    editMode: "enemy"
+                }));
             }
         }
     }
 
     handleLoopStartSyncToggle = (toggled: boolean) =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                loopStartSync: toggled,
-                loopStart: toggled ? this.state.frame : this.state.loopStart
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            loopStartSync: toggled,
+            loopStart: toggled ? this.state.frame : this.state.loopStart
+        }));
     }
 
     handlePauseActionChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     {
         const action = e.currentTarget.value as PauseAction;
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                pauseAction: action
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            pauseAction: action
+        }));
     }
 
     handleDeathActionChange = (e: React.ChangeEvent<HTMLSelectElement>) =>
     {
         const action = e.currentTarget.value as DeathAction;
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                deathAction: action
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            deathAction: action
+        }));
     }
 
     gotoLoopStart = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                frame: this.state.loopStart
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            frame: this.state.loopStart
+        }));
     }
 
     syncLoopStart = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                loopStart: this.state.frame
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            loopStart: this.state.frame
+        }));
     }
 
     syncLoopEnd = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                loopEnd: this.state.frame
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            loopEnd: this.state.frame
+        }));
     }
 
     handlePlayerDie = () =>
@@ -719,30 +666,25 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 playing = false;
             }
 
-            this.setState((state) => {
-                return {
-                    ...state,
-                    frame: frame,
-                    playing: playing
-                };
-            });
+            this.setState(state => ({
+                ...state,
+                frame: frame,
+                playing: playing
+            }));
         }
     }
 
     toggleLoopEnabled = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                loopEnabled: !state.loopEnabled
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            loopEnabled: !state.loopEnabled
+        }));
     }
 
     handlePlayFrame = (frame: number, isLastFrame: boolean) =>
     {
-        this.setState(function(_state) {
+        this.setState(_state => {
             const state = obj_copy(_state) as State;
             state.frame = frame;
 
@@ -762,13 +704,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
     handlePlayerInvincibleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     {
         const checked = e.currentTarget.checked;
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                playerInvincible: checked
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            playerInvincible: checked
+        }));
     }
 
     private get selectedBossForm(): BossFormModel | null

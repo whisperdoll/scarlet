@@ -31,25 +31,19 @@ export default class NewProjectView extends React.PureComponent<Props, State>
     handlePathChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = e.currentTarget.value;
-        this.setState((state) =>
-        {
-            return {
-                ...this.state,
-                path: val
-            };
-        });
+        this.setState(state => ({
+            ...this.state,
+            path: val
+        }));
     }
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = e.currentTarget.value;
-        this.setState((state) =>
-        {
-            return {
-                ...this.state,
-                name: val
-            };
-        });
+        this.setState(state => ({
+            ...this.state,
+            name: val
+        }));
     }
 
     handleBrowse = () =>
@@ -62,19 +56,16 @@ export default class NewProjectView extends React.PureComponent<Props, State>
         if (path)
         {
             UserSettings.set("newProjectPath", path[0]);
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    path: (path as string[])[0]
-                };
-            });
+            this.setState(state => ({
+                ...state,
+                path: (path as string[])[0]
+            }));
         }
     }
 
     handleCreate = () =>
     {
-        let project: ProjectModel = {
+        const project: ProjectModel = {
             name: this.state.name,
             objects: [],
             keyBindings: {

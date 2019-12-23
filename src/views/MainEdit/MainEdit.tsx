@@ -42,13 +42,10 @@ export default class MainEditView extends React.PureComponent<Props, State>
     {
         const { obj, project } = ObjectHelper.createAndAddObject(type, this.props.project);
 
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                currentlyEditing: obj
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: obj
+        }));
 
         this.props.onUpdate(project);
     }
@@ -58,25 +55,19 @@ export default class MainEditView extends React.PureComponent<Props, State>
         const { errors, project } = ObjectHelper.updateObject(obj, this.props.project, this.state.errors);
 
         this.props.onUpdate(project);
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                currentlyEditing: obj,
-                errors: errors
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: obj,
+            errors: errors
+        }));
     }
 
     handleObjectSelect = (obj: ObjectModel) =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                currentlyEditing: obj
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: obj
+        }));
     }
 
     handleProjectUpdate = (project: ProjectModel) =>
@@ -86,13 +77,10 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
     handleEditKeyBinds = () =>
     {
-        this.setState((state) =>
-        {
-            return {
-                ...state,
-                currentlyEditing: "keyBinds"
-            };
-        });
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: "keyBinds"
+        }));
     }
 
     render()

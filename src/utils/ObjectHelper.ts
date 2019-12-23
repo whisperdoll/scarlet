@@ -1,5 +1,6 @@
 import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from "./datatypes";
-import { array_copy, obj_copy, array_remove } from "./utils";
+import { array_copy, array_remove } from "./utils";
+import update from "immutability-helper";
 
 export default class ObjectHelper
 {
@@ -13,7 +14,6 @@ export default class ObjectHelper
     {
         const id = this.genId(project);
         let ret: ObjectModel;
-        const p = obj_copy(project) as ProjectModel;
 
         // ADDTYPE
         switch (type)
@@ -114,7 +114,11 @@ export default class ObjectHelper
         }
 
         // add to project //
-        p.objects = p.objects.concat([ ret ]);
+        const p = update(project, {
+            objects: {
+                $push: [ ret ]
+            }
+        });
         return { obj: ret as T, project: p };
     }
 
@@ -125,9 +129,13 @@ export default class ObjectHelper
         array_remove(errors, "Duplicate name");
         array_remove(errors, "Empty name");
 
-        const p = obj_copy(project) as ProjectModel;
-        p.objects = array_copy(p.objects);
-        p.objects[p.objects.findIndex(o => o.id === obj.id)] = obj;
+        const p = update(project, {
+            objects: {
+                [project.objects.findIndex(o => o.id === obj.id)]: {
+                    $set: obj
+                }
+            }
+        });
 
         if (obj.name === "")
         {

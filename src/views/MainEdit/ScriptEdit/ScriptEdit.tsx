@@ -37,26 +37,10 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         const filename = PathHelper.resolveObjectFileName(this.props.script.path);
         fs.readFile(filename, "utf8", (err, data) =>
         {
-            if (!err)
-            {
-                this.setState((state) =>
-                {
-                    return {
-                        ...state,
-                        code: data
-                    };
-                });
-            }
-            else
-            {
-                this.setState((state) =>
-                {
-                    return {
-                        ...state,
-                        code: "error reading path"
-                    };
-                });
-            }
+            this.setState((state) => ({
+                ...state,
+                code: err ? "error reading path" : data
+            }));
         });
     }
 

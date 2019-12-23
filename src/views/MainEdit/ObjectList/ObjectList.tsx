@@ -101,13 +101,10 @@ export default class ObjectList extends React.PureComponent<Props, State>
     {
         document.addEventListener("click", () =>
         {
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    currentContextMenu: "none"
-                };
-            });
+            this.setState(state => ({
+                ...state,
+                currentContextMenu: "none"
+            }));
         });
     }
 
@@ -115,15 +112,12 @@ export default class ObjectList extends React.PureComponent<Props, State>
     {
         if (model.type === "folder")
         {
-            this.setState((state) =>
-            {
-                return {
-                    ...state,
-                    currentContextMenu: "folder",
-                    contextMenuPosition: position,
-                    contextHint: model.hint as string
-                }
-            });
+            this.setState(state => ({
+                ...state,
+                currentContextMenu: "folder",
+                contextMenuPosition: position,
+                contextHint: model.hint as string
+            }));
         }
     }
 
