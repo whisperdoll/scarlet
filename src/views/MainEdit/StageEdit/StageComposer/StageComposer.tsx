@@ -79,6 +79,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
     refreshScripts = () =>
     {
         ScriptEngine.updateCache(this.props.project);
+        if (this.state.playing)
+        {
+            this.handlePlayPause();
+        }
         this.setState((state) =>
         {
             return {
@@ -430,13 +434,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayPause = (e: React.MouseEvent) =>
+    handlePlayPause = (e?: React.MouseEvent) =>
     {
         let frame: number = this.state.frame;
         
         if (!this.state.playing)
         {
-            e.preventDefault();
+            e && e.preventDefault();
             document.getElementById("renderer")?.focus();
         }
         else if (this.state.loopEnabled)
