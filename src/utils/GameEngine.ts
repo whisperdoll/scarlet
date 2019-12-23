@@ -21,6 +21,7 @@ export interface GameEntity
     alive: boolean;
     type: GameEntityType;
     store: ObjectMap<any>;
+    hp: number;
 };
 
 type KeyStruct = Map<string, boolean>;
@@ -185,7 +186,8 @@ export default class GameEngine
                 lifetime: -1,
                 tags: [],
                 type: "player",
-                store: {}
+                store: {},
+                hp: 0
             };
 
             this.entities.push(this.playerEntity);
@@ -211,7 +213,8 @@ export default class GameEngine
                         lifetime: form.lifetime,
                         tags: [],
                         type: "boss",
-                        store: {}
+                        store: {},
+                        hp: form.hp
                     });
 
                     spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
@@ -240,7 +243,8 @@ export default class GameEngine
                             lifetime: form.lifetime,
                             tags: [],
                             type: "boss",
-                            store: {}
+                            store: {},
+                            hp: form.hp
                         });
                         
                         this.stageAge = spawnFrame;
@@ -272,7 +276,8 @@ export default class GameEngine
                             lifetime: -1,
                             tags: [],
                             type: "enemy",
-                            store: {}
+                            store: {},
+                            hp: enemy.hp
                         });
                     }
                 }
@@ -395,7 +400,7 @@ export default class GameEngine
 
     public advanceFrame(context: UpdateContext): UpdateResult
     {
-        if (!this.hasReset) throw new Error("reset engine before use");
+        if (!this.hasReset || !this.project || !this.stage) throw new Error("reset engine before use");
 
         let playerAlive = true;
         let isLastUpdate = false;
@@ -408,7 +413,7 @@ export default class GameEngine
             {
                 entity.alive = true;
             }
-            else if (entity.spawnFrame > this.stageAge)
+            else if (entity.spawnFrame > this.stageAge || !entity.alive)
             {
                 continue;
             }
@@ -422,13 +427,65 @@ export default class GameEngine
             {
                 this.updateEntity(entity, context);
             }
+        }
 
-            if (entity.type === "enemyBullet" && this.playerEntity && !context.playerInvincible)
+        if (this.playerEntity)
+        {
+            if (!context.playerInvincible)
             {
-                if (this.doBulletCollision(entity, context))
+                for (let i = 0; i < this.entities.length; i++)
                 {
-                    playerAlive = false;
+                    if (this.entities[i].alive && this.entities[i].type === "enemyBullet" && this.testCollision(this.entities[i], this.playerEntity))
+                    {
+                        playerAlive = false;
+                        break;
+                    }
                 }
+            }
+
+            const playerBullet = ObjectHelper.getObjectWithId<BulletModel>(this.playerEntity.obj.bulletId, this.project);
+            if (playerBullet)
+            {
+                this.entities.forEach((b) =>
+                {
+                    if (b.alive && b.type === "playerBullet")
+                    {
+                        const collidingEnemies = this.entities.filter(e => e.alive && (e.type === "enemy" || e.type === "boss") && this.testCollision(b, e));
+                        collidingEnemies.forEach((e) =>
+                        {
+                            e.hp -= playerBullet.damage;
+                            if (e.hp <= 0)
+                            {
+                                e.hp = -1;
+                                e.alive = false;
+
+                                const methods = ScriptEngine.parseScript(e.obj.scriptId, this.project as ProjectModel);
+                                if (methods && methods.die)
+                                {
+                                    const results = methods.die({
+                                        entity: {
+                                            age: e.age,
+                                            index: e.index,
+                                            position: e.position,
+                                            spawnPosition: e.spawnPosition,
+                                            store: e.store
+                                        },
+                                        stage: {
+                                            age: 0,
+                                            size: (this.stage as StageModel).size
+                                        },
+                                        keys: this.getKeyContext(context.keys)
+                                    });
+
+                                    if (results.fire)
+                                    {
+                                        this.handleFire(e, results.fire, results.fireStores);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
             }
         }
 
@@ -514,7 +571,7 @@ export default class GameEngine
     private updateEntity(entity: GameEntity, context: UpdateContext)
     {
         const methods = ScriptEngine.parseScript(entity.obj.scriptId, this.project as ProjectModel);
-        const results = methods.update({
+        const results = methods.update ? methods.update({
             entity: {
                 age: entity.age,
                 index: entity.index,
@@ -527,7 +584,7 @@ export default class GameEngine
                 size: this.gameSize
             },
             keys: this.getKeyContext(context.keys)
-        });
+        }) : null;
 
         if (results)
         {
@@ -564,7 +621,8 @@ export default class GameEngine
                             bulletsFired: 0,
                             alive: true,
                             type: entity.type === "player" ? "playerBullet" : "enemyBullet",
-                            store: results.fireStores ? results.fireStores[i] || {} : {}
+                            store: results.fireStores ? results.fireStores[i] || {} : {},
+                            hp: 0
                         });
                     }
                 }
@@ -574,52 +632,82 @@ export default class GameEngine
             {
                 entity.alive = false;
             }
+
+            if (results.fire)
+            {
+                this.handleFire(entity, results.fire, results.fireStores);
+            }
         }
 
         entity.age++;
     }
 
-    /**
-     * @returns Whether or not the bullet collides with the player
-     * @param entity Bullet entity
-     * @param context Update context
-     */
-    private doBulletCollision(entity: GameEntity, context: UpdateContext): boolean
+    private handleFire(entity: GameEntity, num: number, stores?: any[])
     {
-        const bulletSprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.obj.spriteId, this.project as ProjectModel);
-        const playerSprite = ObjectHelper.getObjectWithId<SpriteModel>((this.playerEntity as GameEntity).obj.spriteId, this.project as ProjectModel);
-        if (bulletSprite && playerSprite)
+        for (let i = 0; i < num; i++)
         {
-            const bulletSpriteImage = ImageCache.getImageSync(bulletSprite.path);
-            const playerSpriteImage = ImageCache.getImageSync(playerSprite.path);
-            
-            const bulletSpriteLocalCenter = {
-                x: bulletSpriteImage.width / 2,
-                y: bulletSpriteImage.height / 2
-            };
-            const playerSpriteLocalCenter = {
-                x: playerSpriteImage.width / 2,
-                y: playerSpriteImage.height / 2
-            };
-            
-            const hitboxes = bulletSprite.hitboxes;
-            const playerHitboxes = playerSprite.hitboxes;
-
-            const shouldDie = hitboxes.some((hitbox) => 
+            const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.obj.bulletId, this.project as ProjectModel);
+            if (bullet)
             {
-                return playerHitboxes.some((playerHitbox) => 
+                this.entities.push({
+                    age: 0,
+                    index: entity.bulletsFired++,
+                    obj: {
+                        bulletId: entity.obj.bulletId,
+                        scriptId: bullet.scriptId,
+                        spriteId: bullet.spriteId
+                    },
+                    position: entity.position,
+                    spawnPosition: entity.position,
+                    spawnFrame: this.stageAge,
+                    lifetime: -1,
+                    tags: [],
+                    bulletsFired: 0,
+                    alive: true,
+                    type: entity.type === "player" ? "playerBullet" : "enemyBullet",
+                    store: stores ? stores[i] || {} : {},
+                    hp: 0
+                });
+            }
+        }
+    }
+
+    private testCollision(entity1: GameEntity, entity2: GameEntity)
+    {
+        const entity1Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity1.obj.spriteId, this.project as ProjectModel);
+        const entity2Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity2.obj.spriteId, this.project as ProjectModel);
+        if (entity1Sprite && entity2Sprite)
+        {
+            const entity1SpriteImage = ImageCache.getImageSync(entity1Sprite.path);
+            const entity2SpriteImage = ImageCache.getImageSync(entity2Sprite.path);
+            
+            const entity1SpriteLocalCenter = {
+                x: entity1SpriteImage.width / 2,
+                y: entity1SpriteImage.height / 2
+            };
+            const entity2SpriteLocalCenter = {
+                x: entity2SpriteImage.width / 2,
+                y: entity2SpriteImage.height / 2
+            };
+            
+            const entity1Hitboxes = entity1Sprite.hitboxes;
+            const entity2Hitboxes = entity2Sprite.hitboxes;
+
+            const shouldDie = entity1Hitboxes.some((hitbox) => 
+            {
+                return entity2Hitboxes.some((entity2Hitbox) => 
                 {
-                    const hitboxPoint = {
-                        x: hitbox.position.x + entity.position.x - bulletSpriteLocalCenter.x,
-                        y: hitbox.position.y + entity.position.y - bulletSpriteLocalCenter.y
+                    const entity1HitboxPoint = {
+                        x: hitbox.position.x + entity1.position.x - entity1SpriteLocalCenter.x,
+                        y: hitbox.position.y + entity1.position.y - entity1SpriteLocalCenter.y
                     };
-                    const playerHitboxPoint = {
-                        x: playerHitbox.position.x + (this.playerEntity as GameEntity).position.x - playerSpriteLocalCenter.x,
-                        y: playerHitbox.position.y + (this.playerEntity as GameEntity).position.y - playerSpriteLocalCenter.y
+                    const entity2HitboxPoint = {
+                        x: entity2Hitbox.position.x + entity2.position.x - entity2SpriteLocalCenter.x,
+                        y: entity2Hitbox.position.y + entity2.position.y - entity2SpriteLocalCenter.y
                     };
 
-                    const d = hitbox.radius + playerHitbox.radius
-                    const ret = Math.sqrt(Math.pow(hitboxPoint.x - playerHitboxPoint.x, 2) + Math.pow(hitboxPoint.y - playerHitboxPoint.y, 2)) < d;
+                    const d = hitbox.radius + entity2Hitbox.radius
+                    const ret = Math.sqrt(Math.pow(entity1HitboxPoint.x - entity2HitboxPoint.x, 2) + Math.pow(entity1HitboxPoint.y - entity2HitboxPoint.y, 2)) < d;
 
                     return ret;
                 });

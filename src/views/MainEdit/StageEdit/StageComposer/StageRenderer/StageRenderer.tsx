@@ -219,7 +219,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         entities.forEach((entity) =>
         {
-            this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), false);
+            entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), false);
         });
 
         this.dirty = dirtyBuffer;

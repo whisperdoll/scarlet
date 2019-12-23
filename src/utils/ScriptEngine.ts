@@ -19,6 +19,7 @@ export interface ScriptMethodCollection
 {
     init: (context: ScriptContext) => ScriptResult;
     update: (context: ScriptContext) => ScriptResult;
+    die: (context: ScriptContext) => ScriptResult;
 };
 
 export interface KeyContext extends ObjectMap<boolean>
