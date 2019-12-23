@@ -71,14 +71,6 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         }
     }
 
-    handlePathChange = (e: ChangeEvent<HTMLInputElement>) =>
-    {
-        this.props.onUpdate({
-            ...this.props.script,
-            path: e.currentTarget.value
-        });
-    }
-
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         this.props.onUpdate({
@@ -109,11 +101,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
                 </div>
                 <div className="row">
                     <span className="label">Path:</span>
-                    <input
-                        type="text"
-                        onChange={this.handlePathChange}
-                        value={this.props.script.path}
-                    />
+                    <span>{this.props.script.path || "<none>"}</span>
                     <button onClick={this.handleBrowse}>
                         Browse...
                     </button>

@@ -15,6 +15,7 @@ interface Props
     loopStart: number;
     loopEnd: number;
     loopEnabled: boolean;
+    max: number;
 }
 
 interface State
@@ -52,26 +53,15 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         return "";
     }
 
-    private get formLength(): number
-    {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
-        return boss?.forms[this.props.selectedEntityIndex]?.lifetime || 0;
-    }
-
-    private get length(): number
-    {
-        return (this.props.editMode === "enemy" ? this.props.stage.length : this.formLength) - 1;
-    }
-
     render()
     {
         const s = this.props.loopStart <= this.props.loopEnd ? {
-            left: (this.props.loopStart / this.length * 100),
-            width: ((this.props.loopEnd - this.props.loopStart) / this.length * 100),
+            left: (this.props.loopStart / this.props.max * 100),
+            width: ((this.props.loopEnd - this.props.loopStart) / this.props.max * 100),
             color: "#9999AA"
         } : {
-            left: (this.props.loopEnd / this.length * 100),
-            width: ((this.props.loopStart - this.props.loopEnd) / this.length * 100),
+            left: (this.props.loopEnd / this.props.max * 100),
+            width: ((this.props.loopStart - this.props.loopEnd) / this.props.max * 100),
             color: "#AA5555"
         };
 
@@ -115,7 +105,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                         type="range"
                         onChange={this.handleScrub}
                         min="0"
-                        max={this.length.toString()}
+                        max={this.props.max.toString()}
                         step={1}
                         value={this.props.frame.toString()}
                         style={style}
@@ -124,7 +114,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                         type="number"
                         onChange={this.handleScrub}
                         min="0"
-                        max={this.length.toString()}
+                        max={this.props.max.toString()}
                         step={1}
                         value={this.props.frame.toString()}
                     />

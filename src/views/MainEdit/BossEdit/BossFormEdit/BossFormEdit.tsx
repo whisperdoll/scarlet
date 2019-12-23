@@ -64,7 +64,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
 
         this.props.onUpdate({
             ...this.props.bossForm,
-            hp: val
+            hp: Math.max(1, val)
         }, this.props.index);
     }
 
@@ -78,7 +78,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
 
         this.props.onUpdate({
             ...this.props.bossForm,
-            lifetime: val
+            lifetime: Math.max(1, val)
         }, this.props.index);
     }
 
@@ -108,7 +108,6 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                         type="number"
                         value={this.props.bossForm.hp.toString()}
                         onChange={this.handleHpChange}
-                        min={1}
                     />
                 </div>
                 <div className="row">
@@ -117,7 +116,6 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                         type="number"
                         value={this.props.bossForm.lifetime.toString()}
                         onChange={this.handleLifetimeChange}
-                        min={1}
                     />
                 </div>
                 <div className="row">

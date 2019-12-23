@@ -67,7 +67,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             selectedBossFormIndex: 0,
             loopStart: 0,
             loopEnd: props.stage.length - 1,
-            loopEnabled: true,
+            loopEnabled: false,
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause",
             playerInvincible: true
@@ -171,7 +171,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
         this.props.onUpdate({
             ...this.props.stage,
-            length: val
+            length: Math.max(1, val)
         });
     }
 
@@ -187,7 +187,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             ...this.props.stage,
             size: {
                 ...this.props.stage.size,
-                x: val
+                x: Math.max(1, val)
             }
         });
     }
@@ -204,7 +204,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             ...this.props.stage,
             size: {
                 ...this.props.stage.size,
-                y: val
+                y: Math.max(1, val)
             }
         });
     }
@@ -277,6 +277,17 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
+    private get _formLength(): number
+    {
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        return boss?.forms[this.state.selectedBossFormIndex]?.lifetime || 0;
+    }
+
+    private get length(): number
+    {
+        return (this.state.editMode === "enemy" ? this.props.stage.length : this._formLength) - 1;
+    }
+
     handleLoopStartChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = parseInt(e.currentTarget.value);
@@ -287,7 +298,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         
         this.setState(state => ({
             ...state,
-            loopStart: val
+            loopStart: Math.max(0, Math.min(this.length, val))
         }));
     }
 
@@ -301,7 +312,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         
         this.setState(state => ({
             ...state,
-            loopEnd: val
+            loopEnd: Math.max(0, Math.min(this.length, val))
         }));
     }
 
@@ -333,7 +344,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            frame: frame,
+            frame: Math.max(0, Math.min(this.length, frame)),
             playing: false
         }));
     }
@@ -999,6 +1010,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     loopStart={this.state.loopStart}
                     loopEnd={this.state.loopEnd}
                     loopEnabled={this.state.loopEnabled}
+                    max={this.length}
                 />
                 <button
                     className="play"

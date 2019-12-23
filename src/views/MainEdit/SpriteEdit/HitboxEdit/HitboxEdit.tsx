@@ -65,7 +65,7 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
 
         this.props.onUpdate({
             ...this.props.hitbox,
-            radius: val
+            radius: Math.max(0, val)
         }, this.props.index);
     }
 

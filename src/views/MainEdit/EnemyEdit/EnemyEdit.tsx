@@ -65,12 +65,12 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = 5;
+            val = this.props.enemy.hp;
         }
 
         this.props.onUpdate({
             ...this.props.enemy,
-            hp: val
+            hp: Math.max(1, val)
         });
     }
 
@@ -102,7 +102,6 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                         type="number"
                         value={this.props.enemy.hp.toString()}
                         onChange={this.handleHpChange}
-                        min={1}
                     />
                 </div>
                 <div className="row">
