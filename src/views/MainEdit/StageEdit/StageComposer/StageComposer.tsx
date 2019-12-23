@@ -82,7 +82,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         ScriptEngine.updateCache(this.props.project);
         if (this.state.playing)
         {
-            this.handlePlayPause();
+            this.pause();
         }
         this.setState(state => ({
             ...state,
@@ -122,7 +122,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             for (let i = 0; i < currentEnemies.length; i++)
             {
                 const currObj = ObjectHelper.getObjectWithId(currentEnemies[i].id, this.props.project);
-                const prevObj = ObjectHelper.getObjectWithId(prevEnemies[i].id, this.props.project);
+                const prevObj = ObjectHelper.getObjectWithId(prevEnemies[i].id, prevProps.project);
 
                 if (!currObj || !prevObj)
                 {
@@ -412,16 +412,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayPause = (e?: React.MouseEvent) =>
+    pause()
     {
         let frame: number = this.state.frame;
         
-        if (!this.state.playing)
-        {
-            e && e.preventDefault();
-            document.getElementById("renderer")?.focus();
-        }
-        else if (this.state.loopEnabled)
+        if (this.state.loopEnabled)
         {
             switch (this.state.pauseAction)
             {
@@ -433,17 +428,35 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     break;
             }
         }
-        else
-        {
-            frame = this.state.frame;
-        }
         
         this.setState(state => ({
             ...state,
             playerTempPosition: obj_copy(this.props.stage.playerSpawnPosition),
-            playing: !state.playing,
+            playing: false,
             frame: frame
         }));
+    }
+
+    play()
+    {
+        this.setState(state => ({
+            playing: true,
+            frame: (state.loopEnabled && state.frame === state.loopEnd && state.loopEnd > state.loopStart) ? state.loopStart : state.frame
+        }));
+    }
+
+    handlePlayPause = (e: React.MouseEvent) =>
+    {        
+        if (this.state.playing)
+        {
+            this.pause();
+        }
+        else
+        {
+            e && e.preventDefault();
+            document.getElementById("renderer")?.focus();
+            this.play();
+        }
     }
 
     handleInstanceCount = (instance: number, bullet: number) =>
@@ -516,7 +529,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             this.setState(state => ({
                 ...state,
                 selectedBossFormIndex: index,
-                frame: 0
+                frame: 0,
+                playing: false
             }));
         }
     }
@@ -634,7 +648,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            loopEnd: this.state.frame
+            loopEnd: this.state.frame,
+            frame: (state.playing && state.frame > state.loopStart) ? state.loopStart : state.frame
         }));
     }
 

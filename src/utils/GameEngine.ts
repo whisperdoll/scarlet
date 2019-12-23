@@ -375,7 +375,7 @@ export default class GameEngine
         {
             const entity = this.entities[i];
 
-            if (!this.trySpawnEntity(entity, context.keys) && entity.spawnFrame > this.stageAge || !entity.alive)
+            if (!this.trySpawnEntity(entity, context.keys) && (entity.spawnFrame > this.stageAge || !entity.alive))
             {
                 continue;
             }
