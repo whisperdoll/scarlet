@@ -9,7 +9,7 @@ type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBulle
 
 export interface GameEntity
 {
-    obj: ScriptHaver & SpriteHaver & BulletHaver;
+    obj: ScriptHaver & SpriteHaver & BulletHaver & { id?: number };
     index: number;
     spawnFrame: number;
     lifetime: number;

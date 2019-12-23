@@ -65,6 +65,14 @@ export default class Point implements PointLike
         return new Point(pointLike.x, pointLike.y);
     }
 
+    public toObject(): PointLike
+    {
+        return {
+            x: this.x,
+            y: this.y
+        };
+    }
+
     /**
      * @returns A copy of the point with y set to 0.
      */

@@ -1,13 +1,14 @@
 import React from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, SpriteModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, BackgroundModel, SpriteModel, PlayerModel, BossModel } from '../../../../../utils/datatypes';
 import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
-import Point from '../../../../../utils/point';
+import Point, { PointLike } from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
 import GameEngine, { UpdateResult, GameEntity } from '../../../../../utils/GameEngine';
+import { obj_copy, array_copy } from '../../../../../utils/utils';
 
 interface Props
 {
@@ -20,6 +21,8 @@ interface Props
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
     onPlayFrame: (frame: number, isLastFrame: boolean) => any;
+    onUpdateStage: (stage: StageModel) => any;
+    onSelectEnemy: (index: number) => any;
     playing: boolean;
     playerInvincible: boolean;
 }
@@ -38,10 +41,19 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private keyDownMap: Map<string, boolean> = new Map();
     private animationFrameHandle: number | null = null;
     private engine: GameEngine;
+    private selectedEntityType: "none" | "player" | "enemy" | "boss";
+    private selectedEntityPos: Point;
+    private selectedIndex: number;
+    private entities: GameEntity[] = [];
+    private mouseDelta = new Point();
 
     constructor(props: Props)
     {
         super(props);
+
+        this.selectedEntityPos = new Point();
+        this.selectedEntityType = "none";
+        this.selectedIndex = -1;
         
         this.engine = new GameEngine();
         window.addEventListener("resize", this.handleResize);
@@ -132,6 +144,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         this.canvas = canvas;
         this.canvas.canvas.tabIndex = -1;
+
         this.canvas.canvas.addEventListener("keydown", (e) =>
         {
             this.keyDownMap.set(e.key, true);
@@ -143,6 +156,77 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.canvas.canvas.addEventListener("blur", () =>
         {
             this.keyDownMap.clear();
+        });
+
+        this.canvas.addEventListener("mousedown", (mousePos, e) =>
+        {
+            const containsPoint = (data: { spriteId: number } | null | undefined, spawnPosition: PointLike): boolean =>
+            {
+                if (!data) return false;
+                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(data.spriteId, this.props.project);
+                if (sprite)
+                {
+                    const img = ImageCache.getImageSync(sprite.path);
+                    const imgSize = Point.fromSizeLike(img);
+                    const bounds = new Rectangle(Point.fromPointLike(spawnPosition), imgSize).translated(imgSize.dividedBy(-2));
+                    return bounds.containsPoint(mousePos);
+                }
+
+                return false;
+            };
+
+            const player = this.entities.find(e => e.type === "player");
+            if (player && containsPoint(player.obj, this.props.stage.playerSpawnPosition))
+            {
+                this.selectedEntityType = "player";
+                this.selectedEntityPos = Point.fromPointLike(player.spawnPosition);
+                this.selectedIndex = -1;
+                return;
+            }
+
+            if (this.props.editMode === "enemy")
+            {
+                const enemies = this.entities.filter(e => e.alive && e.type === "enemy");
+                const found = enemies.find((e) =>
+                {
+                    return containsPoint(e.obj, e.position);
+                });
+                if (found)
+                {
+                    this.selectedEntityType = "enemy";
+                    this.selectedEntityPos = Point.fromPointLike(found.spawnPosition);
+                    this.selectedIndex = this.props.stage.enemies.findIndex(e => e.id === found.obj.id);
+                    if (this.selectedIndex === -1)
+                    {
+                        throw new Error("bad index iodk");
+                    }
+                    // this.props.onSelectEnemy(this.selectedIndex);
+                    return;
+                }
+            }
+            else if (this.props.editMode === "boss")
+            {
+                const form = this.entities.find(e => e.alive && e.type === "boss");
+                if (form && containsPoint(form.obj, form.position))
+                {
+                    this.selectedEntityType = "boss";
+                    this.selectedEntityPos = Point.fromPointLike(form.spawnPosition);
+                    this.selectedIndex = -1;
+                    return;
+                }
+            }
+        });
+        this.canvas.addEventListener("mousemove", (pos, mouseDown, lastPos, ogPos, e) =>
+        {
+            this.mouseDelta = pos.minus(ogPos);
+        });
+        this.canvas.addEventListener("mouseup", () =>
+        {
+            this.selectedEntityType = "none";
+        });
+        this.canvas.addEventListener("mouseleave", () =>
+        {
+            this.selectedEntityType = "none";
         });
     }
 
@@ -189,8 +273,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.rendering = true;
         let dirtyBuffer = false;
 
-        let entities: GameEntity[] = [];
-
         if (this.props.playing)
         {
             this.canvas?.clear();
@@ -200,7 +282,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 playerInvincible: this.props.playerInvincible
             });
 
-            entities = r.entities;
+            this.entities = r.entities;
             this.props.onPlayFrame(r.offsetStageAge, r.isLastUpdate);
             if (!r.playerAlive)
             {
@@ -208,16 +290,44 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 dirtyBuffer = true;
             }
         }
-        else if (this.dirty)
+        else
         {
-            this.canvas?.clear();
-            this.drawBackground();
-            this.resetEngine();
-            const r = this.engine.fastForwardTo(this.props.frame);
-            entities = r.entities;
+            if (this.selectedEntityType !== "none")
+            {
+                const pt = this.selectedEntityPos.plus(this.mouseDelta).toObject();
+                const stage = obj_copy(this.props.stage) as StageModel;
+
+                switch (this.selectedEntityType)
+                {
+                    case "player":
+                        stage.playerSpawnPosition = pt;
+                        break;
+                    case "enemy":
+                        stage.enemies = array_copy(stage.enemies);
+                        stage.enemies[this.selectedIndex] = {
+                            ...stage.enemies[this.selectedIndex],
+                            spawnPosition: pt
+                        };
+                        break;
+                    case "boss":
+                        stage.bossSpawnPosition = pt;
+                        break;
+                }
+
+                this.props.onUpdateStage(stage);
+            }
+            
+            if (this.dirty)
+            {
+                this.canvas?.clear();
+                this.drawBackground();
+                this.resetEngine();
+                const r = this.engine.fastForwardTo(this.props.frame);
+                this.entities = r.entities;
+            }
         }
 
-        entities.forEach((entity) =>
+        this.entities.forEach((entity) =>
         {
             entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), false);
         });

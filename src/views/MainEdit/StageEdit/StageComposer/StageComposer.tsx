@@ -1003,6 +1003,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             onPlayerDie={this.handlePlayerDie}
                             onPlayFrame={this.handlePlayFrame}
                             playerInvincible={this.state.playerInvincible}
+                            onUpdateStage={this.props.onUpdate}
+                            onSelectEnemy={this.handleSelectEnemy}
                         />
                     </div>
                     {/* properties */}
