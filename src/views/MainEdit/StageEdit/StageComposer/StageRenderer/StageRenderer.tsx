@@ -17,12 +17,12 @@ interface Props
     frame: number;
     refresh: boolean;
     selectedEntityIndex: number;
-    editMode: "enemy" | "boss";
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
     onPlayFrame: (frame: number, isLastFrame: boolean) => any;
     onUpdateStage: (stage: StageModel) => any;
     onSelectEnemy: (index: number) => any;
+    onFinalFrameCalculate: (finalFrame: number) => any;
     playing: boolean;
     playerInvincible: boolean;
 }
@@ -90,6 +90,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             this.resetEngine();
             this.engine.invalidateCache();
+            this.props.onFinalFrameCalculate(this.engine.finalFrame);
         }
 
         this.dirty = true;
@@ -118,6 +119,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.requestRender();
         this.resetEngine();
         this.engine.invalidateCache();
+        this.props.onFinalFrameCalculate(this.engine.finalFrame);
     }
 
     componentWillUnmount = () =>
@@ -184,36 +186,31 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 return;
             }
 
-            if (this.props.editMode === "enemy")
+            const enemies = this.entities.filter(e => e.alive && e.type === "enemy");
+            const found = enemies.find((e) =>
             {
-                const enemies = this.entities.filter(e => e.alive && e.type === "enemy");
-                const found = enemies.find((e) =>
+                return containsPoint(e.obj, e.position);
+            });
+            if (found)
+            {
+                this.selectedEntityType = "enemy";
+                this.selectedEntityPos = Point.fromPointLike(found.spawnPosition);
+                this.selectedIndex = this.props.stage.enemies.findIndex(e => e.id === found.obj.id);
+                if (this.selectedIndex === -1)
                 {
-                    return containsPoint(e.obj, e.position);
-                });
-                if (found)
-                {
-                    this.selectedEntityType = "enemy";
-                    this.selectedEntityPos = Point.fromPointLike(found.spawnPosition);
-                    this.selectedIndex = this.props.stage.enemies.findIndex(e => e.id === found.obj.id);
-                    if (this.selectedIndex === -1)
-                    {
-                        throw new Error("bad index iodk");
-                    }
-                    // this.props.onSelectEnemy(this.selectedIndex);
-                    return;
+                    throw new Error("bad index iodk");
                 }
+                // this.props.onSelectEnemy(this.selectedIndex);
+                return;
             }
-            else if (this.props.editMode === "boss")
+            
+            const form = this.entities.find(e => e.alive && e.type === "boss");
+            if (form && containsPoint(form.obj, form.position))
             {
-                const form = this.entities.find(e => e.alive && e.type === "boss");
-                if (form && containsPoint(form.obj, form.position))
-                {
-                    this.selectedEntityType = "boss";
-                    this.selectedEntityPos = Point.fromPointLike(form.spawnPosition);
-                    this.selectedIndex = -1;
-                    return;
-                }
+                this.selectedEntityType = "boss";
+                this.selectedEntityPos = Point.fromPointLike(form.spawnPosition);
+                this.selectedIndex = -1;
+                return;
             }
         });
         this.canvas.addEventListener("mousemove", (pos, mouseDown, lastPos, ogPos, e) =>
@@ -246,7 +243,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     resetEngine = () =>
     {
-        this.engine.reset(this.props.stage, this.props.project, this.props.editMode === "enemy" ? "previewEnemies" : "previewBoss", this.props.selectedEntityIndex);
+        this.engine.reset(this.props.stage, this.props.project);
     }
 
     drawBackground = () =>
@@ -283,7 +280,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             });
 
             this.entities = r.entities;
-            this.props.onPlayFrame(r.offsetStageAge, r.isLastUpdate);
+            this.props.onPlayFrame(r.stageAge, r.isLastUpdate);
             if (!r.playerAlive)
             {
                 this.props.onPlayerDie();

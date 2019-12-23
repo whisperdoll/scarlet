@@ -37,7 +37,6 @@ export interface UpdateResult
     playerAlive: boolean;
     entities: GameEntity[];
     stageAge: number;
-    offsetStageAge: number;
     isLastUpdate: boolean;
 };
 
@@ -45,12 +44,7 @@ export interface GameState
 {
     entities: GameEntity[];
     stageAge: number;
-    bossFormIndex: number;
-    mode: EngineMode;
-    playerEntity: GameEntity | null;
 };
-
-type EngineMode = "previewEnemies" | "previewBoss" | "full";
 
 export default class GameEngine
 {
@@ -63,35 +57,37 @@ export default class GameEngine
     private stage: StageModel | null = null;
     private project: ProjectModel | null = null;
     private hasReset: boolean = false;
-    private playerEntity: GameEntity | null = null;
-    private bossFormIndex: number = -1;
-    private mode: EngineMode = "full";
     private cacheInterval: number = 30;
+    private _finalFrame: number = 0;
 
-    // time, mode, bossFormIndex
-    private cache: Map<number, Map<EngineMode, Map<number, GameState>>> = new Map();
+    // time
+    private cache: Map<number, GameState> = new Map();
 
     constructor()
     {
     }
 
+    public get finalFrame(): number
+    {
+        return this._finalFrame;
+    }
+
+    private get playerEntity(): GameEntity | null
+    {
+        return this.entities.find(e => e.type === "player") || null;
+    }
+
     private toGameState(): GameState
     {
         return {
-            bossFormIndex: this.bossFormIndex,
             entities: deepCopy(this.entities),
-            mode: this.mode,
-            playerEntity: this.playerEntity,
             stageAge: this.stageAge
         };
     }
 
     private loadGameState(gameState: GameState)
     {
-        this.bossFormIndex = gameState.bossFormIndex;
         this.entities = deepCopy(gameState.entities);
-        this.mode = gameState.mode;
-        this.playerEntity = gameState.playerEntity;
         this.stageAge = gameState.stageAge;
     }
 
@@ -120,37 +116,13 @@ export default class GameEngine
     {
         if (!this.cache.has(frame))
         {
-            this.cache.set(frame, new Map());
-        }
-
-        const map2 = this.cache.get(frame) as Map<EngineMode, Map<number, GameState>>;
-        if (!map2.has(this.mode))
-        {
-            map2.set(this.mode, new Map());
-        }
-
-        const map3 = map2.get(this.mode) as Map<number, GameState>;
-        if (!map3.has(this.bossFormIndex))
-        {
-            map3.set(this.bossFormIndex, this.toGameState());
+            this.cache.set(frame, this.toGameState());
         }
     }
 
     private retrieveFromCache(frame: number): GameState | null
     {
-        if (!this.cache.has(frame))
-        {
-            return null;
-        }
-
-        const map2 = this.cache.get(frame) as Map<EngineMode, Map<number, GameState>>;
-        if (!map2.has(this.mode))
-        {
-            return null;
-        }
-
-        const map3 = map2.get(this.mode) as Map<number, GameState>;
-        return map3.get(this.bossFormIndex) || null;
+        return this.cache.get(frame) || null;
     }
 
     private getKeyContext(keyMap: Map<string, boolean>): KeyContext
@@ -164,17 +136,16 @@ export default class GameEngine
         return ret as KeyContext;
     }
 
-    public reset(stage: StageModel, project: ProjectModel, mode: EngineMode, bossFormIndex: number)
+    public reset(stage: StageModel, project: ProjectModel)
     {
         this.entities = [];
         this.stageAge = 0;
-        this.bossFormIndex = bossFormIndex;
-        this.mode = mode;
+        this._finalFrame = stage.length - 1;
 
         const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId, project);
         if (player)
         {
-            this.playerEntity = {
+            this.entities.push({
                 age: 0,
                 alive: false,
                 bulletsFired: 0,
@@ -188,122 +159,67 @@ export default class GameEngine
                 type: "player",
                 store: {},
                 hp: 0
-            };
+            });
+        }
+        
+        const boss = ObjectHelper.getObjectWithId<BossModel>(stage.bossId, project);
+        if (boss)
+        {
+            let spawnFrame = stage.length;
+            boss.forms.forEach((form, i) =>
+            {
+                this.entities.push({
+                    age: 0,
+                    alive: false,
+                    bulletsFired: 0,
+                    index: i,
+                    obj: form,
+                    position: obj_copy(stage.bossSpawnPosition),
+                    spawnPosition: obj_copy(stage.bossSpawnPosition),
+                    spawnFrame: spawnFrame,
+                    lifetime: form.lifetime,
+                    tags: [],
+                    type: "boss",
+                    store: {},
+                    hp: form.hp
+                });
 
-            this.entities.push(this.playerEntity);
+                spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
+            });
+
+            this._finalFrame = spawnFrame - 1;
         }
 
-        if (mode === "full")
+        stage.enemies.forEach((enemyData: StageEnemyData) =>
         {
-            const boss = ObjectHelper.getObjectWithId<BossModel>(stage.bossId, project);
-            if (boss)
+            const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, project);
+            if (enemy)
             {
-                let spawnFrame = stage.length;
-                boss.forms.forEach((form, i) =>
+                for (let i = 0; i < enemyData.spawnAmount; i++)
                 {
                     this.entities.push({
                         age: 0,
                         alive: false,
                         bulletsFired: 0,
                         index: i,
-                        obj: form,
-                        position: obj_copy(stage.bossSpawnPosition),
-                        spawnPosition: obj_copy(stage.bossSpawnPosition),
-                        spawnFrame: spawnFrame,
-                        lifetime: form.lifetime,
+                        obj: enemy,
+                        position: obj_copy(enemyData.spawnPosition),
+                        spawnPosition: obj_copy(enemyData.spawnPosition),
+                        spawnFrame: enemyData.spawnFrame + i * enemyData.spawnRate,
+                        lifetime: -1,
                         tags: [],
-                        type: "boss",
+                        type: "enemy",
                         store: {},
-                        hp: form.hp
+                        hp: enemy.hp
                     });
-
-                    spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
-                });
-            }
-        }
-        else if (mode === "previewBoss")
-        {
-            const boss = ObjectHelper.getObjectWithId<BossModel>(stage.bossId, project);
-            if (boss && bossFormIndex >= 0)
-            {
-                let spawnFrame = stage.length;
-                boss.forms.forEach((form, i) =>
-                {
-                    if (i === bossFormIndex)
-                    {
-                        this.entities.push({
-                            age: 0,
-                            alive: false,
-                            bulletsFired: 0,
-                            index: i,
-                            obj: form,
-                            position: obj_copy(stage.bossSpawnPosition),
-                            spawnPosition: obj_copy(stage.bossSpawnPosition),
-                            spawnFrame: spawnFrame,
-                            lifetime: form.lifetime,
-                            tags: [],
-                            type: "boss",
-                            store: {},
-                            hp: form.hp
-                        });
-                        
-                        this.stageAge = spawnFrame;
-                    }
-
-                    spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
-                });
-            }
-        }
-
-        if (mode !== "previewBoss")
-        {
-            stage.enemies.forEach((enemyData: StageEnemyData) =>
-            {
-                const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, project);
-                if (enemy)
-                {
-                    for (let i = 0; i < enemyData.spawnAmount; i++)
-                    {
-                        this.entities.push({
-                            age: 0,
-                            alive: false,
-                            bulletsFired: 0,
-                            index: i,
-                            obj: enemy,
-                            position: obj_copy(enemyData.spawnPosition),
-                            spawnPosition: obj_copy(enemyData.spawnPosition),
-                            spawnFrame: enemyData.spawnFrame + i * enemyData.spawnRate,
-                            lifetime: -1,
-                            tags: [],
-                            type: "enemy",
-                            store: {},
-                            hp: enemy.hp
-                        });
-                    }
                 }
-            });
-        }
+            }
+        });
 
         this.gameSize = stage.size;
         this.project = project;
         this.stage = stage;
         this.hasReset = true;
-    }
-
-    private get offsetFrames(): number
-    {
-        if (this.mode === "previewBoss")
-        {
-            const boss = this.entities.find(e => e.type === "boss");
-            if (boss)
-            {
-                return boss.spawnFrame;
-            }
-
-            return 0;
-        }
-        
-        return 0;
     }
 
     public fastForwardTo(frame: number): UpdateResult
@@ -318,15 +234,15 @@ export default class GameEngine
             return {
                 entities: this.entities,
                 isLastUpdate: false,
-                offsetStageAge: 0,
                 playerAlive: true,
-                stageAge: this.offsetFrames
+                stageAge: 0
             };
         }
 
         // start from closest cached frame //
         let startFrame = 0;
-        const cachedFrame = Math.floor(frame / this.cacheInterval) * this.cacheInterval;
+        let cachedFrame = Math.floor(frame / this.cacheInterval) * this.cacheInterval;
+        while (!this.cache.has(cachedFrame) && cachedFrame > 0) cachedFrame -= this.cacheInterval;
         const cached = this.retrieveFromCache(cachedFrame);
         if (cached)
         {
@@ -337,8 +253,7 @@ export default class GameEngine
             {
                 return {
                     entities: this.entities,
-                    isLastUpdate: startFrame === this.stageAge - this.offsetFrames - 1,
-                    offsetStageAge: this.stageAge - this.offsetFrames,
+                    isLastUpdate: startFrame === this.finalFrame,
                     playerAlive: true,
                     stageAge: this.stageAge
                 };
@@ -384,11 +299,18 @@ export default class GameEngine
             {
                 this.updatePlayer(entity, context);
             }
+            else if (entity.type === "boss" && entity.spawnFrame + entity.lifetime === this.stageAge)
+            {
+                entity.alive = false;
+                continue;
+            }
 
             if (entity.obj.scriptId >= 0)
             {
-                this.updateEntity(entity, context);
+                this.runEntityUpdateScript(entity, context);
             }
+
+            entity.age++;
         }
 
         if (this.playerEntity)
@@ -433,7 +355,7 @@ export default class GameEngine
                                             store: e.store
                                         },
                                         stage: {
-                                            age: 0,
+                                            age: this.stageAge,
                                             size: (this.stage as StageModel).size
                                         },
                                         keys: this.getKeyContext(context.keys)
@@ -452,50 +374,24 @@ export default class GameEngine
         }
 
         this.stageAge++;
-        let offsetTime = this.stageAge;
 
         if (this.stage)
         {
-            if (this.mode === "previewEnemies")
+            if (this.stageAge === this.finalFrame)
             {
-                if (this.stageAge === this.stage.length - 1)
-                {
-                    isLastUpdate = true;
-                }
-                else if (this.stageAge >= this.stage.length)
-                {
-                    throw new Error("advanced beyond stage length");
-                }
+                isLastUpdate = true;
             }
-            else if (this.mode === "previewBoss")
+            else if (this.stageAge > this.finalFrame)
             {
-                const boss = this.entities.find(e => e.type === "boss");
-                if (boss)
-                {
-                    offsetTime -= boss.spawnFrame;
-                    if (this.stageAge === boss.spawnFrame + boss.lifetime - 1)
-                    {
-                        isLastUpdate = true;
-                    }
-                    else if (this.stageAge >= boss.spawnFrame + boss.lifetime)
-                    {
-                        throw new Error("advanced beyond stage length");
-                    }
-                }
-                else
-                {
-                    throw new Error("no boss?");
-                }
+                throw new Error("advanced beyond final frame.. shame on u");
             }
-            // TODO: full
         }
 
         const ret = {
             playerAlive: playerAlive,
             entities: this.entities,
             stageAge: this.stageAge,
-            isLastUpdate: isLastUpdate,
-            offsetStageAge: offsetTime
+            isLastUpdate: isLastUpdate
         };
         
         return ret;
@@ -585,7 +481,7 @@ export default class GameEngine
         }
     }
 
-    private updateEntity(entity: GameEntity, context: UpdateContext)
+    private runEntityUpdateScript(entity: GameEntity, context: UpdateContext)
     {
         const methods = ScriptEngine.parseScript(entity.obj.scriptId, this.project as ProjectModel);
         const results = methods.update ? methods.update({
@@ -655,8 +551,6 @@ export default class GameEngine
                 this.handleFire(entity, results.fire, results.fireStores);
             }
         }
-
-        entity.age++;
     }
 
     private handleFire(entity: GameEntity, num: number, stores?: any[])

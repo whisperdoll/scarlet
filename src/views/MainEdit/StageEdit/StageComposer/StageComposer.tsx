@@ -31,26 +31,23 @@ interface State
 {
     frame: number;
     selectedEnemyIndex: number;
+    selectedBossFormIndex: number;
     selectedNewEnemyId: number;
     playing: boolean;
     refreshRenderer: boolean;
     selectedEnemyAliveCount: number;
     selectedEnemyBulletAliveCount: number;
-    editMode: "enemy" | "boss";
-    selectedBossFormIndex: number;
     loopStart: number;
     loopEnd: number;
     loopEnabled: boolean;
     deathAction: DeathAction;
     pauseAction: PauseAction;
     playerInvincible: boolean;
+    finalFrame: number;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
 {
-    private bufferedLoopTimes: number[] = [];
-    private bufferedTime: number = 0;
-
     constructor(props: Props)
     {
         super(props);
@@ -63,14 +60,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
             refreshRenderer: false,
             selectedEnemyAliveCount: 0,
             selectedEnemyBulletAliveCount: 0,
-            editMode: "enemy",
             selectedBossFormIndex: 0,
             loopStart: 0,
             loopEnd: props.stage.length - 1,
             loopEnabled: false,
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause",
-            playerInvincible: true
+            playerInvincible: true,
+            finalFrame: 0
         };
 
         ScriptEngine.updateCache(this.props.project);
@@ -277,17 +274,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    private get _formLength(): number
-    {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
-        return boss?.forms[this.state.selectedBossFormIndex]?.lifetime || 0;
-    }
-
-    private get length(): number
-    {
-        return (this.state.editMode === "enemy" ? this.props.stage.length : this._formLength) - 1;
-    }
-
     handleLoopStartChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         const val = parseInt(e.currentTarget.value);
@@ -298,7 +284,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         
         this.setState(state => ({
             ...state,
-            loopStart: Math.max(0, Math.min(this.length, val))
+            loopStart: Math.max(0, Math.min(state.finalFrame, val))
         }));
     }
 
@@ -312,7 +298,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         
         this.setState(state => ({
             ...state,
-            loopEnd: Math.max(0, Math.min(this.length, val))
+            loopEnd: Math.max(0, Math.min(state.finalFrame, val))
         }));
     }
 
@@ -344,7 +330,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            frame: Math.max(0, Math.min(this.length, frame)),
+            frame: Math.max(0, Math.min(state.finalFrame, frame)),
             playing: false
         }));
     }
@@ -375,7 +361,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            selectedEnemyIndex: index
+            selectedEnemyIndex: index,
+            selectedBossFormIndex: -1
         }));
     }
 
@@ -479,60 +466,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }));
     }
 
-    handleBossEditMode = () =>
-    {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
-
-        if (boss)
-        {
-            if (boss.forms.length > 0)
-            {
-                let loopStart = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[0] : 0;
-                let loopEnd = this.bufferedLoopTimes.length > 0 ? this.bufferedLoopTimes[1] : (this.selectedBossForm?.lifetime || 1) - 1;
-                let time = this.bufferedTime;
-    
-                this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-                this.bufferedTime = this.state.frame;
-    
-                this.setState(state => ({
-                    ...state,
-                    playing: false,
-                    frame: time,
-                    editMode: "boss",
-                    loopStart: loopStart,
-                    loopEnd: loopEnd
-                }));
-            }
-            else
-            {
-                alert("please add a form to the boss first!");
-            }
-        }
-        else
-        {
-            alert("select a boss first!");
-        }
-    }
-
-    handleEnemyEditMode = () =>
-    {
-        const loopStart = this.bufferedLoopTimes[0];
-        const loopEnd = this.bufferedLoopTimes[1];
-        const time = this.bufferedTime;
-
-        this.bufferedLoopTimes = [ this.state.loopStart, this.state.loopEnd ];
-        this.bufferedTime = this.state.frame;
-
-        this.setState(state => ({
-            ...state,
-            playing: false,
-            frame: time,
-            editMode: "enemy",
-            loopStart: loopStart,
-            loopEnd: loopEnd
-        }));
-    }
-
     handleBossFormIndexChange = (index: number) =>
     {
         if (index >= 0)
@@ -540,8 +473,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             this.setState(state => ({
                 ...state,
                 selectedBossFormIndex: index,
-                frame: 0,
-                playing: false
+                selectedEnemyIndex: -1
             }));
         }
     }
@@ -736,6 +668,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }));
     }
 
+    handleFinalFrameCalculate = (finalFrame: number) =>
+    {
+        this.setState(state => ({
+            ...state,
+            finalFrame: finalFrame
+        }));
+    }
+
     private get selectedBossForm(): BossFormModel | null
     {
         return this.getBossForm(this.state.selectedBossFormIndex);
@@ -857,50 +797,36 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 value={this.props.stage.bossSpawnPosition.y.toString()}
                             />
                         </div>
-                        {this.state.editMode === "enemy" && (<React.Fragment>
-                            <button
-                                onClick={this.handleBossEditMode}
-                            >
-                                Boss Edit Mode
-                            </button>
-                            <div className="row">
-                                <span>Enemies:</span>
-                                <ObjectSelect
-                                    currentObjectId={this.state.selectedNewEnemyId}
-                                    objectType="enemy"
-                                    onChange={this.handleSelectNewEnemy}
-                                    project={this.props.project}
-                                />
-                                <button
-                                    className="addEnemy"
-                                    onClick={this.handleAddEnemy}
-                                >
-                                    + Add
-                                </button>
-                            </div>
-                            <EnemyList
-                                onSelectEnemy={this.handleSelectEnemy}
+                        <div className="row">
+                            <span>Enemies:</span>
+                            <ObjectSelect
+                                currentObjectId={this.state.selectedNewEnemyId}
+                                objectType="enemy"
+                                onChange={this.handleSelectNewEnemy}
                                 project={this.props.project}
-                                stage={this.props.stage}
                             />
-                        </React.Fragment>)}
-                        {this.state.editMode === "boss" && (<React.Fragment>
                             <button
-                                onClick={this.handleEnemyEditMode}
+                                className="addEnemy"
+                                onClick={this.handleAddEnemy}
                             >
-                                Enemy Edit Mode
+                                + Add
                             </button>
-                            <div className="row">
-                                <span className="formsLabel">Forms:</span>
-                                <button onClick={this.handleAddBossForm}>+ Add New</button>
-                            </div>
-                            <BossFormList
-                                onSelectBossForm={this.handleBossFormIndexChange}
-                                project={this.props.project}
-                                stage={this.props.stage}
-                                bossId={this.props.stage.bossId}
+                        </div>
+                        <EnemyList
+                            onSelectEnemy={this.handleSelectEnemy}
+                            project={this.props.project}
+                            stage={this.props.stage}
                             />
-                        </React.Fragment>)}
+                        <div className="row">
+                            <span className="formsLabel">Forms:</span>
+                            <button onClick={this.handleAddBossForm}>+ Add New</button>
+                        </div>
+                        <BossFormList
+                            onSelectBossForm={this.handleBossFormIndexChange}
+                            project={this.props.project}
+                            stage={this.props.stage}
+                            bossId={this.props.stage.bossId}
+                        />
                         {this.state.loopEnabled && (<React.Fragment>
                             <div className="row">
                                 <span className="label">Loop Start:</span>
@@ -965,19 +891,19 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             stage={this.props.stage}
                             frame={this.state.frame}
                             refresh={this.state.refreshRenderer}
-                            selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
+                            selectedEntityIndex={this.state.selectedEnemyIndex >= 0 ? this.state.selectedEnemyIndex : (this.state.selectedBossFormIndex >= 0 ? this.state.selectedBossFormIndex : -1)}
                             onInstanceCount={this.handleInstanceCount}
-                            editMode={this.state.editMode}
                             playing={this.state.playing}
                             onPlayerDie={this.handlePlayerDie}
                             onPlayFrame={this.handlePlayFrame}
                             playerInvincible={this.state.playerInvincible}
                             onUpdateStage={this.props.onUpdate}
                             onSelectEnemy={this.handleSelectEnemy}
+                            onFinalFrameCalculate={this.handleFinalFrameCalculate}
                         />
                     </div>
                     {/* properties */}
-                    {this.state.editMode === "enemy" && (this.state.selectedEnemyIndex >= 0) && (
+                    {this.state.selectedEnemyIndex >= 0 && (
                         <PropertyEdit
                             enemyIndex={this.state.selectedEnemyIndex}
                             onUpdate={this.handleUpdateEnemy}
@@ -989,7 +915,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
                         />
                     )}
-                    {this.state.editMode === "boss" && this.selectedBossForm && (
+                    {this.selectedBossForm && (
                         <BossFormEdit
                             bossForm={this.selectedBossForm}
                             index={this.state.selectedBossFormIndex}
@@ -1005,12 +931,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     project={this.props.project}
                     stage={this.props.stage}
                     frame={this.state.frame}
-                    selectedEntityIndex={this.state.editMode === "enemy" ? this.state.selectedEnemyIndex : this.state.selectedBossFormIndex}
-                    editMode={this.state.editMode}
+                    selectedEntityIndex={this.state.selectedEnemyIndex >= 0 ? this.state.selectedEnemyIndex : (this.state.selectedBossFormIndex >= 0 ? this.state.selectedBossFormIndex : -1)}
                     loopStart={this.state.loopStart}
                     loopEnd={this.state.loopEnd}
                     loopEnabled={this.state.loopEnabled}
-                    max={this.length}
+                    max={this.state.finalFrame}
                 />
                 <button
                     className="play"

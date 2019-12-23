@@ -11,7 +11,6 @@ interface Props
     frame: number;
     onScrub: (frame: number) => any;
     selectedEntityIndex: number;
-    editMode: "enemy" | "boss";
     loopStart: number;
     loopEnd: number;
     loopEnabled: boolean;
@@ -78,28 +77,26 @@ export default class StageTimeline extends React.PureComponent<Props, State>
 
         return (
             <div className="timeline">
-                {this.props.editMode === "enemy" && (
-                    <div className="enemyTimeline">
-                        {this.props.stage.enemies.map((enemy, i) =>
-                        {
-                            return this.spritePathForEnemy(enemy) ? (
-                                <img
-                                    src={this.spritePathForEnemy(enemy)}
-                                    style={{
-                                        position: "absolute",
-                                        left: (enemy.spawnFrame / this.props.stage.length * 100).toString() + "%",
-                                        transform: "translate(-50%, 0)",
-                                        height: "32px"
-                                    }}
-                                    title={enemy.instanceName}
-                                    key={i}
-                                    className={i === this.props.selectedEntityIndex ? "selected" : ""}
-                                    alt="sprite"
-                                />
-                            ) : null;
-                        })}
-                    </div>
-                )}
+                <div className="enemyTimeline">
+                    {this.props.stage.enemies.map((enemy, i) =>
+                    {
+                        return this.spritePathForEnemy(enemy) ? (
+                            <img
+                                src={this.spritePathForEnemy(enemy)}
+                                style={{
+                                    position: "absolute",
+                                    left: (enemy.spawnFrame / this.props.stage.length * 100).toString() + "%",
+                                    transform: "translate(-50%, 0)",
+                                    height: "32px"
+                                }}
+                                title={enemy.instanceName}
+                                key={i}
+                                className={i === this.props.selectedEntityIndex ? "selected" : ""}
+                                alt="sprite"
+                            />
+                        ) : null;
+                    })}
+                </div>
                 <div className="row">
                     <input
                         type="range"
