@@ -2,6 +2,7 @@ import React, { ChangeEvent } from 'react';
 import './BackgroundEdit.scss';
 import { BackgroundModel } from '../../../utils/datatypes';
 import ImageCache from '../../../utils/ImageCache';
+import PathHelper from '../../../utils/PathHelper';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -41,10 +42,11 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
+            const destFilename = PathHelper.importObjectFileName(paths[0], "backgrounds");
             ImageCache.invalidateImage(this.props.background.path);
             this.props.onUpdate({
                 ...this.props.background,
-                path: paths[0]
+                path: destFilename
             });
         }
     }
@@ -69,7 +71,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
                         value={this.props.background.name}
                     />
                 </div>
-                <img alt="background" src={this.props.background.path} />
+                <img alt="background" src={PathHelper.resolveObjectFileName(this.props.background.path)} />
                 <button
                     onClick={this.handleBrowse}
                 >

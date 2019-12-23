@@ -3,6 +3,7 @@ import './BulletEdit.scss';
 import { BulletModel, ProjectModel, SpriteModel } from '../../../utils/datatypes';
 import ObjectHelper from '../../../utils/ObjectHelper';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
+import PathHelper from '../../../utils/PathHelper';
 
 interface Props
 {
@@ -85,7 +86,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
                     />
-                    {this.sprite && <img className="sprite" src={this.sprite.path} alt="sprite" />}
+                    {this.sprite && <img className="sprite" src={PathHelper.resolveObjectFileName(this.sprite.path)} alt="sprite" />}
                 </div>
                 <div className="row">
                     <span className="label">Damage:</span>

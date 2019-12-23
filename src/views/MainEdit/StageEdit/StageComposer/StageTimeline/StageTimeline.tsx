@@ -2,6 +2,7 @@ import React, { ChangeEvent } from 'react';
 import './StageTimeline.scss';
 import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel, BossModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
+import PathHelper from '../../../../../utils/PathHelper';
 
 interface Props
 {
@@ -44,7 +45,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
             const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId, this.props.project);
             if (sprite)
             {
-                return sprite.path;
+                return PathHelper.resolveObjectFileName(sprite.path);
             }
         }
 

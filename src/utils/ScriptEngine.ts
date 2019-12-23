@@ -3,6 +3,7 @@ import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
 import { ProjectModel, ScriptModel, ObjectMap, KeyBindings } from "./datatypes";
 import { PointLike } from "./point";
+import PathHelper from "../utils/PathHelper";
 
 export interface StageScriptData
 {
@@ -80,7 +81,7 @@ export default class ScriptEngine
 
         try
         {
-            code = fs.readFileSync(scriptObject.path, "utf8");
+            code = fs.readFileSync(PathHelper.resolveObjectFileName(scriptObject.path), "utf8");
             const script = new vm.Script(code);
             this.scriptMap.set(scriptObject.id, script);
             const context = vm.createContext();

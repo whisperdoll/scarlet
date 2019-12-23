@@ -7,6 +7,9 @@ import ImageCache from '../../../utils/ImageCache';
 import PureCanvas from '../../../components/PureCanvas/PureCanvas';
 import Point from '../../../utils/point';
 import { Canvas } from '../../../utils/canvas';
+import * as npath from "path";
+import * as fs from "fs";
+import PathHelper from '../../../utils/PathHelper';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -48,10 +51,12 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
-            ImageCache.invalidateImage(this.props.sprite.path);
+            const destFilename = PathHelper.importObjectFileName(paths[0], "sprites");
+
+            ImageCache.invalidateImage(this.props.sprite.path); // clear old
             this.props.onUpdate({
                 ...this.props.sprite,
-                path: paths[0]
+                path: destFilename
             });
         }
     }
@@ -116,6 +121,8 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
     renderSprite = () =>
     {
+        this.canvas?.clear();
+        
         if (this.props.sprite.path)
         {
             ImageCache.getImage(this.props.sprite.path, (img) =>

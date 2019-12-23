@@ -16,6 +16,7 @@ import KeyBindEdit from './KeyBindEdit/KeyBindEdit';
 interface Props
 {
     project: ProjectModel;
+    projectFilename: string;
     onUpdate: (project: ProjectModel) => any;
 }
 

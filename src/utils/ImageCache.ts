@@ -1,5 +1,6 @@
 import { ProjectModel, SpriteModel } from "./datatypes";
 import * as fs from "fs";
+import PathHelper from "./PathHelper";
 
 export default class ImageCache
 {
@@ -34,7 +35,7 @@ export default class ImageCache
             {
                 callback(img, false);
             };
-            img.src = filename;
+            img.src = PathHelper.resolveObjectFileName(filename);
         }
     }
 
@@ -43,7 +44,7 @@ export default class ImageCache
         const ret = this.imageMap.get(filename);
         if (ret) return ret;
         
-        const buffer = fs.readFileSync(filename);
+        const buffer = fs.readFileSync(PathHelper.resolveObjectFileName(filename));
         const img = new Image();
         img.src = "data:image/jpeg;base64," + buffer.toString("base64");
         this.imageMap.set(filename, img);

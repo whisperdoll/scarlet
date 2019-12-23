@@ -2,6 +2,7 @@ import React from 'react';
 import './BossFormList.scss';
 import { StageModel, ProjectModel, SpriteModel, BossModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
+import PathHelper from '../../../../../utils/PathHelper';
 
 interface Props
 {
@@ -43,7 +44,7 @@ export default class BossFormList extends React.PureComponent<Props, State>
         if (!boss) return "";
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(boss.forms[formIndex].spriteId, this.props.project);
         if (!sprite) return "";
-        return sprite.path;
+        return PathHelper.resolveObjectFileName(sprite.path);
     }
 
     render()

@@ -2,6 +2,7 @@ import React from 'react';
 import './EnemyList.scss';
 import { StageModel, ProjectModel, SpriteModel, EnemyModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
+import PathHelper from '../../../../../utils/PathHelper';
 
 interface Props
 {
@@ -43,7 +44,7 @@ export default class EnemyList extends React.PureComponent<Props, State>
         if (!enemy) return "";
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId, this.props.project);
         if (!sprite) return "";
-        return sprite.path;
+        return PathHelper.resolveObjectFileName(sprite.path);
     }
 
     render()

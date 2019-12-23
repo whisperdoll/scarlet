@@ -8,6 +8,9 @@ import UserSettings from './utils/usersettings';
 import * as fs from "fs";
 import * as path from "path";
 import ObjectHelper from './utils/ObjectHelper';
+import ImageCache from './utils/ImageCache';
+import ScriptEngine from './utils/ScriptEngine';
+import PathHelper from './utils/PathHelper';
 const { remote } = require('electron');
 const { Menu, MenuItem, dialog } = remote;
 
@@ -30,11 +33,11 @@ interface State
     currentView: View;
     project: ProjectModel | null;
     dirty: boolean;
+    projectFilename: string;
 }
 
 export default class App extends React.PureComponent<Props, State>
 {
-    private projectFilename: string = "";
 
     constructor(props: Props)
     {
@@ -45,7 +48,8 @@ export default class App extends React.PureComponent<Props, State>
         this.state = {
             currentView: "Home",
             project: null,
-            dirty: false
+            dirty: false,
+            projectFilename: ""
         };
 
         this.handleNewProject = this.handleNewProject.bind(this);
@@ -133,15 +137,14 @@ export default class App extends React.PureComponent<Props, State>
             this.handleSaveProject();
         }
 
-        this.projectFilename = "";
-
         this.setState((state) =>
         {
             return {
                 ...state,
                 project: null,
                 currentView: "NewProject",
-                dirty: false
+                dirty: false,
+                projectFilename: ""
             }
         });
     }
@@ -176,14 +179,14 @@ export default class App extends React.PureComponent<Props, State>
             }
 
             project = ObjectHelper.init(project);
-            this.projectFilename = paths[0];
             this.setState((state) =>
             {
                 return {
                     ...state,
                     project: project,
                     currentView: "MainEdit",
-                    dirty: false
+                    dirty: false,
+                    projectFilename: paths[0]
                 };
             });
         }
@@ -192,7 +195,6 @@ export default class App extends React.PureComponent<Props, State>
     handleCreateProject(project: ProjectModel, parentDirectory: string)
     {
         const folderPath = this.genProjectFolderPath(project, parentDirectory);
-        this.projectFilename = this.genProjectFilename(project, folderPath);
 
         try
         {
@@ -214,15 +216,17 @@ export default class App extends React.PureComponent<Props, State>
         }
 
         project = ObjectHelper.init(project);
+        const filename = this.genProjectFilename(project, folderPath);
         this.setState((state) =>
         {
             return {
                 ...state,
                 currentView: "MainEdit",
-                project: project
+                project: project,
+                projectFilename: filename
             };
         });
-        this.handleSaveProject(project);
+        this.handleSaveProject(project, filename);
     }
 
     handleUpdateProject(project: ProjectModel)
@@ -237,14 +241,15 @@ export default class App extends React.PureComponent<Props, State>
         });
     }
 
-    handleSaveProject(project?: ProjectModel | null)
+    handleSaveProject(project?: ProjectModel | null, filename?: string)
     {
         if (!project) project = this.state.project;
+        if (!filename) filename = this.state.projectFilename;
 
         if (project)
         {
             fs.writeFileSync(
-                this.projectFilename,
+                filename,
                 JSON.stringify(project),
                 "utf8"
             );
@@ -265,6 +270,7 @@ export default class App extends React.PureComponent<Props, State>
     componentDidUpdate()
     {
         this.setTitle();
+        PathHelper.setProjectFilename(this.state.projectFilename);
     }
 
     render()
@@ -290,6 +296,7 @@ export default class App extends React.PureComponent<Props, State>
                     <MainEditView
                         project={this.state.project}
                         onUpdate={this.handleUpdateProject}
+                        projectFilename={this.state.projectFilename}
                     />
                 );
             case "StageEdit":

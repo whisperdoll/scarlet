@@ -2,6 +2,7 @@ import React, { ChangeEvent } from 'react';
 import './ScriptEdit.scss';
 import { ScriptModel } from '../../../utils/datatypes';
 import * as fs from "fs";
+import PathHelper from '../../../utils/PathHelper';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -28,11 +29,12 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
 
     componentDidMount = () =>
     {
-        this.loadPreview(this.props.script.path);
+        this.loadPreview();
     }
 
-    loadPreview = (filename: string) =>
+    loadPreview = () =>
     {
+        const filename = PathHelper.resolveObjectFileName(this.props.script.path);
         fs.readFile(filename, "utf8", (err, data) =>
         {
             if (!err)
@@ -80,7 +82,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         {
             this.props.onUpdate({
                 ...this.props.script,
-                path: paths[0]
+                path: PathHelper.importObjectFileName(paths[0], "scripts")
             });
         }
     }
@@ -105,7 +107,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
     {
         if (this.props.script.path !== prevProps.script.path)
         {
-            this.loadPreview(this.props.script.path);
+            this.loadPreview();
         }
     }
 
