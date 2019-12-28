@@ -70,6 +70,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     public static createTextureCache(project: ProjectModel, callback: () => any)
     {
         PIXI.Loader.shared.removeAllListeners();
+        PIXI.Loader.shared.reset();
 
         const cellNums: Map<number, number> = new Map();
 

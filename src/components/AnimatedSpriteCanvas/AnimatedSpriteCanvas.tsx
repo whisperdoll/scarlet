@@ -17,7 +17,7 @@ interface State
 {
 }
 
-export default class AnimatedSpriteCanvas extends React.Component<Props, State>
+export default class AnimatedSpriteCanvas extends React.PureComponent<Props, State>
 {
     private canvasRef : React.RefObject<HTMLCanvasElement>;
     private canvas: Canvas | null = null;
@@ -31,11 +31,6 @@ export default class AnimatedSpriteCanvas extends React.Component<Props, State>
     {
         super(props);
         this.canvasRef = React.createRef();
-    }
-
-    shouldComponentUpdate = (nextProps: Props) =>
-    {
-        return false;
     }
 
     componentDidMount = () =>

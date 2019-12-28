@@ -1,9 +1,10 @@
 import React, { ChangeEvent } from 'react';
 import './StageTimeline.scss';
-import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel, BossModel } from '../../../../../utils/datatypes';
+import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel, BossModel, BossFormModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import PathHelper from '../../../../../utils/PathHelper';
 import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
+import GameEngine from '../../../../../utils/GameEngine';
 
 interface Props
 {
@@ -41,13 +42,42 @@ export default class StageTimeline extends React.PureComponent<Props, State>
     private spriteForEnemy = (enemyData: StageEnemyData): SpriteModel | null =>
     {
         const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
-        if (enemy)
+        return enemy && this.getSprite(enemy.spriteId);
+    }
+
+    private spriteForBossForm = (bossForm: BossFormModel): SpriteModel | null =>
+    {
+        return this.getSprite(bossForm.spriteId);
+    }
+
+    private getSprite = (spriteId: number): SpriteModel | null =>
+    {
+        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
+        return sprite;
+    }
+
+    private getBossForms = (): (BossFormModel & { spawnFrame: number })[] =>
+    {
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        if (boss)
         {
-            const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId, this.props.project);
-            return sprite;
+            let spawnFrame = this.props.stage.length;
+            const ret: (BossFormModel & { spawnFrame: number })[] = [];
+            
+            boss.forms.forEach((form) =>
+            {
+                ret.push({
+                    ...form,
+                    spawnFrame: spawnFrame
+                });
+
+                spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
+            });
+
+            return ret;
         }
 
-        return null;
+        return [];
     }
 
     render()
@@ -75,27 +105,58 @@ export default class StageTimeline extends React.PureComponent<Props, State>
 
         return (
             <div className="timeline">
-                <div className="enemyTimeline">
-                    {this.props.stage.enemies.map((enemy, i) =>
-                    {
-                        return this.spriteForEnemy(enemy) ? (
-                            <AnimatedSpriteCanvas
-                                canvasOptions={{
-                                    opaque: false,
-                                    pixelated: true
-                                }}
-                                sprite={this.spriteForEnemy(enemy)!}
-                                className={i === this.props.selectedEntityIndex ? "selected" : ""}
-                                style={{
-                                    position: "absolute",
-                                    left: (enemy.spawnFrame / this.props.stage.length * 100).toString() + "%",
-                                    transform: "translate(-50%, 0)",
-                                    height: "32px"
-                                }}
-                                key={i}
-                            />
-                        ) : null;
-                    })}
+                <div className="row">
+                    <div className="enemyTimeline">
+                        {this.props.max && (<React.Fragment>
+                            {this.props.stage.enemies.map((enemy, i) =>
+                            {
+                                return this.spriteForEnemy(enemy) ? (
+                                    <AnimatedSpriteCanvas
+                                        canvasOptions={{
+                                            opaque: false,
+                                            pixelated: true
+                                        }}
+                                        sprite={this.spriteForEnemy(enemy)!}
+                                        className={i === this.props.selectedEntityIndex ? "selected" : ""}
+                                        style={{
+                                            position: "absolute",
+                                            left: (enemy.spawnFrame / this.props.max * 100).toString() + "%",
+                                            transform: "translate(-50%, 0)",
+                                            height: "32px"
+                                        }}
+                                        key={i}
+                                    />
+                                ) : null;
+                            })}
+                            {this.getBossForms().map((bossForm, i) => 
+                            {
+                                return this.spriteForBossForm(bossForm) ? (
+                                    <AnimatedSpriteCanvas
+                                        canvasOptions={{
+                                            opaque: false,
+                                            pixelated: true
+                                        }}
+                                        sprite={this.spriteForBossForm(bossForm)!}
+                                        style={{
+                                            position: "absolute",
+                                            left: (bossForm.spawnFrame / this.props.max * 100).toString() + "%",
+                                            transform: "translate(-50%, 0)",
+                                            height: "32px"
+                                        }}
+                                        key={i}
+                                    />
+                                ) : null;
+                            })}
+                        </React.Fragment>)}
+                    </div>
+                    <input
+                        type="number"
+                        style={{
+                            opacity: 0,
+                            touchAction: "none",
+                            cursor: "default"
+                        }}
+                    />
                 </div>
                 <div className="row">
                     <input
