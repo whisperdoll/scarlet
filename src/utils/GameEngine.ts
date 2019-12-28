@@ -27,6 +27,9 @@ export interface GameEntity
     type: GameEntityType;
     store: ObjectMap<any>;
     hp: number;
+    opacity: number;
+    scaleX: number;
+    scaleY: number;
 };
 
 type KeyStruct = Map<string, boolean>;
@@ -168,7 +171,10 @@ export default class GameEngine
                 store: {},
                 hp: 0,
                 spriteId: player.spriteId,
-                id: player.id
+                id: player.id,
+                opacity: 1,
+                scaleX: 1,
+                scaleY: 1
             });
         }
         
@@ -194,7 +200,10 @@ export default class GameEngine
                     scriptId: form.scriptId,
                     spawnPositionX: stage.bossSpawnPosition.x,
                     spawnPositionY: stage.bossSpawnPosition.y,
-                    spriteId: form.spriteId
+                    spriteId: form.spriteId,
+                    opacity: 1,
+                    scaleX: 1,
+                    scaleY: 1
                 });
 
                 spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
@@ -227,7 +236,10 @@ export default class GameEngine
                         spawnPositionX: enemyData.spawnPosition.x,
                         spawnPositionY: enemyData.spawnPosition.y,
                         spriteId: enemy.spriteId,
-                        id: enemy.id
+                        id: enemy.id,
+                        opacity: 1,
+                        scaleX: 1,
+                        scaleY: 1
                     });
                 }
             }
@@ -472,6 +484,18 @@ export default class GameEngine
                         {
                             entity.alive = false;
                         }
+                        if (results.opacity || results.opacity === 0)
+                        {
+                            entity.opacity = results.opacity;
+                        }
+                        if (results.scaleX)
+                        {
+                            entity.scaleX = results.scaleX;
+                        }
+                        if (results.scaleY)
+                        {
+                            entity.scaleY = results.scaleY;
+                        }
                     }
                 }
             }
@@ -566,7 +590,10 @@ export default class GameEngine
                             alive: true,
                             type: entity.type === "player" ? "playerBullet" : "enemyBullet",
                             store: results.fireStores ? results.fireStores[i] || {} : {},
-                            hp: 0
+                            hp: 0,
+                            opacity: 1,
+                            scaleX: 1,
+                            scaleY: 1
                         });
                     }
                 }
@@ -580,6 +607,19 @@ export default class GameEngine
             if (results.fire)
             {
                 this.handleFire(entity, results.fire, results.fireStores);
+            }
+
+            if (results.opacity || results.opacity === 0)
+            {
+                entity.opacity = results.opacity;
+            }
+            if (results.scaleX)
+            {
+                entity.scaleX = results.scaleX;
+            }
+            if (results.scaleY)
+            {
+                entity.scaleY = results.scaleY;
             }
         }
     }
@@ -608,7 +648,10 @@ export default class GameEngine
                     alive: true,
                     type: entity.type === "player" ? "playerBullet" : "enemyBullet",
                     store: stores ? stores[i] || {} : {},
-                    hp: 0
+                    hp: 0,
+                    opacity: 1,
+                    scaleX: 1,
+                    scaleY: 1
                 });
             }
         }

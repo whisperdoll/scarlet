@@ -298,38 +298,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         });
     }
 
-    renderSpriteHaver = (spriteId: number, pos: Point, age: number, hilite: boolean) =>
-    {
-        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
-        if (sprite)
-        {
-            /*const img = ImageCache.getCachedImage(sprite.path);
-            const currentCell = Math.floor(age / (sprite.framesPerCell || age)) % sprite.numCells;
-            const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
-
-            this.canvas?.drawCroppedImage(img, pos.minus(cellSize.dividedBy(2)), new Rectangle(cellSize.times(new Point(currentCell, 0)), cellSize));
-            if (hilite)
-            {
-                this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
-            }*/
-            
-            console.time("== fetching");
-            const img = ImageCache.getCachedImage(sprite.path);
-            const currentCell = Math.floor(age / (sprite.framesPerCell || age)) % sprite.numCells;
-            const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
-            const offsetPos = pos.minus(cellSize.dividedBy(2));
-
-            const texture = StageRenderer.textureCache.get(spriteId)![currentCell];
-            const psprite = new PIXI.Sprite(texture);
-            psprite.position = offsetPos;
-            console.timeEnd("== fetching");
-            console.time("== rendering");
-            psprite.render(this.renderer!);
-            console.timeEnd("== rendering");
-
-        }
-    }
-
     resetEngine = () =>
     {
         this.engine.reset(this.props.stage, this.props.project);
@@ -370,6 +338,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     const texture = StageRenderer.textureCache.get(entity.spriteId)![currentCell];
                     const psprite = new PIXI.Sprite(texture);
                     psprite.position = offsetPos;
+                    psprite.alpha = entity.opacity;
+                    psprite.scale = new PIXI.Point(entity.scaleX, entity.scaleY);
                     container.addChild(psprite);
                     // console.timeEnd("== fetching");
                 }
@@ -464,21 +434,21 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             
             if (this.dirty)
             {
-                console.time(">>> render stage");
+                // console.time(">>> render stage");
                 //this.canvas?.clear();
-                console.time("engine stuff");
+                // console.time("engine stuff");
                 // console.time("== reset");
                 this.resetEngine();
                 // console.timeEnd("== reset");
                 // console.time("== fast forward");
                 const r = this.engine.fastForwardTo(this.props.frame);
                 // console.timeEnd("== fast forward");
-                console.timeEnd("engine stuff");
-                console.time("render stuff");
+                // console.timeEnd("engine stuff");
+                // console.time("render stuff");
                 this.entities = r.entities;
                 this.renderEntities();
-                console.timeEnd("render stuff");
-                console.timeEnd(">>> render stage");
+                // console.timeEnd("render stuff");
+                // console.timeEnd(">>> render stage");
             }
         }
 

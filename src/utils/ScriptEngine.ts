@@ -58,6 +58,9 @@ export interface ScriptResult
     fire?: number;
     fireStores?: ObjectMap<any>[];
     alive?: boolean;
+    opacity?: number;
+    scaleX?: number;
+    scaleY?: number;
 };
 
 // engine //
