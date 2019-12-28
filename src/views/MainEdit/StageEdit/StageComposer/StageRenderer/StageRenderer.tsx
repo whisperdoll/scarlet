@@ -335,18 +335,50 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.engine.reset(this.props.stage, this.props.project);
     }
 
-    drawBackground = () =>
+    renderEntities = () =>
     {
-        /*if (this.canvas)
+        const container = new PIXI.Container();
+
+        // console.time("==== background");
+        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
+        if (background)
         {
-            const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
-            if (background)
+            const texture = StageRenderer.textureCache.get(background.id)![0];
+            const psprite = new PIXI.Sprite(texture);
+            psprite.position = new PIXI.Point(0, 0);
+            psprite.width = this.canvas!.width;
+            psprite.height = this.canvas!.height;
+            container.addChild(psprite);
+        }
+        // console.timeEnd("==== background");
+
+        // console.time("==== entities");
+        this.entities.forEach((entity) =>
+        {            
+            if (entity.alive)
             {
-                const img = ImageCache.getCachedImage(background.path);
-                this.canvas.drawImage(img, new Rectangle(new Point(0), Point.fromPointLike(this.props.stage.size)));
+                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.spriteId, this.props.project);
+                if (sprite)
+                {
+                    const pos = new Point(entity.positionX, entity.positionY);
+                    // console.time("== fetching");
+                    const img = ImageCache.getCachedImage(sprite.path);
+                    const currentCell = Math.floor(entity.age / (sprite.framesPerCell || entity.age)) % sprite.numCells;
+                    const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
+                    const offsetPos = pos.minus(cellSize.dividedBy(2));
+        
+                    const texture = StageRenderer.textureCache.get(entity.spriteId)![currentCell];
+                    const psprite = new PIXI.Sprite(texture);
+                    psprite.position = offsetPos;
+                    container.addChild(psprite);
+                    // console.timeEnd("== fetching");
+                }
             }
-        }*/
-    }
+        });
+        // console.timeEnd("==== entities");
+
+        this.renderer!.render(container);
+    };
 
     renderStage = (time: number) =>
     {
@@ -361,28 +393,30 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (this.props.playing)
         {
-            console.time(">>> render stage play");
-            //this.canvas?.clear();
-            this.drawBackground();
+            // console.time(">>> render stage play");
+            // console.time("engine stuff");
             const r = this.engine.advanceFrame({
                 keys: this.keyDownMap,
                 playerInvincible: this.props.playerInvincible
             });
+            // console.timeEnd("engine stuff");
 
+            // console.time("render stuff");
             this.entities = r.entities;
+            // console.time("== onplayframe");
             this.props.onPlayFrame(r.stageAge, r.isLastUpdate);
+            // console.timeEnd("== onplayframe");
             if (!r.playerAlive)
             {
                 this.props.onPlayerDie();
                 dirtyBuffer = true;
             }
-
-            this.entities.forEach((entity) =>
-            {
-                entity.alive && this.renderSpriteHaver(entity.spriteId, new Point(entity.positionX, entity.positionY), entity.age, false);
-            });
-            this.renderer?.batch.flush();
-            console.timeEnd(">>> render stage play");
+            
+            // console.time("== render entities");
+            this.renderEntities();
+            // console.timeEnd("== render entities");
+            // console.timeEnd("render stuff");
+            // console.timeEnd(">>> render stage play");
         }
         else
         {
@@ -432,7 +466,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             {
                 console.time(">>> render stage");
                 //this.canvas?.clear();
-                this.drawBackground();
                 console.time("engine stuff");
                 // console.time("== reset");
                 this.resetEngine();
@@ -443,31 +476,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 console.timeEnd("engine stuff");
                 console.time("render stuff");
                 this.entities = r.entities;
-
-                const container = new PIXI.Container();
-                this.entities.forEach((entity) =>
-                {            
-                    if (entity.alive)
-                    {
-                        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.spriteId, this.props.project);
-                        if (sprite)
-                        {
-                            const pos = new Point(entity.positionX, entity.positionY);
-                            // console.time("== fetching");
-                            const img = ImageCache.getCachedImage(sprite.path);
-                            const currentCell = Math.floor(entity.age / (sprite.framesPerCell || entity.age)) % sprite.numCells;
-                            const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
-                            const offsetPos = pos.minus(cellSize.dividedBy(2));
-                
-                            const texture = StageRenderer.textureCache.get(entity.spriteId)![currentCell];
-                            const psprite = new PIXI.Sprite(texture);
-                            psprite.position = offsetPos;
-                            container.addChild(psprite);
-                            // console.timeEnd("== fetching");
-                        }
-                    }
-                });
-                this.renderer!.render(container);
+                this.renderEntities();
                 console.timeEnd("render stuff");
                 console.timeEnd(">>> render stage");
             }
