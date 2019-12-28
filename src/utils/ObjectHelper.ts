@@ -1,6 +1,8 @@
 import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from "./datatypes";
 import { array_copy, array_remove } from "./utils";
 import update from "immutability-helper";
+import Point, { PointLike } from "./point";
+import ImageCache from "./ImageCache";
 
 export default class ObjectHelper
 {
@@ -189,5 +191,18 @@ export default class ObjectHelper
         }
 
         throw new Error("max game objects");
+    }
+
+    public static getSpriteSize(sprite: SpriteModel | number, project: ProjectModel): Point
+    {
+        if (typeof(sprite) === "number")
+        {
+            sprite = this.getObjectWithId<SpriteModel>(sprite, project)!;
+            if (!sprite) throw new Error("bad sprite id"); 
+        }
+
+        const img = ImageCache.getCachedImage(sprite.path);
+        const cellWidth = Math.floor(img.width / sprite.numCells);
+        return new Point(cellWidth, img.height);
     }
 }

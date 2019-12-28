@@ -168,7 +168,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 const sprite = ObjectHelper.getObjectWithId<SpriteModel>(data.spriteId, this.props.project);
                 if (sprite)
                 {
-                    const img = ImageCache.getImageSync(sprite.path);
+                    const img = ImageCache.getCachedImage(sprite.path);
                     const imgSize = Point.fromSizeLike(img);
                     const bounds = new Rectangle(Point.fromPointLike(spawnPosition), imgSize).translated(imgSize.dividedBy(-2));
                     return bounds.containsPoint(mousePos);
@@ -232,11 +232,11 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
         if (sprite)
         {
-            const img = ImageCache.getImageSync(sprite.path);
-            const cell = Math.floor(age / sprite.framesPerCell) % sprite.numCells;
-            const cellWidth = Math.floor(img.width / sprite.numCells);
+            const img = ImageCache.getCachedImage(sprite.path);
+            const currentCell = Math.floor(age / (sprite.framesPerCell || age)) % sprite.numCells;
+            const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
 
-            this.canvas?.drawCroppedImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)), new Rectangle(new Point(cellWidth * cell, 0), new Point(cellWidth, img.height)));
+            this.canvas?.drawCroppedImage(img, pos.minus(cellSize.dividedBy(2)), new Rectangle(cellSize.times(new Point(currentCell, 0)), cellSize));
             if (hilite)
             {
                 this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
@@ -256,7 +256,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
             if (background)
             {
-                const img = ImageCache.getImageSync(background.path);
+                const img = ImageCache.getCachedImage(background.path);
                 this.canvas.drawImage(img, new Rectangle(new Point(0), Point.fromPointLike(this.props.stage.size)));
             }
         }
@@ -294,8 +294,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             if (this.selectedEntityType !== "none")
             {
-                const pt = this.selectedEntityPos.plus(this.mouseDelta).toObject();
+                const pt = this.selectedEntityPos.plus(this.mouseDelta).times(100).rounded.dividedBy(100).toObject();
                 let stage = this.props.stage;
+
+                if (this.keyDownMap.get("Shift"))
+                {
+                    pt.x = this.canvas!.width / 2;
+                }
 
                 switch (this.selectedEntityType)
                 {

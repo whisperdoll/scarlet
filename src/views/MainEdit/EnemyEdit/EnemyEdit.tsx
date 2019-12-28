@@ -4,6 +4,7 @@ import { EnemyModel, ProjectModel, SpriteModel } from '../../../utils/datatypes'
 import ObjectHelper from '../../../utils/ObjectHelper';
 import ObjectSelect from "../../../components/ObjectSelect/ObjectSelect";
 import PathHelper from '../../../utils/PathHelper';
+import AnimatedSpriteCanvas from '../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props
 {
@@ -94,7 +95,16 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
                     />
-                    {this.sprite && <img className="sprite" src={PathHelper.resolveObjectFileName(this.sprite.path)} alt="sprite" />}
+                    {this.sprite && (
+                        <AnimatedSpriteCanvas
+                            canvasOptions={{
+                                opaque: false,
+                                pixelated: true
+                            }}
+                            sprite={this.sprite}
+                            className="sprite"
+                        />
+                    )}
                 </div>
                 <div className="row">
                     <span className="label">HP:</span>

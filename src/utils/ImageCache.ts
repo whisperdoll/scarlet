@@ -30,36 +30,50 @@ export default class ImageCache
         else
         {
             const img = new Image();
-            this.imageMap.set(filename, img);
             img.onload = () =>
             {
+                this.imageMap.set(filename, img);
+                img.onload = null;
                 callback(img, false);
             };
             img.src = PathHelper.resolveObjectFileName(filename);
         }
     }
 
-    public static getImageSync(filename: string): HTMLImageElement
+    public static getCachedImage(filename: string): HTMLImageElement
     {
         const ret = this.imageMap.get(filename);
-        if (ret) return ret;
         
-        const buffer = fs.readFileSync(PathHelper.resolveObjectFileName(filename));
-        const img = new Image();
-        img.src = "data:image/jpeg;base64," + buffer.toString("base64");
-        this.imageMap.set(filename, img);
-        return img;
+        if (ret)
+        {
+            return ret;
+        }
+        else
+        {
+            throw new Error("image wasn't cached: " + filename);
+        }
     }
 
-    public static updateCache(project: ProjectModel)
+    public static updateCache(project: ProjectModel, callback: () => any)
     {
         this.invalidateAll();
+
+        let totalToFetch = 0;
+        let fetchedSoFar = 0;
 
         project.objects.forEach((obj) =>
         {
             if (obj.type === "sprite" || obj.type === "background")
             {
-                this.getImageSync((obj as any).path);
+                totalToFetch++;
+                this.getImage((obj as any).path, () =>
+                {
+                    fetchedSoFar++;
+                    if (fetchedSoFar === totalToFetch)
+                    {
+                        callback();
+                    }
+                });
             }
         });
     }

@@ -589,8 +589,8 @@ export default class GameEngine
         const entity2Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity2.obj.spriteId, this.project as ProjectModel);
         if (entity1Sprite && entity2Sprite)
         {
-            const entity1SpriteImage = ImageCache.getImageSync(entity1Sprite.path);
-            const entity2SpriteImage = ImageCache.getImageSync(entity2Sprite.path);
+            const entity1SpriteImage = ImageCache.getCachedImage(entity1Sprite.path);
+            const entity2SpriteImage = ImageCache.getCachedImage(entity2Sprite.path);
             
             const entity1SpriteLocalCenter = {
                 x: entity1SpriteImage.width / 2,

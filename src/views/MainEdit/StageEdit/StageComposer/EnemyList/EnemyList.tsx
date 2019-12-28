@@ -3,6 +3,7 @@ import './EnemyList.scss';
 import { StageModel, ProjectModel, SpriteModel, EnemyModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import PathHelper from '../../../../../utils/PathHelper';
+import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props
 {
@@ -38,13 +39,12 @@ export default class EnemyList extends React.PureComponent<Props, State>
         this.props.onSelectEnemy(-1);
     }
 
-    spritePathForEnemy = (enemyId: number): string =>
+    spriteForEnemy = (enemyId: number): SpriteModel | null =>
     {
         const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyId, this.props.project);
-        if (!enemy) return "";
+        if (!enemy) return null;
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId, this.props.project);
-        if (!sprite) return "";
-        return PathHelper.resolveObjectFileName(sprite.path);
+        return sprite;
     }
 
     render()
@@ -58,10 +58,14 @@ export default class EnemyList extends React.PureComponent<Props, State>
                         key={i}
                         data-index={i.toString()}
                     >
-                        {this.spritePathForEnemy(enemy.id) && (
-                            <img
-                                src={this.spritePathForEnemy(enemy.id)}
-                                alt={"sprite for " + enemy.instanceName}
+                        {this.spriteForEnemy(enemy.id) && (
+                            <AnimatedSpriteCanvas
+                                canvasOptions={{
+                                    opaque: false,
+                                    pixelated: true
+                                }}
+                                sprite={this.spriteForEnemy(enemy.id)!}
+                                className="sprite"
                             />
                         )}
                         <span>{enemy.instanceName}</span>

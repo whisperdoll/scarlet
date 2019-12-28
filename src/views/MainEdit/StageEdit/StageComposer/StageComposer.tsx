@@ -44,6 +44,7 @@ interface State
     pauseAction: PauseAction;
     playerInvincible: boolean;
     finalFrame: number;
+    loading: boolean;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -67,11 +68,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
             deathAction: "loopAndPause",
             pauseAction: "loopAndPause",
             playerInvincible: true,
-            finalFrame: 0
+            finalFrame: 0,
+            loading: true
         };
-
-        ScriptEngine.updateCache(this.props.project);
-        ImageCache.updateCache(this.props.project);
     }
 
     refreshScripts = () =>
@@ -89,15 +88,24 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     refreshImages = () =>
     {
-        ImageCache.updateCache(this.props.project);
-        this.setState(state => ({
-            ...state,
-            refreshRenderer: !state.refreshRenderer
-        }));
+        ImageCache.updateCache(this.props.project, () =>
+        {
+            this.setState(state => ({
+                ...state,
+                refreshRenderer: !state.refreshRenderer
+            }));
+        });
     }
 
     componentDidMount = () =>
     {
+        ScriptEngine.updateCache(this.props.project);
+        ImageCache.updateCache(this.props.project, () => {
+            this.setState(state => ({
+                ...state,
+                loading: false
+            }));
+        });
     }
 
     componentWillUnmount = () =>
@@ -697,6 +705,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     render()
     {
+        if (this.state.loading) return null;
+        
         return (
             <div className="stageComposer">
                 {/* header */}
@@ -817,7 +827,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             onSelectEnemy={this.handleSelectEnemy}
                             project={this.props.project}
                             stage={this.props.stage}
-                            />
+                        />
                         <div className="row">
                             <span className="formsLabel">Forms:</span>
                             <button onClick={this.handleAddBossForm}>+ Add New</button>

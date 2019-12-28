@@ -3,6 +3,7 @@ import './BossFormList.scss';
 import { StageModel, ProjectModel, SpriteModel, BossModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import PathHelper from '../../../../../utils/PathHelper';
+import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props
 {
@@ -38,13 +39,12 @@ export default class BossFormList extends React.PureComponent<Props, State>
         this.props.onSelectBossForm(-1);
     }
 
-    private spritePathForForm(formIndex: number): string
+    private spriteForForm(formIndex: number): SpriteModel | null
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.bossId, this.props.project);
-        if (!boss) return "";
+        if (!boss) return null;
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(boss.forms[formIndex].spriteId, this.props.project);
-        if (!sprite) return "";
-        return PathHelper.resolveObjectFileName(sprite.path);
+        return sprite;
     }
 
     render()
@@ -58,10 +58,14 @@ export default class BossFormList extends React.PureComponent<Props, State>
                         key={i}
                         data-index={i.toString()}
                     >
-                        {this.spritePathForForm(i) && (
-                            <img
-                                src={this.spritePathForForm(i)}
-                                alt={"sprite for form " + i.toString()}
+                        {this.spriteForForm(i) && (
+                            <AnimatedSpriteCanvas
+                                canvasOptions={{
+                                    opaque: false,
+                                    pixelated: true
+                                }}
+                                sprite={this.spriteForForm(i)!}
+                                className="sprite"
                             />
                         )}
                         <span>Form {i.toString()}</span>

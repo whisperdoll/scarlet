@@ -3,6 +3,7 @@ import './StageTimeline.scss';
 import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel, BossModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import PathHelper from '../../../../../utils/PathHelper';
+import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props
 {
@@ -37,19 +38,16 @@ export default class StageTimeline extends React.PureComponent<Props, State>
         }
     }
 
-    private spritePathForEnemy = (enemyData: StageEnemyData) =>
+    private spriteForEnemy = (enemyData: StageEnemyData): SpriteModel | null =>
     {
         const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
         if (enemy)
         {
             const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId, this.props.project);
-            if (sprite)
-            {
-                return PathHelper.resolveObjectFileName(sprite.path);
-            }
+            return sprite;
         }
 
-        return "";
+        return null;
     }
 
     render()
@@ -80,19 +78,21 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                 <div className="enemyTimeline">
                     {this.props.stage.enemies.map((enemy, i) =>
                     {
-                        return this.spritePathForEnemy(enemy) ? (
-                            <img
-                                src={this.spritePathForEnemy(enemy)}
+                        return this.spriteForEnemy(enemy) ? (
+                            <AnimatedSpriteCanvas
+                                canvasOptions={{
+                                    opaque: false,
+                                    pixelated: true
+                                }}
+                                sprite={this.spriteForEnemy(enemy)!}
+                                className={i === this.props.selectedEntityIndex ? "selected" : ""}
                                 style={{
                                     position: "absolute",
                                     left: (enemy.spawnFrame / this.props.stage.length * 100).toString() + "%",
                                     transform: "translate(-50%, 0)",
                                     height: "32px"
                                 }}
-                                title={enemy.instanceName}
                                 key={i}
-                                className={i === this.props.selectedEntityIndex ? "selected" : ""}
-                                alt="sprite"
                             />
                         ) : null;
                     })}
