@@ -10,14 +10,18 @@ type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBulle
 
 export interface GameEntity
 {
-    obj: ScriptHaver & SpriteHaver & BulletHaver & { id?: number };
+    scriptId: number;
+    spriteId: number;
+    bulletId: number;
+    id?: number;
     index: number;
     spawnFrame: number;
     lifetime: number;
     age: number;
-    spawnPosition: PointLike;
-    position: PointLike;
-    tags: string[];
+    spawnPositionX: number;
+    spawnPositionY: number;
+    positionX: number;
+    positionY: number;
     bulletsFired: number;
     alive: boolean;
     type: GameEntityType;
@@ -58,8 +62,9 @@ export default class GameEngine
     private stage: StageModel | null = null;
     private project: ProjectModel | null = null;
     private hasReset: boolean = false;
-    private cacheInterval: number = 30;
+    private cacheInterval: number = 15;
     private _finalFrame: number = 0;
+    private currentKeyContext: KeyContext = this.getKeyContext(new Map());
 
     // time
     private cache: Map<number, GameState> = new Map();
@@ -151,15 +156,19 @@ export default class GameEngine
                 alive: false,
                 bulletsFired: 0,
                 index: 0,
-                obj: player,
-                position: obj_copy(stage.playerSpawnPosition),
-                spawnPosition: obj_copy(stage.playerSpawnPosition),
+                bulletId: player.bulletId,
+                positionX: stage.playerSpawnPosition.x,
+                positionY: stage.playerSpawnPosition.y,
+                scriptId: player.scriptId,
+                spawnPositionX: stage.playerSpawnPosition.x,
+                spawnPositionY: stage.playerSpawnPosition.y,
                 spawnFrame: 0,
                 lifetime: -1,
-                tags: [],
                 type: "player",
                 store: {},
-                hp: 0
+                hp: 0,
+                spriteId: player.spriteId,
+                id: player.id
             });
         }
         
@@ -174,15 +183,18 @@ export default class GameEngine
                     alive: false,
                     bulletsFired: 0,
                     index: i,
-                    obj: form,
-                    position: obj_copy(stage.bossSpawnPosition),
-                    spawnPosition: obj_copy(stage.bossSpawnPosition),
                     spawnFrame: spawnFrame,
                     lifetime: form.lifetime,
-                    tags: [],
                     type: "boss",
                     store: {},
-                    hp: form.hp
+                    hp: form.hp,
+                    bulletId: form.bulletId,
+                    positionX: stage.bossSpawnPosition.x,
+                    positionY: stage.bossSpawnPosition.y,
+                    scriptId: form.scriptId,
+                    spawnPositionX: stage.bossSpawnPosition.x,
+                    spawnPositionY: stage.bossSpawnPosition.y,
+                    spriteId: form.spriteId
                 });
 
                 spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
@@ -203,15 +215,19 @@ export default class GameEngine
                         alive: false,
                         bulletsFired: 0,
                         index: i,
-                        obj: enemy,
-                        position: obj_copy(enemyData.spawnPosition),
-                        spawnPosition: obj_copy(enemyData.spawnPosition),
                         spawnFrame: enemyData.spawnFrame + i * enemyData.spawnRate,
                         lifetime: -1,
-                        tags: [],
                         type: "enemy",
                         store: {},
-                        hp: enemy.hp
+                        hp: enemy.hp,
+                        bulletId: enemy.bulletId,
+                        positionX: enemyData.spawnPosition.x,
+                        positionY: enemyData.spawnPosition.y,
+                        scriptId: enemy.scriptId,
+                        spawnPositionX: enemyData.spawnPosition.x,
+                        spawnPositionY: enemyData.spawnPosition.y,
+                        spriteId: enemy.spriteId,
+                        id: enemy.id
                     });
                 }
             }
@@ -241,22 +257,22 @@ export default class GameEngine
         }
 
         // start from closest cached frame //
-        console.time("== cache search");
+        // console.time("== cache search");
         let startFrame = 0;
         let cachedFrame = Math.floor(frame / this.cacheInterval) * this.cacheInterval;
         while (!this.cache.has(cachedFrame) && cachedFrame > 0) cachedFrame -= this.cacheInterval;
         const cached = this.retrieveFromCache(cachedFrame);
         if (cached)
         {
-            console.log("cached frame found: ", cachedFrame);
-            console.time("== load game state");
+            // console.log("cached frame found: ", cachedFrame);
+            // console.time("== load game state");
             this.loadGameState(cached);
-            console.timeEnd("== load game state");
+            // console.timeEnd("== load game state");
             startFrame = cachedFrame;
 
             if (startFrame === frame)
             {
-                console.timeEnd("== cache search");
+                // console.timeEnd("== cache search");
                 return {
                     entities: this.entities,
                     isLastUpdate: startFrame === this.finalFrame,
@@ -265,7 +281,7 @@ export default class GameEngine
                 };
             }
         }
-        console.timeEnd("== cache search");
+        // console.timeEnd("== cache search");
 
         // update loop //
         let ret;
@@ -274,7 +290,7 @@ export default class GameEngine
             playerInvincible: true
         };
 
-        console.time("== update loop");
+        // console.time("== update loop");
         for (let i = startFrame; i < frame; i++)
         {
             if (i % this.cacheInterval === 0 && i !== 0)
@@ -283,7 +299,7 @@ export default class GameEngine
             }
             ret = this.advanceFrame(context);
         }
-        console.timeEnd("== update loop");
+        // console.timeEnd("== update loop");
 
         return ret as UpdateResult;
     }
@@ -294,94 +310,97 @@ export default class GameEngine
 
         let playerAlive = true;
         let isLastUpdate = false;
+        const playerBullet = this.playerEntity ? ObjectHelper.getObjectWithId<BulletModel>(this.playerEntity.bulletId, this.project) : null;
+        this.currentKeyContext = this.getKeyContext(context.keys);
 
+        // console.time("==== update entities");
         for (let i = 0; i < this.entities.length; i++)
         {
             const entity = this.entities[i];
+            let alreadyUpdated = false;
 
+            // console.time("====== try spawn");
             if (!this.trySpawnEntity(entity, context.keys) && (entity.spawnFrame > this.stageAge || !entity.alive))
             {
+                // console.timeEnd("====== try spawn");
                 continue;
             }
+            // console.timeEnd("====== try spawn");
 
             if (entity.type === "player")
             {
+                // console.time("====== update player");
                 this.updatePlayer(entity, context);
+                // console.timeEnd("====== update player");
             }
             else if (entity.type === "boss" && entity.spawnFrame + entity.lifetime === this.stageAge)
             {
                 entity.alive = false;
                 continue;
             }
-
-            if (entity.obj.scriptId >= 0)
+            else if (entity.type === "enemyBullet" && playerAlive && this.playerEntity && !context.playerInvincible)
             {
+                // console.time("====== update enemy byullet");
                 this.runEntityUpdateScript(entity, context);
+                if (this.testCollision(entity, this.playerEntity))
+                {
+                    playerAlive = false;
+                }
+                alreadyUpdated = true;
+                // console.timeEnd("====== update enemy byullet");
+            }
+            else if (entity.type === "playerBullet" && playerBullet)
+            {
+                // console.time("====== update player byullet");
+                const collidingEnemies = this.entities.filter(e => e.alive && (e.type === "enemy" || e.type === "boss") && this.testCollision(entity, e));
+                collidingEnemies.forEach((e) =>
+                {
+                    e.hp -= playerBullet.damage;
+                    if (e.hp <= 0)
+                    {
+                        e.hp = -1;
+                        e.alive = false;
+
+                        const methods = ScriptEngine.parseScript(e.scriptId, this.project as ProjectModel);
+                        if (methods && methods.die)
+                        {
+                            const results = methods.die({
+                                entity: {
+                                    age: e.age,
+                                    index: e.index,
+                                    position: { x: e.positionX, y: e.positionY },
+                                    spawnPosition: { x: e.spawnPositionX, y: e.spawnPositionY },
+                                    store: e.store
+                                },
+                                stage: {
+                                    age: this.stageAge,
+                                    size: (this.stage as StageModel).size
+                                },
+                                keys: this.currentKeyContext
+                            });
+
+                            if (results.fire)
+                            {
+                                this.handleFire(e, results.fire, results.fireStores);
+                            }
+                        }
+                    }
+                });
+                // console.timeEnd("====== update player byullet");
+            }
+
+            if (entity.scriptId >= 0 && !alreadyUpdated)
+            {
+                // console.time("====== run entyity script");
+                this.runEntityUpdateScript(entity, context);
+                // console.timeEnd("====== run entyity script");
             }
 
             entity.age++;
         }
+        // console.timeEnd("==== update entities");
 
-        if (this.playerEntity)
-        {
-            if (!context.playerInvincible)
-            {
-                for (let i = 0; i < this.entities.length; i++)
-                {
-                    if (this.entities[i].alive && this.entities[i].type === "enemyBullet" && this.testCollision(this.entities[i], this.playerEntity))
-                    {
-                        playerAlive = false;
-                        break;
-                    }
-                }
-            }
-
-            const playerBullet = ObjectHelper.getObjectWithId<BulletModel>(this.playerEntity.obj.bulletId, this.project);
-            if (playerBullet)
-            {
-                this.entities.forEach((b) =>
-                {
-                    if (b.alive && b.type === "playerBullet")
-                    {
-                        const collidingEnemies = this.entities.filter(e => e.alive && (e.type === "enemy" || e.type === "boss") && this.testCollision(b, e));
-                        collidingEnemies.forEach((e) =>
-                        {
-                            e.hp -= playerBullet.damage;
-                            if (e.hp <= 0)
-                            {
-                                e.hp = -1;
-                                e.alive = false;
-
-                                const methods = ScriptEngine.parseScript(e.obj.scriptId, this.project as ProjectModel);
-                                if (methods && methods.die)
-                                {
-                                    const results = methods.die({
-                                        entity: {
-                                            age: e.age,
-                                            index: e.index,
-                                            position: e.position,
-                                            spawnPosition: e.spawnPosition,
-                                            store: e.store
-                                        },
-                                        stage: {
-                                            age: this.stageAge,
-                                            size: (this.stage as StageModel).size
-                                        },
-                                        keys: this.getKeyContext(context.keys)
-                                    });
-
-                                    if (results.fire)
-                                    {
-                                        this.handleFire(e, results.fire, results.fireStores);
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-        }
-
+        // console.time("==== wrap up");
         this.stageAge++;
 
         if (this.stage)
@@ -402,6 +421,7 @@ export default class GameEngine
             stageAge: this.stageAge,
             isLastUpdate: isLastUpdate
         };
+        // console.timeEnd("==== wrap up");
         
         return ret;
     }
@@ -413,31 +433,32 @@ export default class GameEngine
         if (!entity.alive && entity.spawnFrame === this.stageAge)
         {
             entity.alive = true;
-            if (entity.obj.scriptId >= 0)
+            if (entity.scriptId >= 0)
             {
-                const methods = ScriptEngine.parseScript(entity.obj.scriptId, this.project);
+                const methods = ScriptEngine.parseScript(entity.scriptId, this.project);
                 if (methods.init)
                 {
                     const results = methods.init({
                         entity: {
                             age: 0,
                             index: entity.index,
-                            position: entity.spawnPosition,
-                            spawnPosition: entity.spawnPosition,
+                            position: { x: entity.positionX, y: entity.positionY },
+                            spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
                             store: entity.store
                         },
                         stage: {
                             age: this.stageAge,
                             size: this.stage.size
                         },
-                        keys: this.getKeyContext(keys)
+                        keys: this.currentKeyContext
                     });
     
                     if (results)
                     {
                         if (results.position)
                         {
-                            entity.position = results.position;
+                            entity.positionX = results.position.x;
+                            entity.positionY = results.position.y;
                         }
                         if (results.store)
                         {
@@ -474,45 +495,46 @@ export default class GameEngine
 
         if (context.keys.get(this.project.keyBindings.left))
         {
-            entity.position.x -= speed;
+            entity.positionX -= speed;
         }
         if (context.keys.get(this.project.keyBindings.right))
         {
-            entity.position.x += speed;
+            entity.positionX += speed;
         }
         if (context.keys.get(this.project.keyBindings.up))
         {
-            entity.position.y -= speed;
+            entity.positionY -= speed;
         }
         if (context.keys.get(this.project.keyBindings.down))
         {
-            entity.position.y += speed;
+            entity.positionY += speed;
         }
     }
 
     private runEntityUpdateScript(entity: GameEntity, context: UpdateContext)
     {
-        const methods = ScriptEngine.parseScript(entity.obj.scriptId, this.project as ProjectModel);
+        const methods = ScriptEngine.parseScript(entity.scriptId, this.project as ProjectModel);
         const results = methods.update ? methods.update({
             entity: {
                 age: entity.age,
                 index: entity.index,
-                position: entity.position,
-                spawnPosition: entity.spawnPosition,
+                position: { x: entity.positionX, y: entity.positionY },
+                spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
                 store: entity.store
             },
             stage: {
                 age: this.stageAge,
                 size: this.gameSize
             },
-            keys: this.getKeyContext(context.keys)
+            keys: this.currentKeyContext
         }) : null;
 
         if (results)
         {
             if (results.position)
             {
-                entity.position = results.position;
+                entity.positionX = results.position.x;
+                entity.positionY = results.position.y;
             }
 
             if (results.store)
@@ -524,22 +546,22 @@ export default class GameEngine
             {
                 for (let i = 0; i < results.fire; i++)
                 {
-                    const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.obj.bulletId, this.project as ProjectModel);
+                    const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.bulletId, this.project as ProjectModel);
                     if (bullet)
                     {
                         this.entities.push({
                             age: 0,
                             index: entity.bulletsFired++,
-                            obj: {
-                                bulletId: entity.obj.bulletId,
-                                scriptId: bullet.scriptId,
-                                spriteId: bullet.spriteId
-                            },
-                            position: entity.position,
-                            spawnPosition: entity.position,
+                            id: entity.bulletId,
+                            bulletId: entity.bulletId,
+                            scriptId: bullet.scriptId,
+                            spriteId: bullet.spriteId,
+                            positionX: entity.positionX,
+                            positionY: entity.positionY,
+                            spawnPositionX: entity.spawnPositionX,
+                            spawnPositionY: entity.spawnPositionY,
                             spawnFrame: this.stageAge,
                             lifetime: -1,
-                            tags: [],
                             bulletsFired: 0,
                             alive: true,
                             type: entity.type === "player" ? "playerBullet" : "enemyBullet",
@@ -566,22 +588,22 @@ export default class GameEngine
     {
         for (let i = 0; i < num; i++)
         {
-            const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.obj.bulletId, this.project as ProjectModel);
+            const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.bulletId, this.project as ProjectModel);
             if (bullet)
             {
                 this.entities.push({
                     age: 0,
                     index: entity.bulletsFired++,
-                    obj: {
-                        bulletId: entity.obj.bulletId,
-                        scriptId: bullet.scriptId,
-                        spriteId: bullet.spriteId
-                    },
-                    position: entity.position,
-                    spawnPosition: entity.position,
+                    id: entity.bulletId,
+                    bulletId: entity.bulletId,
+                    scriptId: bullet.scriptId,
+                    spriteId: bullet.spriteId,
+                    positionX: entity.positionX,
+                    positionY: entity.positionY,
+                    spawnPositionX: entity.spawnPositionX,
+                    spawnPositionY: entity.spawnPositionY,
                     spawnFrame: this.stageAge,
                     lifetime: -1,
-                    tags: [],
                     bulletsFired: 0,
                     alive: true,
                     type: entity.type === "player" ? "playerBullet" : "enemyBullet",
@@ -594,8 +616,8 @@ export default class GameEngine
 
     private testCollision(entity1: GameEntity, entity2: GameEntity)
     {
-        const entity1Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity1.obj.spriteId, this.project as ProjectModel);
-        const entity2Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity2.obj.spriteId, this.project as ProjectModel);
+        const entity1Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity1.spriteId, this.project as ProjectModel);
+        const entity2Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity2.spriteId, this.project as ProjectModel);
         if (entity1Sprite && entity2Sprite)
         {
             const entity1SpriteImage = ImageCache.getCachedImage(entity1Sprite.path);
@@ -618,12 +640,12 @@ export default class GameEngine
                 return entity2Hitboxes.some((entity2Hitbox) => 
                 {
                     const entity1HitboxPoint = {
-                        x: hitbox.position.x + entity1.position.x - entity1SpriteLocalCenter.x,
-                        y: hitbox.position.y + entity1.position.y - entity1SpriteLocalCenter.y
+                        x: hitbox.position.x + entity1.positionX - entity1SpriteLocalCenter.x,
+                        y: hitbox.position.y + entity1.positionY - entity1SpriteLocalCenter.y
                     };
                     const entity2HitboxPoint = {
-                        x: entity2Hitbox.position.x + entity2.position.x - entity2SpriteLocalCenter.x,
-                        y: entity2Hitbox.position.y + entity2.position.y - entity2SpriteLocalCenter.y
+                        x: entity2Hitbox.position.x + entity2.positionX - entity2SpriteLocalCenter.x,
+                        y: entity2Hitbox.position.y + entity2.positionY - entity2SpriteLocalCenter.y
                     };
 
                     const d = hitbox.radius + entity2Hitbox.radius

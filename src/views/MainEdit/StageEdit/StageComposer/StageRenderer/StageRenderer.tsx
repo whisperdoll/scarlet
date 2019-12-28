@@ -233,10 +233,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         this.canvas.addEventListener("mousedown", (mousePos, e) =>
         {
-            const containsPoint = (data: { spriteId: number } | null | undefined, spawnPosition: PointLike): boolean =>
+            const containsPoint = (spriteId: number | null | undefined, spawnPosition: PointLike): boolean =>
             {
-                if (!data) return false;
-                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(data.spriteId, this.props.project);
+                if (spriteId === null || spriteId === undefined) return false;
+                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
                 if (sprite)
                 {
                     const img = ImageCache.getCachedImage(sprite.path);
@@ -249,10 +249,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             };
 
             const player = this.entities.find(e => e.type === "player");
-            if (player && containsPoint(player.obj, this.props.stage.playerSpawnPosition))
+            if (player && containsPoint(player.spriteId, this.props.stage.playerSpawnPosition))
             {
                 this.selectedEntityType = "player";
-                this.selectedEntityPos = Point.fromPointLike(player.spawnPosition);
+                this.selectedEntityPos = new Point(player.spawnPositionX, player.spawnPositionY);
                 this.selectedIndex = -1;
                 return;
             }
@@ -260,13 +260,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const enemies = this.entities.filter(e => e.alive && e.type === "enemy");
             const found = enemies.find((e) =>
             {
-                return containsPoint(e.obj, e.position);
+                return containsPoint(e.spriteId, { x: e.positionX, y: e.positionY });
             });
             if (found)
             {
                 this.selectedEntityType = "enemy";
-                this.selectedEntityPos = Point.fromPointLike(found.spawnPosition);
-                this.selectedIndex = this.props.stage.enemies.findIndex(e => e.id === found.obj.id);
+                this.selectedEntityPos = new Point(found.spawnPositionX, found.spawnPositionY);
+                this.selectedIndex = this.props.stage.enemies.findIndex(e => e.id === found.id);
                 if (this.selectedIndex === -1)
                 {
                     throw new Error("bad index iodk");
@@ -276,10 +276,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             }
             
             const form = this.entities.find(e => e.alive && e.type === "boss");
-            if (form && containsPoint(form.obj, form.position))
+            if (form && containsPoint(form.spriteId, { x: form.positionX, y: form.positionY }))
             {
                 this.selectedEntityType = "boss";
-                this.selectedEntityPos = Point.fromPointLike(form.spawnPosition);
+                this.selectedEntityPos = new Point(form.spawnPositionX, form.spawnPositionY);
                 this.selectedIndex = -1;
                 return;
             }
@@ -379,7 +379,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
             this.entities.forEach((entity) =>
             {
-                entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), entity.age, false);
+                entity.alive && this.renderSpriteHaver(entity.spriteId, new Point(entity.positionX, entity.positionY), entity.age, false);
             });
             this.renderer?.batch.flush();
             console.timeEnd(">>> render stage play");
@@ -441,7 +441,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 const r = this.engine.fastForwardTo(this.props.frame);
                 // console.timeEnd("== fast forward");
                 console.timeEnd("engine stuff");
-                // console.time("entity stuff");
+                console.time("render stuff");
                 this.entities = r.entities;
 
                 const container = new PIXI.Container();
@@ -449,17 +449,17 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 {            
                     if (entity.alive)
                     {
-                        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.obj.spriteId, this.props.project);
+                        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.spriteId, this.props.project);
                         if (sprite)
                         {
-                            const pos = Point.fromPointLike(entity.position);
+                            const pos = new Point(entity.positionX, entity.positionY);
                             // console.time("== fetching");
                             const img = ImageCache.getCachedImage(sprite.path);
                             const currentCell = Math.floor(entity.age / (sprite.framesPerCell || entity.age)) % sprite.numCells;
                             const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
                             const offsetPos = pos.minus(cellSize.dividedBy(2));
                 
-                            const texture = StageRenderer.textureCache.get(entity.obj.spriteId)![currentCell];
+                            const texture = StageRenderer.textureCache.get(entity.spriteId)![currentCell];
                             const psprite = new PIXI.Sprite(texture);
                             psprite.position = offsetPos;
                             container.addChild(psprite);
@@ -468,7 +468,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     }
                 });
                 this.renderer!.render(container);
-                // console.timeEnd("entity stuff");
+                console.timeEnd("render stuff");
                 console.timeEnd(">>> render stage");
             }
         }
