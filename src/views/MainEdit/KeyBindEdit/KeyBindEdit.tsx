@@ -25,7 +25,7 @@ export default class KeyBindEdit extends React.PureComponent<Props, State>
         const project = update(this.props.project, {
             keyBindings: {
                 [e.currentTarget.dataset.key as string]: {
-                    $set: e.key
+                    $set: e.key.toLowerCase()
                 }
             }
         });

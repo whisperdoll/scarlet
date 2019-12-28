@@ -149,11 +149,11 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         this.canvas.canvas.addEventListener("keydown", (e) =>
         {
-            this.keyDownMap.set(e.key, true);
+            this.keyDownMap.set(e.key.toLowerCase(), true);
         });
         this.canvas.canvas.addEventListener("keyup", (e) =>
         {
-            this.keyDownMap.set(e.key, false);
+            this.keyDownMap.set(e.key.toLowerCase(), false);
         });
         this.canvas.canvas.addEventListener("blur", () =>
         {
@@ -297,7 +297,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 const pt = this.selectedEntityPos.plus(this.mouseDelta).times(100).rounded.dividedBy(100).toObject();
                 let stage = this.props.stage;
 
-                if (this.keyDownMap.get("Shift"))
+                if (this.keyDownMap.get("shift"))
                 {
                     pt.x = this.canvas!.width / 2;
                 }

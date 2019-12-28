@@ -69,13 +69,13 @@ export default class NewProjectView extends React.PureComponent<Props, State>
             name: this.state.name,
             objects: [],
             keyBindings: {
-                up: "ArrowUp",
-                down: "ArrowDown",
-                left: "ArrowLeft",
-                right: "ArrowRight",
+                up: "arrowup",
+                down: "arrowdown",
+                left: "arrowleft",
+                right: "arrowright",
                 fire: "z",
                 bomb: "x",
-                focus: "Shift"
+                focus: "shift"
             }
         };
 
