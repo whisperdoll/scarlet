@@ -24,7 +24,9 @@ export default class ObjectHelper
                     name: "New Sprite " + this.getObjectsWithType(type, project).length,
                     type: "sprite",
                     path: "",
-                    hitboxes: []
+                    hitboxes: [],
+                    numCells: 1,
+                    framesPerCell: 0
                 } as SpriteModel;
                 break;
             case "player":

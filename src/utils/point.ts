@@ -1,3 +1,5 @@
+import { ObjectMap } from "./datatypes";
+
 export interface PointLike
 {
     x: number;
@@ -53,6 +55,11 @@ export default class Point implements PointLike
     {
         this.x = x;
         this.y = y;
+    }
+
+    public get floored(): Point
+    {
+        return new Point(Math.floor(this.x), Math.floor(this.y));
     }
     
     public static fromSizeLike(sizeLike : SizeLike) : Point
@@ -192,7 +199,7 @@ export default class Point implements PointLike
      * @param n A number or other point by which to multiply the point.
      * @returns A copy of the point multiplied by the given value.
      */
-    public times(n : number | Point) : Point
+    public times(n : number | PointLike) : Point
     {
         let ret = this.copy();
         ret.multiply(n);
@@ -203,9 +210,9 @@ export default class Point implements PointLike
      * Multiplies the point by the given value.
      * @param n A number or other point by which to multiply the point.
      */
-    public multiply(n : number | Point) : void
+    public multiply(n : number | PointLike) : void
     {
-        if (n instanceof Point)
+        if (typeof(n) !== "number")
         {
             this.x *= n.x;
             this.y *= n.y;
@@ -221,7 +228,7 @@ export default class Point implements PointLike
      * @param n A number or other point by which to divide the point.
      * @returns A copy of the point divided by the given value.
      */
-    public dividedBy(n : number | Point) : Point
+    public dividedBy(n : number | PointLike) : Point
     {
         let ret = this.copy();
         ret.divideBy(n);
@@ -232,9 +239,9 @@ export default class Point implements PointLike
      * Divides the point by the given value.
      * @param n A number or other point by which to divide the point.
      */
-    public divideBy(n : number | Point) : void
+    public divideBy(n : number | PointLike) : void
     {
-        if (n instanceof Point)
+        if (typeof(n) !== "number")
         {
             this.x /= n.x;
             this.y /= n.y;

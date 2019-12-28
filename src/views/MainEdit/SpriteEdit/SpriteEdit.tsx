@@ -11,6 +11,7 @@ import * as npath from "path";
 import * as fs from "fs";
 import PathHelper from '../../../utils/PathHelper';
 import update from "immutability-helper";
+import Rectangle from '../../../utils/rectangle';
 const { dialog } = require("electron").remote;
 
 interface Props
@@ -52,9 +53,9 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
+            ImageCache.invalidateImage(this.props.sprite.path); // clear old
             const destFilename = PathHelper.importObjectFileName(paths[0], "sprites");
 
-            ImageCache.invalidateImage(this.props.sprite.path); // clear old
             this.props.onUpdate({
                 ...this.props.sprite,
                 path: destFilename
@@ -131,12 +132,47 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                 this.canvas?.resize(Point.fromSizeLike(img), false);
                 this.canvas?.drawImage(img, new Point(0));
 
-                this.props.sprite.hitboxes.forEach((hitbox) =>
+                const cellSize = new Point(Math.floor(img.width / this.props.sprite.numCells), img.height);
+
+                for (let i = 0; i < this.props.sprite.numCells; i++)
                 {
-                    this.canvas?.fillCircle(Point.fromPointLike(hitbox.position), hitbox.radius, "rgba(255,0,0,0.5)");
-                });
+                    this.canvas?.drawRect(new Rectangle(cellSize.times(new Point(i, 0)), cellSize.minus(new Point(1))), "red", 1);
+
+                    this.props.sprite.hitboxes.forEach((hitbox) =>
+                    {
+                        this.canvas?.fillCircle(Point.fromPointLike(hitbox.position).plus(cellSize.times(new Point(i, 0))), hitbox.radius, "rgba(255,0,0,0.5)");
+                    });
+                }
             });
         }
+    }
+
+    handleNumCellsChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.sprite.numCells;
+        }
+
+        this.props.onUpdate({
+            ...this.props.sprite,
+            numCells: val
+        });
+    }
+
+    handleFramesPerCellChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.sprite.framesPerCell;
+        }
+
+        this.props.onUpdate({
+            ...this.props.sprite,
+            framesPerCell: val
+        });
     }
 
     render = () =>
@@ -159,6 +195,22 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                     }}
                 />
                 <button onClick={this.handleBrowse}>Browse...</button>
+                <div className="row">
+                    <span className="label">Number of Cells:</span>
+                    <input
+                        type="number"
+                        value={this.props.sprite.numCells}
+                        onChange={this.handleNumCellsChange}
+                    />
+                </div>
+                <div className="row">
+                    <span className="label">Frames per Cell:</span>
+                    <input
+                        type="number"
+                        value={this.props.sprite.framesPerCell}
+                        onChange={this.handleFramesPerCellChange}
+                    />
+                </div>
                 {this.props.sprite.hitboxes.map((hitbox, i) =>
                 {
                     return (

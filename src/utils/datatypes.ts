@@ -69,6 +69,8 @@ export interface SpriteModel extends ObjectModel
 {
     type: "sprite";
     path: string;
+    numCells: number;
+    framesPerCell: number;
     hitboxes: Hitbox[];
 };
 

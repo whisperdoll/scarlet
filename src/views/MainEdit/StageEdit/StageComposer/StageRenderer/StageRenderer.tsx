@@ -227,13 +227,16 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         });
     }
 
-    renderSpriteHaver = (spriteId: number, pos: Point, hilite: boolean) =>
+    renderSpriteHaver = (spriteId: number, pos: Point, age: number, hilite: boolean) =>
     {
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
         if (sprite)
         {
             const img = ImageCache.getImageSync(sprite.path);
-            this.canvas?.drawImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)));
+            const cell = Math.floor(age / sprite.framesPerCell) % sprite.numCells;
+            const cellWidth = Math.floor(img.width / sprite.numCells);
+
+            this.canvas?.drawCroppedImage(img, pos.minus(Point.fromSizeLike(img).dividedBy(2)), new Rectangle(new Point(cellWidth * cell, 0), new Point(cellWidth, img.height)));
             if (hilite)
             {
                 this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
@@ -338,7 +341,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         this.entities.forEach((entity) =>
         {
-            entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), false);
+            entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), entity.age, false);
         });
 
         this.dirty = dirtyBuffer;

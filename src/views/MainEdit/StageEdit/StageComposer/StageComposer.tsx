@@ -439,7 +439,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             playing: true,
-            frame: (state.loopEnabled && state.frame === state.loopEnd && state.loopEnd > state.loopStart) ? state.loopStart : state.frame
+            frame: (state.loopEnabled && state.frame === state.loopEnd && state.loopEnd > state.loopStart) ? state.loopStart :
+                (state.frame === state.finalFrame ? 0 : state.frame)
         }));
     }
 
