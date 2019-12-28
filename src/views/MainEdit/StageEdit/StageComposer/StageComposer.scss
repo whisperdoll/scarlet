@@ -42,8 +42,10 @@
             flex-basis: 300px;
         }
 
-        & > .stageInfo
+        & > .stageInfo, & > .rightCol
         {
+            padding: 0px 8px;
+            
             .label
             {
                 width: 92px;
@@ -83,12 +85,14 @@
             }
         }
 
-        & > .bossFormEdit
+        & .bossFormEdit, & .propertyEdit
         {
-            padding: 0px 8px;
             box-sizing: border-box;
             background-color: transparent;
             border: 0;
+            flex-grow: 2;
+            border-bottom: 1px solid $controlBorderColor;
+            margin-bottom: 8px;
 
             h2
             {
@@ -97,12 +101,14 @@
                 margin-bottom: 16px;
                 font-weight: normal;
             }
+
+            overflow: auto;
         }
     }
 
     .timeline
     {
-        padding: 8px 0;
+        padding: 8px 8px;
         box-sizing: border-box;
         margin: 0;
 

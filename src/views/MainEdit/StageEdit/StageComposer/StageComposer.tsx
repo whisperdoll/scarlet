@@ -842,6 +842,48 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             stage={this.props.stage}
                             bossId={this.props.stage.bossId}
                         />
+                    </div>
+                    {/* stage */}
+                    <div className="stagePreview">
+                        <StageRenderer
+                            project={this.props.project}
+                            stage={this.props.stage}
+                            frame={this.state.frame}
+                            refresh={this.state.refreshRenderer}
+                            selectedEntityIndex={this.state.selectedEnemyIndex >= 0 ? this.state.selectedEnemyIndex : (this.state.selectedBossFormIndex >= 0 ? this.state.selectedBossFormIndex : -1)}
+                            onInstanceCount={this.handleInstanceCount}
+                            playing={this.state.playing}
+                            onPlayerDie={this.handlePlayerDie}
+                            onPlayFrame={this.handlePlayFrame}
+                            playerInvincible={this.state.playerInvincible}
+                            onUpdateStage={this.props.onUpdate}
+                            onSelectEnemy={this.handleSelectEnemy}
+                            onFinalFrameCalculate={this.handleFinalFrameCalculate}
+                        />
+                    </div>
+                    <div className="col rightCol">
+                        {/* properties */}
+                        {this.state.selectedEnemyIndex >= 0 && (
+                            <PropertyEdit
+                                enemyIndex={this.state.selectedEnemyIndex}
+                                onUpdate={this.handleUpdateEnemy}
+                                project={this.props.project}
+                                stage={this.props.stage}
+                                onDeselectEnemy={this.handleDeselectEnemy}
+                                onRequestRemoveEnemy={this.handleRemoveEnemy}
+                                enemyAliveCount={this.state.selectedEnemyAliveCount}
+                                enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
+                            />
+                        )}
+                        {this.selectedBossForm && (
+                            <BossFormEdit
+                                bossForm={this.selectedBossForm}
+                                index={this.state.selectedBossFormIndex}
+                                onUpdate={this.handleBossFormUpdate}
+                                onRequestRemove={this.handleBossFormRemove}
+                                project={this.props.project}
+                            />
+                        )}
                         {this.state.loopEnabled && (<React.Fragment>
                             <div className="row">
                                 <span className="label">Loop Start:</span>
@@ -899,46 +941,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             Player Invincible During Play
                         </label>
                     </div>
-                    {/* stage */}
-                    <div className="stagePreview">
-                        <StageRenderer
-                            project={this.props.project}
-                            stage={this.props.stage}
-                            frame={this.state.frame}
-                            refresh={this.state.refreshRenderer}
-                            selectedEntityIndex={this.state.selectedEnemyIndex >= 0 ? this.state.selectedEnemyIndex : (this.state.selectedBossFormIndex >= 0 ? this.state.selectedBossFormIndex : -1)}
-                            onInstanceCount={this.handleInstanceCount}
-                            playing={this.state.playing}
-                            onPlayerDie={this.handlePlayerDie}
-                            onPlayFrame={this.handlePlayFrame}
-                            playerInvincible={this.state.playerInvincible}
-                            onUpdateStage={this.props.onUpdate}
-                            onSelectEnemy={this.handleSelectEnemy}
-                            onFinalFrameCalculate={this.handleFinalFrameCalculate}
-                        />
-                    </div>
-                    {/* properties */}
-                    {this.state.selectedEnemyIndex >= 0 && (
-                        <PropertyEdit
-                            enemyIndex={this.state.selectedEnemyIndex}
-                            onUpdate={this.handleUpdateEnemy}
-                            project={this.props.project}
-                            stage={this.props.stage}
-                            onDeselectEnemy={this.handleDeselectEnemy}
-                            onRequestRemoveEnemy={this.handleRemoveEnemy}
-                            enemyAliveCount={this.state.selectedEnemyAliveCount}
-                            enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
-                        />
-                    )}
-                    {this.selectedBossForm && (
-                        <BossFormEdit
-                            bossForm={this.selectedBossForm}
-                            index={this.state.selectedBossFormIndex}
-                            onUpdate={this.handleBossFormUpdate}
-                            onRequestRemove={this.handleBossFormRemove}
-                            project={this.props.project}
-                        />
-                    )}
                 </div>
                 {/* timeline */}
                 <StageTimeline
