@@ -107,7 +107,10 @@ export class Canvas
         }
 
         this.usingDeepCalc = options.deepCalc || false;
-        this.pixelated = options.pixelated || false;
+        if (options.pixelated)
+        {
+            this.pixelated = options.pixelated || false;
+        }
 
         if (this.usingDeepCalc)
         {

@@ -88,24 +88,28 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     refreshImages = () =>
     {
+        this.setState(state => ({
+            ...state,
+            loading: true
+        }));
+
         ImageCache.updateCache(this.props.project, () =>
         {
-            this.setState(state => ({
-                ...state,
-                refreshRenderer: !state.refreshRenderer
-            }));
+            StageRenderer.createTextureCache(this.props.project, () =>
+            {
+                this.setState(state => ({
+                    ...state,
+                    loading: false,
+                    refreshRenderer: !state.refreshRenderer
+                }));
+            });
         });
     }
 
     componentDidMount = () =>
     {
         ScriptEngine.updateCache(this.props.project);
-        ImageCache.updateCache(this.props.project, () => {
-            this.setState(state => ({
-                ...state,
-                loading: false
-            }));
-        });
+        this.refreshImages();
     }
 
     componentWillUnmount = () =>

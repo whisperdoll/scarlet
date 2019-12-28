@@ -3,7 +3,8 @@ import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletM
 import ScriptEngine, { KeyContext } from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
-import { obj_copy, array_remove_multiple, array_last, array_copy, deepCopy } from "./utils";
+import { obj_copy, array_remove_multiple, array_last, array_copy } from "./utils";
+import copy from "fast-copy";
 
 type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
@@ -80,14 +81,14 @@ export default class GameEngine
     private toGameState(): GameState
     {
         return {
-            entities: deepCopy(this.entities),
+            entities: copy(this.entities),
             stageAge: this.stageAge
         };
     }
 
     private loadGameState(gameState: GameState)
     {
-        this.entities = deepCopy(gameState.entities);
+        this.entities = copy(gameState.entities);
         this.stageAge = gameState.stageAge;
     }
 
@@ -240,17 +241,22 @@ export default class GameEngine
         }
 
         // start from closest cached frame //
+        console.time("== cache search");
         let startFrame = 0;
         let cachedFrame = Math.floor(frame / this.cacheInterval) * this.cacheInterval;
         while (!this.cache.has(cachedFrame) && cachedFrame > 0) cachedFrame -= this.cacheInterval;
         const cached = this.retrieveFromCache(cachedFrame);
         if (cached)
         {
+            console.log("cached frame found: ", cachedFrame);
+            console.time("== load game state");
             this.loadGameState(cached);
+            console.timeEnd("== load game state");
             startFrame = cachedFrame;
 
             if (startFrame === frame)
             {
+                console.timeEnd("== cache search");
                 return {
                     entities: this.entities,
                     isLastUpdate: startFrame === this.finalFrame,
@@ -259,6 +265,7 @@ export default class GameEngine
                 };
             }
         }
+        console.timeEnd("== cache search");
 
         // update loop //
         let ret;
@@ -267,6 +274,7 @@ export default class GameEngine
             playerInvincible: true
         };
 
+        console.time("== update loop");
         for (let i = startFrame; i < frame; i++)
         {
             if (i % this.cacheInterval === 0 && i !== 0)
@@ -275,6 +283,7 @@ export default class GameEngine
             }
             ret = this.advanceFrame(context);
         }
+        console.timeEnd("== update loop");
 
         return ret as UpdateResult;
     }

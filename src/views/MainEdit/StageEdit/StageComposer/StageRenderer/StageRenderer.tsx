@@ -9,6 +9,8 @@ import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
 import GameEngine, { UpdateResult, GameEntity } from '../../../../../utils/GameEngine';
 import update from "immutability-helper";
+import * as PIXI from "pixi.js";
+import PathHelper from '../../../../../utils/PathHelper';
 
 interface Props
 {
@@ -33,8 +35,12 @@ interface State
 
 export default class StageRenderer extends React.PureComponent<Props, State>
 {
+    private static textureCache: Map<number, PIXI.Texture[]> = new Map();
+
     private canvas: Canvas | null = null;
+    private renderer: PIXI.Renderer | null = null;
     private containerRef: React.RefObject<HTMLDivElement>;
+    private canvasRef : React.RefObject<HTMLCanvasElement>;
     private dirty: boolean = true;
     private rendering: boolean = false;
     private ratio: number = 1;
@@ -58,6 +64,88 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.engine = new GameEngine();
         window.addEventListener("resize", this.handleResize);
         this.containerRef = React.createRef();
+        this.canvasRef = React.createRef();
+    }
+
+    public static createTextureCache(project: ProjectModel, callback: () => any)
+    {
+        PIXI.Loader.shared.removeAllListeners();
+
+        const cellNums: Map<number, number> = new Map();
+
+        project.objects.forEach((obj) =>
+        {
+            if (obj.type === "sprite" || obj.type === "background")
+            {
+                const path = PathHelper.resolveObjectFileName((obj as any).path);
+                PIXI.Loader.shared.add(obj.id.toString(), path);
+                if (obj.type === "sprite")
+                {
+                    const s = obj as SpriteModel;
+                    cellNums.set(s.id, Math.max(s.numCells, 1));
+                }
+                else
+                {
+                    cellNums.set(obj.id, 1);
+                }
+            }
+        });
+
+        PIXI.Loader.shared.load((loader, resources) =>
+        {
+            for (let key in resources)
+            {
+                const texture = resources[key]!.texture;
+                const id = parseInt(key);
+                const numCells = cellNums.get(id)!;
+                const cellWidth = Math.floor(texture.width / numCells);
+
+                const texturesToCache: PIXI.Texture[] = [];
+
+                for (let i = 0; i < numCells; i++)
+                {
+                    const subTexture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(cellWidth * i, 0, cellWidth, texture.height));
+                    texturesToCache.push(subTexture);
+                }
+
+                this.textureCache.set(id, texturesToCache);
+            }
+
+            callback();
+        });
+    }
+
+    componentDidMount = () =>
+    {
+        this.renderer = new PIXI.Renderer({
+            view: this.canvasRef.current!,
+            width: this.props.stage.size.x,
+            height: this.props.stage.size.y
+        });
+        this.canvas = new Canvas({
+            canvasElement: this.canvasRef.current!,
+            opaque: true,
+            align: {
+                horizontal: true,
+                vertical: true
+            }
+        });
+        this.grabCanvas(this.canvas);
+        (window as any).c = this.renderer;
+
+        this.handleResize();
+        this.resetEngine();
+        this.engine.invalidateCache();
+        this.props.onFinalFrameCalculate(this.engine.finalFrame);
+        this.requestRender();
+    }
+
+    componentWillUnmount = () =>
+    {
+        if (this.animationFrameHandle !== null)
+        {
+            cancelAnimationFrame(this.animationFrameHandle);
+        }
     }
 
     requestRender = () =>
@@ -104,29 +192,12 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const stageSize = Point.fromPointLike(this.props.stage.size);
             const ratio = containerSize.dividedBy(stageSize).min;
             this.canvas.scale(ratio, "translate(-50%,-50%)", "");
-            if ((ratio >= 1 && this.ratio < 1) || (ratio < 1 && this.ratio >= 1))
+            /*if ((ratio >= 1 && this.ratio < 1) || (ratio < 1 && this.ratio >= 1))
             {
                 this.canvas.pixelated = ratio >= 1;
-            }
+            }*/
             this.ratio = ratio;
             this.dirty = true;
-        }
-    }
-
-    componentDidMount = () =>
-    {
-        this.handleResize();
-        this.requestRender();
-        this.resetEngine();
-        this.engine.invalidateCache();
-        this.props.onFinalFrameCalculate(this.engine.finalFrame);
-    }
-
-    componentWillUnmount = () =>
-    {
-        if (this.animationFrameHandle !== null)
-        {
-            cancelAnimationFrame(this.animationFrameHandle);
         }
     }
 
@@ -232,7 +303,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
         if (sprite)
         {
-            const img = ImageCache.getCachedImage(sprite.path);
+            /*const img = ImageCache.getCachedImage(sprite.path);
             const currentCell = Math.floor(age / (sprite.framesPerCell || age)) % sprite.numCells;
             const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
 
@@ -240,7 +311,22 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             if (hilite)
             {
                 this.canvas?.drawRect(new Rectangle(pos.minus(Point.fromSizeLike(img).dividedBy(2)), Point.fromSizeLike(img)), "red", 1 / this.ratio, false);
-            }
+            }*/
+            
+            console.time("== fetching");
+            const img = ImageCache.getCachedImage(sprite.path);
+            const currentCell = Math.floor(age / (sprite.framesPerCell || age)) % sprite.numCells;
+            const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
+            const offsetPos = pos.minus(cellSize.dividedBy(2));
+
+            const texture = StageRenderer.textureCache.get(spriteId)![currentCell];
+            const psprite = new PIXI.Sprite(texture);
+            psprite.position = offsetPos;
+            console.timeEnd("== fetching");
+            console.time("== rendering");
+            psprite.render(this.renderer!);
+            console.timeEnd("== rendering");
+
         }
     }
 
@@ -251,7 +337,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     drawBackground = () =>
     {
-        if (this.canvas)
+        /*if (this.canvas)
         {
             const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
             if (background)
@@ -259,7 +345,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 const img = ImageCache.getCachedImage(background.path);
                 this.canvas.drawImage(img, new Rectangle(new Point(0), Point.fromPointLike(this.props.stage.size)));
             }
-        }
+        }*/
     }
 
     renderStage = (time: number) =>
@@ -275,7 +361,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (this.props.playing)
         {
-            this.canvas?.clear();
+            console.time(">>> render stage play");
+            //this.canvas?.clear();
             this.drawBackground();
             const r = this.engine.advanceFrame({
                 keys: this.keyDownMap,
@@ -289,6 +376,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 this.props.onPlayerDie();
                 dirtyBuffer = true;
             }
+
+            this.entities.forEach((entity) =>
+            {
+                entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), entity.age, false);
+            });
+            this.renderer?.batch.flush();
+            console.timeEnd(">>> render stage play");
         }
         else
         {
@@ -336,18 +430,48 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             
             if (this.dirty)
             {
-                this.canvas?.clear();
+                console.time(">>> render stage");
+                //this.canvas?.clear();
                 this.drawBackground();
+                console.time("engine stuff");
+                // console.time("== reset");
                 this.resetEngine();
+                // console.timeEnd("== reset");
+                // console.time("== fast forward");
                 const r = this.engine.fastForwardTo(this.props.frame);
+                // console.timeEnd("== fast forward");
+                console.timeEnd("engine stuff");
+                // console.time("entity stuff");
                 this.entities = r.entities;
+
+                const container = new PIXI.Container();
+                this.entities.forEach((entity) =>
+                {            
+                    if (entity.alive)
+                    {
+                        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.obj.spriteId, this.props.project);
+                        if (sprite)
+                        {
+                            const pos = Point.fromPointLike(entity.position);
+                            // console.time("== fetching");
+                            const img = ImageCache.getCachedImage(sprite.path);
+                            const currentCell = Math.floor(entity.age / (sprite.framesPerCell || entity.age)) % sprite.numCells;
+                            const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
+                            const offsetPos = pos.minus(cellSize.dividedBy(2));
+                
+                            const texture = StageRenderer.textureCache.get(entity.obj.spriteId)![currentCell];
+                            const psprite = new PIXI.Sprite(texture);
+                            psprite.position = offsetPos;
+                            container.addChild(psprite);
+                            // console.timeEnd("== fetching");
+                        }
+                    }
+                });
+                this.renderer!.render(container);
+                // console.timeEnd("entity stuff");
+                console.timeEnd(">>> render stage");
             }
         }
-
-        this.entities.forEach((entity) =>
-        {
-            entity.alive && this.renderSpriteHaver(entity.obj.spriteId, Point.fromPointLike(entity.position), entity.age, false);
-        });
 
         this.dirty = dirtyBuffer;
         this.rendering = false;
@@ -372,20 +496,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                 ref={this.containerRef}
                 onClick={this.handleClick}
             >
-                <PureCanvas
-                    canvasGrabber={this.grabCanvas}
-                    canvasOptions={{
-                        align: {
-                            horizontal: true,
-                            vertical: true
-                        },
-                        deepCalc: true,
-                        opaque: true,
-                        pixelated: true
-                    }}
-                    size={Point.fromPointLike(this.props.stage.size)}
-                    onUpdate={this.handleUpdate}
-                />
+                <canvas id="renderer" ref={this.canvasRef}></canvas>
             </div>
         );
     }

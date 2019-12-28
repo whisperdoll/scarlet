@@ -57,6 +57,20 @@ export default class Point implements PointLike
         this.y = y;
     }
 
+    public copyFrom(point: PointLike): Point
+    {
+        this.x = point.x;
+        this.y = point.y;
+        return this;
+    }
+
+    public copyTo(point: Point): Point
+    {
+        point.x = this.x;
+        point.y = this.y;
+        return point;
+    }
+
     public get floored(): Point
     {
         return new Point(Math.floor(this.x), Math.floor(this.y));
