@@ -37,6 +37,7 @@ export default class ObjectHelper
                     name: "New Player " + this.getObjectsWithType(type, project).length,
                     moveSpeed: 400,
                     focusedMoveSpeed: 200,
+                    lives: 3,
                     scriptId: -1,
                     spriteId: -1,
                     bulletId: -1,

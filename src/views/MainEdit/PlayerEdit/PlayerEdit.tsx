@@ -37,6 +37,20 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
+    handleLivesChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = this.props.player.lives;
+        }
+
+        this.props.onUpdate({
+            ...this.props.player,
+            lives: val
+        });
+    }
+
     handleMoveSpeedChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
         let val = parseFloat(e.currentTarget.value);
@@ -128,6 +142,14 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                         value={this.props.player.moveSpeed}
                     />
                     <span>pixels per frame</span>
+                </div>
+                <div className="row">
+                    <span className="label">Lives:</span>
+                    <input
+                        type="number"
+                        onChange={this.handleLivesChange}
+                        value={this.props.player.lives}
+                    />
                 </div>
                 <div className="row">
                     <span className="label">Focused Speed:</span>
