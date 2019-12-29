@@ -48,6 +48,7 @@ export interface ScriptEntityData
     spawnPosition: PointLike;
     position: PointLike;
     index: number;
+    hp: number;
     store: ObjectMap<any>;
 };
 

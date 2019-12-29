@@ -316,6 +316,39 @@ export default class GameEngine
         return ret as UpdateResult;
     }
 
+    private killEntity(entity: GameEntity)
+    {
+        entity.alive = false;
+
+        const methods = ScriptEngine.parseScript(entity.scriptId, this.project as ProjectModel);
+        if (methods && methods.die)
+        {
+            const results = methods.die({
+                entity: {
+                    age: entity.age,
+                    index: entity.index,
+                    position: { x: entity.positionX, y: entity.positionY },
+                    spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
+                    hp: entity.hp,
+                    store: entity.store
+                },
+                stage: {
+                    age: this.stageAge,
+                    size: (this.stage as StageModel).size
+                },
+                keys: this.currentKeyContext
+            });
+
+            if (results)
+            {
+                if (results.fire)
+                {
+                    this.handleFire(entity, results.fire, results.fireStores);
+                }
+            }
+        }
+    }
+
     public advanceFrame(context: UpdateContext): UpdateResult
     {
         if (!this.hasReset || !this.project || !this.stage) throw new Error("reset engine before use");
@@ -324,6 +357,7 @@ export default class GameEngine
         let isLastUpdate = false;
         const playerBullet = this.playerEntity ? ObjectHelper.getObjectWithId<BulletModel>(this.playerEntity.bulletId, this.project) : null;
         this.currentKeyContext = this.getKeyContext(context.keys);
+        let bossSpawned = false;
 
         // console.time("==== update entities");
         for (let i = 0; i < this.entities.length; i++)
@@ -332,7 +366,13 @@ export default class GameEngine
             let alreadyUpdated = false;
 
             // console.time("====== try spawn");
-            if (!this.trySpawnEntity(entity, context.keys) && (entity.spawnFrame > this.stageAge || !entity.alive))
+            const didSpawn = !(!this.trySpawnEntity(entity, context.keys) && (entity.spawnFrame > this.stageAge || !entity.alive));
+            if (didSpawn && entity.type === "boss")
+            {
+                // console.timeEnd("====== try spawn");
+                bossSpawned = true;
+            }
+            else if (!didSpawn)
             {
                 // console.timeEnd("====== try spawn");
                 continue;
@@ -347,19 +387,33 @@ export default class GameEngine
             }
             else if (entity.type === "boss" && entity.spawnFrame + entity.lifetime === this.stageAge)
             {
-                entity.alive = false;
-                continue;
-            }
-            else if (entity.type === "enemyBullet" && playerAlive && this.playerEntity && !context.playerInvincible)
-            {
-                // console.time("====== update enemy byullet");
-                this.runEntityUpdateScript(entity, context);
-                if (this.testCollision(entity, this.playerEntity))
-                {
-                    playerAlive = false;
-                }
+                this.killEntity(entity);
                 alreadyUpdated = true;
-                // console.timeEnd("====== update enemy byullet");
+            }
+            else if (entity.type === "enemyBullet")
+            {
+                if (playerAlive && this.playerEntity && !context.playerInvincible)
+                {
+                    // console.time("====== update enemy byullet");
+                    this.runEntityUpdateScript(entity, context);
+                    if (this.testCollision(entity, this.playerEntity))
+                    {
+                        playerAlive = false;
+                    }
+                    alreadyUpdated = true;
+                    // console.timeEnd("====== update enemy byullet");
+                }
+
+                if (bossSpawned)
+                {
+                    this.killEntity(entity);
+                    alreadyUpdated = true;
+                }
+            }
+            else if (entity.type === "enemy" && bossSpawned)
+            {
+                this.killEntity(entity);
+                alreadyUpdated = true;
             }
             else if (entity.type === "playerBullet" && playerBullet)
             {
@@ -370,32 +424,9 @@ export default class GameEngine
                     e.hp -= playerBullet.damage;
                     if (e.hp <= 0)
                     {
-                        e.hp = -1;
-                        e.alive = false;
-
-                        const methods = ScriptEngine.parseScript(e.scriptId, this.project as ProjectModel);
-                        if (methods && methods.die)
-                        {
-                            const results = methods.die({
-                                entity: {
-                                    age: e.age,
-                                    index: e.index,
-                                    position: { x: e.positionX, y: e.positionY },
-                                    spawnPosition: { x: e.spawnPositionX, y: e.spawnPositionY },
-                                    store: e.store
-                                },
-                                stage: {
-                                    age: this.stageAge,
-                                    size: (this.stage as StageModel).size
-                                },
-                                keys: this.currentKeyContext
-                            });
-
-                            if (results.fire)
-                            {
-                                this.handleFire(e, results.fire, results.fireStores);
-                            }
-                        }
+                        e.hp = 0;
+                        this.killEntity(e);
+                        alreadyUpdated = true;
                     }
                 });
                 // console.timeEnd("====== update player byullet");
@@ -445,6 +476,7 @@ export default class GameEngine
         if (!entity.alive && entity.spawnFrame === this.stageAge)
         {
             entity.alive = true;
+
             if (entity.scriptId >= 0)
             {
                 const methods = ScriptEngine.parseScript(entity.scriptId, this.project);
@@ -456,6 +488,7 @@ export default class GameEngine
                             index: entity.index,
                             position: { x: entity.positionX, y: entity.positionY },
                             spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
+                            hp: entity.hp,
                             store: entity.store
                         },
                         stage: {
@@ -482,7 +515,7 @@ export default class GameEngine
                         }
                         if (results.alive === false)
                         {
-                            entity.alive = false;
+                            this.killEntity(entity);
                         }
                         if (results.opacity || results.opacity === 0)
                         {
@@ -544,6 +577,7 @@ export default class GameEngine
                 index: entity.index,
                 position: { x: entity.positionX, y: entity.positionY },
                 spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
+                hp: entity.hp,
                 store: entity.store
             },
             stage: {
