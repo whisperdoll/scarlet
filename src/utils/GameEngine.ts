@@ -13,7 +13,7 @@ export interface GameEntity
     scriptId: number;
     spriteId: number;
     bulletId: number;
-    id?: number;
+    id: number;
     index: number;
     spawnFrame: number;
     lifetime: number;
@@ -207,7 +207,8 @@ export default class GameEngine
                         spriteId: form.spriteId,
                         opacity: 1,
                         scaleX: 1,
-                        scaleY: 1
+                        scaleY: 1,
+                        id: form.id
                     });
     
                     spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
