@@ -1,5 +1,3 @@
-import { ObjectMap } from "./datatypes";
-
 export interface PointLike
 {
     x: number;

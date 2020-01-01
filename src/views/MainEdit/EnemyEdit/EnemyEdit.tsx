@@ -8,9 +8,9 @@ import AnimatedSpriteCanvas from '../../../components/AnimatedSpriteCanvas/Anima
 
 interface Props
 {
+    id: number;
     project: ProjectModel;
-    enemy: EnemyModel;
-    onUpdate: (enemy: EnemyModel) => any;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -26,37 +26,46 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.enemy.spriteId, this.props.project) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.enemy.spriteId, this.props.project);
+    }
+
+    get enemy(): EnemyModel
+    {
+        return ObjectHelper.getObjectWithId<EnemyModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<EnemyModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.enemy,
+            ...obj
+        }, this.props.project));
     }
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.props.onUpdate({
-            ...this.props.enemy,
+        this.update({
             name: e.currentTarget.value
         });
     }
 
     handleSpriteChange = (spriteId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.enemy,
+        this.update({
             spriteId: spriteId
         });
     }
 
     handleScriptChange = (scriptId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.enemy,
+        this.update({
             scriptId: scriptId
         });
     }
 
     handleBulletChange = (bulletId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.enemy,
+        this.update({
             bulletId: bulletId
         });
     }
@@ -66,11 +75,10 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.enemy.hp;
+            val = this.enemy.hp;
         }
 
-        this.props.onUpdate({
-            ...this.props.enemy,
+        this.update({
             hp: Math.max(1, val)
         });
     }
@@ -84,13 +92,13 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.enemy.name}
+                        value={this.enemy.name}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.enemy.spriteId}
+                        currentObjectId={this.enemy.spriteId}
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
@@ -110,14 +118,14 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                     <span className="label">HP:</span>
                     <input
                         type="number"
-                        value={this.props.enemy.hp.toString()}
+                        value={this.enemy.hp.toString()}
                         onChange={this.handleHpChange}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Bullet:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.enemy.bulletId}
+                        currentObjectId={this.enemy.bulletId}
                         objectType={"bullet"}
                         onChange={this.handleBulletChange}
                         project={this.props.project}
@@ -126,7 +134,7 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                 <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.enemy.scriptId}
+                        currentObjectId={this.enemy.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}

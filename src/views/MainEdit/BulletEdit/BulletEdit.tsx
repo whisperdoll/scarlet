@@ -9,8 +9,8 @@ import AnimatedSpriteCanvas from '../../../components/AnimatedSpriteCanvas/Anima
 interface Props
 {
     project: ProjectModel;
-    bullet: BulletModel;
-    onUpdate: (bullet: BulletModel) => any;
+    id: number;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -26,29 +26,39 @@ export default class BulletEdit extends React.PureComponent<Props, State>
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.bullet.spriteId, this.props.project) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.bullet.spriteId, this.props.project) || null;
+    }
+
+    get bullet(): BulletModel
+    {
+        return ObjectHelper.getObjectWithId<BulletModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<BulletModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.bullet,
+            ...obj
+        }, this.props.project));
     }
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.props.onUpdate({
-            ...this.props.bullet,
+        this.update({
             name: e.currentTarget.value
         });
     }
 
     handleSpriteChange = (spriteId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.bullet,
+        this.update({
             spriteId: spriteId
         });
     }
 
     handleScriptChange = (scriptId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.bullet,
+        this.update({
             scriptId: scriptId
         });
     }
@@ -61,8 +71,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
             val = 1;
         }
 
-        this.props.onUpdate({
-            ...this.props.bullet,
+        this.update({
             damage: val
         });
     }
@@ -76,13 +85,13 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.bullet.name}
+                        value={this.bullet.name}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.bullet.spriteId}
+                        currentObjectId={this.bullet.spriteId}
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
@@ -102,14 +111,14 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                     <span className="label">Damage:</span>
                     <input
                         type="number"
-                        value={this.props.bullet.damage}
+                        value={this.bullet.damage}
                         onChange={this.handleDamageChange}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.bullet.scriptId}
+                        currentObjectId={this.bullet.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}

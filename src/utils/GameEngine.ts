@@ -1,5 +1,5 @@
 import { PointLike } from "./point";
-import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, ObjectMap, StageEnemyData } from "./datatypes";
+import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel } from "./datatypes";
 import ScriptEngine, { KeyContext } from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
@@ -25,7 +25,7 @@ export interface GameEntity
     bulletsFired: number;
     alive: boolean;
     type: GameEntityType;
-    store: ObjectMap<any>;
+    store: Record<string, any>;
     hp: number;
     opacity: number;
     scaleX: number;
@@ -137,7 +137,7 @@ export default class GameEngine
     private getKeyContext(keyMap: Map<string, boolean>): KeyContext
     {
         const keys = [ "bomb", "fire", "left", "up", "down", "right", "left", "focus" ];
-        const ret: ObjectMap<boolean> = {};
+        const ret: Record<string, boolean> = {};
         keys.forEach((key) =>
         {
             ret[key] = !!this.project && !!keyMap.get(this.project.keyBindings[key]);
@@ -149,6 +149,7 @@ export default class GameEngine
     {
         this.entities = [];
         this.stageAge = 0;
+        this.project = project;
         this._finalFrame = stage.length - 1;
 
         const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId, project);
@@ -182,31 +183,35 @@ export default class GameEngine
         if (boss)
         {
             let spawnFrame = stage.length;
-            boss.forms.forEach((form, i) =>
+            boss.formIds.forEach((formId, i) =>
             {
-                this.entities.push({
-                    age: 0,
-                    alive: false,
-                    bulletsFired: 0,
-                    index: i,
-                    spawnFrame: spawnFrame,
-                    lifetime: form.lifetime,
-                    type: "boss",
-                    store: {},
-                    hp: form.hp,
-                    bulletId: form.bulletId,
-                    positionX: stage.bossSpawnPosition.x,
-                    positionY: stage.bossSpawnPosition.y,
-                    scriptId: form.scriptId,
-                    spawnPositionX: stage.bossSpawnPosition.x,
-                    spawnPositionY: stage.bossSpawnPosition.y,
-                    spriteId: form.spriteId,
-                    opacity: 1,
-                    scaleX: 1,
-                    scaleY: 1
-                });
-
-                spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
+                const form = ObjectHelper.getObjectWithId<BossFormModel>(formId, this.project!);
+                if (form)
+                {
+                    this.entities.push({
+                        age: 0,
+                        alive: false,
+                        bulletsFired: 0,
+                        index: i,
+                        spawnFrame: spawnFrame,
+                        lifetime: form.lifetime,
+                        type: "boss",
+                        store: {},
+                        hp: form.hp,
+                        bulletId: form.bulletId,
+                        positionX: stage.bossSpawnPosition.x,
+                        positionY: stage.bossSpawnPosition.y,
+                        scriptId: form.scriptId,
+                        spawnPositionX: stage.bossSpawnPosition.x,
+                        spawnPositionY: stage.bossSpawnPosition.y,
+                        spriteId: form.spriteId,
+                        opacity: 1,
+                        scaleX: 1,
+                        scaleY: 1
+                    });
+    
+                    spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
+                }
             });
 
             this._finalFrame = spawnFrame - 1;

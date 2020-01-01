@@ -2,13 +2,13 @@ import React, { ChangeEvent } from 'react';
 import './StageEdit.scss';
 import { StageModel, ProjectModel } from '../../../utils/datatypes';
 import StageComposer from './StageComposer/StageComposer';
+import ObjectHelper from '../../../utils/ObjectHelper';
 
 interface Props
 {
+    id: number;
     project: ProjectModel;
-    stage: StageModel;
-    onUpdate: (stage: StageModel) => any;
-    onProjectUpdate: (project: ProjectModel) => any;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -27,10 +27,23 @@ export default class StageEdit extends React.PureComponent<Props, State>
         };
     }
 
+    get stage(): StageModel
+    {
+        return ObjectHelper.getObjectWithId<StageModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<StageModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.stage,
+            ...obj
+        }, this.props.project));
+    }
+
+
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.props.onUpdate({
-            ...this.props.stage,
+        this.update({
             name: e.currentTarget.value
         });
     }
@@ -62,7 +75,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
                         <input
                             type="text"
                             onChange={this.handleNameChange}
-                            value={this.props.stage.name}
+                            value={this.stage.name}
                         />
                     </div>
                     <button onClick={this.handleEditRequest}>Edit in Stage Composer</button>
@@ -76,8 +89,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
                     onBack={this.handleStageComposerBack}
                     onUpdate={this.props.onUpdate}
                     project={this.props.project}
-                    stage={this.props.stage}
-                    onProjectUpdate={this.props.onProjectUpdate}
+                    id={this.props.id}
                 />
             )
         }

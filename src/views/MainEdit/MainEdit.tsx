@@ -22,7 +22,7 @@ interface Props
 
 interface State
 {
-    currentlyEditing: ObjectModel | null | "keyBinds";
+    currentlyEditing: number | null | "keyBinds";
     errors: ErrorTypes[];
 }
 
@@ -44,29 +44,17 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
         this.setState(state => ({
             ...state,
-            currentlyEditing: obj
+            currentlyEditing: obj.id
         }));
 
         this.props.onUpdate(project);
     }
 
-    handleObjectUpdate = (obj: ObjectModel) =>
-    {
-        const { errors, project } = ObjectHelper.updateObject(obj, this.props.project, this.state.errors);
-
-        this.props.onUpdate(project);
-        this.setState(state => ({
-            ...state,
-            currentlyEditing: obj,
-            errors: errors
-        }));
-    }
-
-    handleObjectSelect = (obj: ObjectModel) =>
+    handleObjectSelect = (id: number) =>
     {
         this.setState(state => ({
             ...state,
-            currentlyEditing: obj
+            currentlyEditing: id
         }));
     }
 
@@ -81,6 +69,18 @@ export default class MainEditView extends React.PureComponent<Props, State>
             ...state,
             currentlyEditing: "keyBinds"
         }));
+    }
+
+    get currentlyEditingObj(): ObjectModel | null
+    {
+        if (typeof(this.state.currentlyEditing) === "number")
+        {
+            return ObjectHelper.getObjectWithId(this.state.currentlyEditing, this.props.project);
+        }
+        else
+        {
+            return null;
+        }
     }
 
     render()
@@ -98,7 +98,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                     onCreate={this.handleObjectCreate}
                     onSelect={this.handleObjectSelect}
                 />
-                {this.state.currentlyEditing && typeof(this.state.currentlyEditing) === "string" && (
+                {this.state.currentlyEditing !== null && typeof(this.state.currentlyEditing) === "string" && (
                     <div className="objectEdit">
                         <h1 className="noEmpty">{this.state.currentlyEditing}</h1>
                         {(() =>
@@ -118,72 +118,74 @@ export default class MainEditView extends React.PureComponent<Props, State>
                         })()}
                     </div>
                 )}
-                {this.state.currentlyEditing && typeof(this.state.currentlyEditing) !== "string" && (
+                {typeof(this.state.currentlyEditing) === "number" && this.currentlyEditingObj && (
                     <div className="objectEdit">
-                        <h1 className="noEmpty">{this.state.currentlyEditing.name}</h1>
+                        <h1 className="noEmpty">{this.currentlyEditingObj.name}</h1>
                         {(() => {
-                            switch (this.state.currentlyEditing.type)
+                            switch (this.currentlyEditingObj.type)
                             {
                                 case "sprite":
                                     return (
                                         <SpriteEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            sprite={this.state.currentlyEditing as SpriteModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
+                                            project={this.props.project}
                                         />
                                     );
                                 case "player":
                                     return (
                                         <PlayerEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            player={this.state.currentlyEditing as PlayerModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
                                             project={this.props.project}
                                         />
                                     );
                                 case "script":
                                     return (
                                         <ScriptEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            script={this.state.currentlyEditing as ScriptModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
+                                            project={this.props.project}
                                         />
                                     );
                                 case "enemy":
                                     return (
                                         <EnemyEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            enemy={this.state.currentlyEditing as EnemyModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
                                             project={this.props.project}
                                         />
                                     );
                                 case "bullet":
                                     return (
                                         <BulletEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            bullet={this.state.currentlyEditing as BulletModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
                                             project={this.props.project}
                                         />
                                     );
                                 case "boss":
                                     return (
                                         <BossEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            boss={this.state.currentlyEditing as BossModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
                                             project={this.props.project}
                                         />
                                     );
                                 case "stage":
                                     return (
                                         <StageEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            stage={this.state.currentlyEditing as StageModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
                                             project={this.props.project}
-                                            onProjectUpdate={this.handleProjectUpdate}
                                         />
                                     );
                                 case "background":
                                     return (
                                         <BackgroundEdit
-                                            onUpdate={this.handleObjectUpdate}
-                                            background={this.state.currentlyEditing as BackgroundModel}
+                                            id={this.state.currentlyEditing}
+                                            onUpdate={this.props.onUpdate}
+                                            project={this.props.project}
                                         />
                                     )
                             }

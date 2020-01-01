@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel } from "./datatypes";
 import { array_copy, array_remove } from "./utils";
 import update from "immutability-helper";
 import Point, { PointLike } from "./point";
@@ -78,9 +78,21 @@ export default class ObjectHelper
                 ret = {
                     id: id,
                     name: "New Boss " + this.getObjectsWithType(type, project).length,
-                    forms: [],
+                    formIds: [],
                     type: "boss"
                 } as BossModel;
+                break;
+            case "bossForm":
+                ret = {
+                    id: id,
+                    name: "New Form " + this.getObjectsWithType(type, project).length,
+                    bulletId: -1,
+                    hp: 100,
+                    lifetime: 60 * 30,
+                    scriptId: -1,
+                    spriteId: -1,
+                    type: "bossForm"
+                } as BossFormModel;
                 break;
             case "stage":
                 ret = {
@@ -127,35 +139,91 @@ export default class ObjectHelper
         return { obj: ret as T, project: p };
     }
 
-    public static updateObject(obj: ObjectModel, project: ProjectModel, _errors: ErrorTypes[]): { errors: ErrorTypes[], project: ProjectModel }
+    public static updateObject<T extends ObjectModel>(id: number, newObj: T, project: ProjectModel): ProjectModel
     {
-        const errors = array_copy(_errors);
+        const index = project.objects.findIndex(o => o.id === id);
+        if (index === -1) 
+        {
+            return project;
+        }
 
-        array_remove(errors, "Duplicate name");
-        array_remove(errors, "Empty name");
+        console.log(newObj);
 
-        const p = update(project, {
+        return update(project, {
             objects: {
-                [project.objects.findIndex(o => o.id === obj.id)]: {
-                    $set: obj
+                [index]: {
+                    $set: newObj
                 }
             }
         });
+    }
 
-        if (obj.name === "")
-        {
-            errors.push("Empty name")
-        }
-        if (p.objects.filter(o => o.name === obj.name).length > 1)
-        {
-            errors.push("Duplicate name");
-        }
+    public static removeObject(id: number, project: ProjectModel): ProjectModel
+    {
+        const index = project.objects.findIndex(o => o.id === id);
+        if (index === -1) return project;
 
-        return { errors: errors, project: p };
+        return update(project, {
+            objects: {
+                $splice: [[ index ]]
+            }
+        });
     }
 
     /**
-     * Do not mutate the return value of this; Make a copy
+     * @param parentObject The parent object.
+     * @param subIdentifier An identifier for the child object. e.g. "sprite" for object returned by spriteId, or "form[0].sprite" for sprite of first form
+     * @param project The project.
+     */
+    public static getSubObject<T extends ObjectModel>(parentObject: ObjectModel | number | null, subIdentifier: string, project: ProjectModel): T | null
+    {
+        if (typeof(parentObject) === "number")
+        {
+            parentObject = this.getObjectWithId(parentObject, project);
+        }
+
+        if (!parentObject) return null;
+
+        const parts = subIdentifier.split(".").map((part) =>
+        {
+            if (part.endsWith("]"))
+            {
+                const braceIndex = part.indexOf("[");
+                const index = parseInt(part.substr(braceIndex + 1));
+                if (isNaN(index))
+                {
+                    console.error("bad index in id", index, part)
+                    throw new Error("bad index in indentifier, see console for more details");
+                }
+
+                return [part.substr(0, braceIndex) + "Ids", index];
+            }
+            else
+            {
+                return [part + "Id", -1];
+            }
+        });
+
+        let obj: ObjectModel | null = parentObject;
+        for (let i = 0; i < parts.length; i++)
+        {
+            console.log(parts);
+            if (parts[i][1] >= 0)
+            {
+                obj = this.getObjectWithId((obj as any)[parts[i][0]][parts[i][1]], project);
+            }
+            else
+            {
+                obj = this.getObjectWithId((obj as any)[parts[i][0]], project);
+            }
+
+            if (!obj) return null;
+        }
+
+        return obj as T | null;
+    }
+
+    /**
      * @param type Type of objects to get
      */
     public static getObjectsWithType<T extends ObjectModel>(type: ObjectType, project: ProjectModel): T[]

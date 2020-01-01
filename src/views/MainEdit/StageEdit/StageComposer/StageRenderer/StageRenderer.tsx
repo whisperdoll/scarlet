@@ -14,15 +14,15 @@ import PathHelper from '../../../../../utils/PathHelper';
 
 interface Props
 {
+    id: number;
     project: ProjectModel;
-    stage: StageModel;
     frame: number;
     refresh: boolean;
     selectedEntityIndex: number;
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
     onPlayFrame: (frame: number, isLastFrame: boolean) => any;
-    onUpdateStage: (stage: StageModel) => any;
+    onUpdate: (project: ProjectModel) => any;
     onSelectEnemy: (index: number) => any;
     onFinalFrameCalculate: (finalFrame: number) => any;
     playing: boolean;
@@ -65,6 +65,19 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         window.addEventListener("resize", this.handleResize);
         this.containerRef = React.createRef();
         this.canvasRef = React.createRef();
+    }
+
+    get stage(): StageModel
+    {
+        return ObjectHelper.getObjectWithId<StageModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<StageModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.stage,
+            ...obj
+        }, this.props.project));
     }
 
     public static createTextureCache(project: ProjectModel, callback: () => any)
@@ -120,8 +133,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         this.renderer = new PIXI.Renderer({
             view: this.canvasRef.current!,
-            width: this.props.stage.size.x,
-            height: this.props.stage.size.y
+            width: this.stage.size.x,
+            height: this.stage.size.y
         });
         this.canvas = new Canvas({
             canvasElement: this.canvasRef.current!,
@@ -174,8 +187,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         }
 
         if (this.props.project !== prevProps.project
-            || this.props.refresh !== prevProps.refresh
-            || this.props.stage !== prevProps.stage)
+            || this.props.refresh !== prevProps.refresh)
         {
             this.resetEngine();
             this.engine.invalidateCache();
@@ -190,7 +202,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         if (this.containerRef.current && this.canvas)
         {
             const containerSize = Point.fromSizeLike(this.containerRef.current.getBoundingClientRect());
-            const stageSize = Point.fromPointLike(this.props.stage.size);
+            const stageSize = Point.fromPointLike(this.stage.size);
             const ratio = containerSize.dividedBy(stageSize).min;
             this.canvas.scale(ratio, "translate(-50%,-50%)", "");
             /*if ((ratio >= 1 && this.ratio < 1) || (ratio < 1 && this.ratio >= 1))
@@ -250,7 +262,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             };
 
             const player = this.entities.find(e => e.type === "player");
-            if (player && containsPoint(player.spriteId, this.props.stage.playerSpawnPosition))
+            if (player && containsPoint(player.spriteId, this.stage.playerSpawnPosition))
             {
                 this.selectedEntityType = "player";
                 this.selectedEntityPos = new Point(player.spawnPositionX, player.spawnPositionY);
@@ -267,7 +279,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             {
                 this.selectedEntityType = "enemy";
                 this.selectedEntityPos = new Point(found.spawnPositionX, found.spawnPositionY);
-                this.selectedIndex = this.props.stage.enemies.findIndex(e => e.id === found.id);
+                this.selectedIndex = this.stage.enemies.findIndex(e => e.id === found.id);
                 if (this.selectedIndex === -1)
                 {
                     throw new Error("bad index iodk");
@@ -301,7 +313,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     resetEngine = () =>
     {
-        this.engine.reset(this.props.stage, this.props.project);
+        this.engine.reset(this.stage, this.props.project);
     }
 
     renderEntities = () =>
@@ -309,7 +321,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const container = new PIXI.Container();
 
         // console.time("==== background");
-        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.props.stage.backgroundId, this.props.project);
+        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.stage.backgroundId, this.props.project);
         if (background)
         {
             const texture = StageRenderer.textureCache.get(background.id)![0];
@@ -394,7 +406,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             if (this.selectedEntityType !== "none")
             {
                 const pt = this.selectedEntityPos.plus(this.mouseDelta).times(100).rounded.dividedBy(100).toObject();
-                let stage = this.props.stage;
+                let stage = this.stage;
 
                 if (this.keyDownMap.get("shift"))
                 {
@@ -430,7 +442,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         break;
                 }
 
-                this.props.onUpdateStage(stage);
+                this.update(stage);
             }
             
             if (this.dirty)

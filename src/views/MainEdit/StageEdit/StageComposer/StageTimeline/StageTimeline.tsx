@@ -64,14 +64,18 @@ export default class StageTimeline extends React.PureComponent<Props, State>
             let spawnFrame = this.props.stage.length;
             const ret: (BossFormModel & { spawnFrame: number })[] = [];
             
-            boss.forms.forEach((form) =>
+            boss.formIds.forEach((formId) =>
             {
-                ret.push({
-                    ...form,
-                    spawnFrame: spawnFrame
-                });
-
-                spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
+                const form = ObjectHelper.getObjectWithId<BossFormModel>(formId, this.props.project);
+                if (form)
+                {
+                    ret.push({
+                        ...form,
+                        spawnFrame: spawnFrame
+                    });
+    
+                    spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
+                }
             });
 
             return ret;

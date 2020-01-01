@@ -223,6 +223,7 @@ export default class App extends React.PureComponent<Props, State>
 
     handleUpdateProject(project: ProjectModel)
     {
+        console.log(project);
         this.setState(state => ({
             ...state,
             project: project,

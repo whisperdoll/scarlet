@@ -1,14 +1,17 @@
-import React, { ChangeEvent } from 'react';
+import React from 'react';
 import './BossEdit.scss';
 import { BossModel, ProjectModel, BossFormModel } from '../../../utils/datatypes';
 import { array_copy, array_remove_at } from '../../../utils/utils';
 import BossFormEdit from './BossFormEdit/BossFormEdit';
+import ObjectHelper from '../../../utils/ObjectHelper';
+import update from "immutability-helper";
+import PathHelper from '../../../utils/PathHelper';
 
 interface Props
 {
+    id: number;
     project: ProjectModel;
-    boss: BossModel;
-    onUpdate: (boss: BossModel) => any;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -22,50 +25,50 @@ export default class BossEdit extends React.PureComponent<Props, State>
         super(props);
     }
 
-    handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
+    get boss(): BossModel
     {
-        this.props.onUpdate({
-            ...this.props.boss,
+        return ObjectHelper.getObjectWithId<BossModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<BossModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.boss,
+            ...obj
+        }, this.props.project));
+    }
+
+    handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        this.update({
             name: e.currentTarget.value
-        });
-    }
-    
-    handleFormUpdate = (form: BossFormModel, index: number) =>
-    {
-        const forms = array_copy(this.props.boss.forms);
-        forms[index] = form;
-
-        this.props.onUpdate({
-            ...this.props.boss,
-            forms: forms
-        });
-    }
-
-    handleFormRemove = (index: number) =>
-    {
-        const forms = array_copy(this.props.boss.forms);
-        array_remove_at(forms, index);
-
-        this.props.onUpdate({
-            ...this.props.boss,
-            forms: forms
         });
     }
 
     addForm = () =>
     {
-        const form: BossFormModel = {
-            bulletId: -1,
-            hp: 10,
-            scriptId: -1,
-            spriteId: -1,
-            lifetime: 10
-        };
+        let { obj, project } = ObjectHelper.createAndAddObject<BossFormModel>("bossForm", this.props.project);
+        project = ObjectHelper.updateObject(this.props.id, update(this.boss, {
+            formIds: {
+                $push: [ obj.id ]
+            }
+        }), project);
+        this.props.onUpdate(project);
+    }
 
-        this.props.onUpdate({
-            ...this.props.boss,
-            forms: this.props.boss.forms.concat([ form ])
-        });
+    handleFormRemove = (id: number) =>
+    {
+        // remove object //
+        let project = ObjectHelper.removeObject(id, this.props.project);
+
+        // unlink from boss //
+        project = ObjectHelper.updateObject(this.props.id, update(this.boss, {
+            formIds: {
+                $splice: [[ this.boss.formIds.findIndex(_id => _id === id) ]]
+            }
+        }), project);
+
+        this.props.onUpdate(project);
     }
 
     render()
@@ -77,22 +80,20 @@ export default class BossEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.boss.name}
+                        value={this.boss.name}
                     />
                 </div>
-                {this.props.boss.forms.map((form, i) =>
-                {
-                    return (
-                        <BossFormEdit
-                            bossForm={form}
-                            index={i}
-                            onUpdate={this.handleFormUpdate}
-                            onRequestRemove={this.handleFormRemove}
-                            project={this.props.project}
-                            key={i}
-                        />
-                    );
-                })}
+                {this.boss.formIds.map((formId, i) =>
+                (
+                    <BossFormEdit
+                        id={formId}
+                        index={i}
+                        onUpdate={this.props.onUpdate}
+                        onRequestRemove={this.handleFormRemove}
+                        project={this.props.project}
+                        key={i}
+                    />
+                ))}
                 <button onClick={this.addForm}>+ Add Form</button>
             </div>
         );

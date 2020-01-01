@@ -1,8 +1,6 @@
 import { PointLike } from "./point";
 
-export type ObjectMap<T> = { [key: string]: T };
-
-export interface KeyBindings extends ObjectMap<string>
+export interface KeyBindings extends Record<string, string>
 {
     fire: string;
     bomb: string;
@@ -23,7 +21,7 @@ export interface ProjectModel
 export type ErrorTypes = "Duplicate name" | "Empty name";
 
 // ADDTYPE //
-export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "sprite" | "script" | "bullet" | "background";
+export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "bossForm" | "sprite" | "script" | "bullet" | "background";
 export const GameObjectTypes: ObjectType[] = [
     "player",
     "stage",
@@ -114,8 +112,9 @@ export interface BulletModel extends ObjectModel
     damage: number;
 };
 
-export interface BossFormModel
+export interface BossFormModel extends ObjectModel
 {
+    type: "bossForm";
     lifetime: number;
     spriteId: number;
     scriptId: number;
@@ -126,7 +125,7 @@ export interface BossFormModel
 export interface BossModel extends ObjectModel
 {
     type: "boss";
-    forms: BossFormModel[]
+    formIds: number[];
 };
 
 export interface StageModel extends ObjectModel

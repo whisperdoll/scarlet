@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
-import { ProjectModel, ScriptModel, ObjectMap, KeyBindings } from "./datatypes";
+import { ProjectModel, ScriptModel, KeyBindings } from "./datatypes";
 import { PointLike } from "./point";
 import PathHelper from "../utils/PathHelper";
 import { obj_copy } from "../utils/utils";
@@ -24,7 +24,7 @@ export interface ScriptMethodCollection
     die: (context: ScriptContext) => ScriptResult;
 };
 
-export interface KeyContext extends ObjectMap<boolean>
+export interface KeyContext extends Record<string, boolean>
 {
     fire: boolean;
     bomb: boolean;
@@ -49,15 +49,15 @@ export interface ScriptEntityData
     position: PointLike;
     index: number;
     hp: number;
-    store: ObjectMap<any>;
+    store: Record<string, any>;
 };
 
 export interface ScriptResult
 {
     position?: PointLike;
-    store?: ObjectMap<any>;
+    store?: Record<string, any>;
     fire?: number;
-    fireStores?: ObjectMap<any>[];
+    fireStores?: Record<string, any>[];
     alive?: boolean;
     opacity?: number;
     scaleX?: number;

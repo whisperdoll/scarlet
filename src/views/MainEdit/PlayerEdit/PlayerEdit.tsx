@@ -8,9 +8,9 @@ import AnimatedSpriteCanvas from "../../../components/AnimatedSpriteCanvas/Anima
 
 interface Props
 {
+    id: number;
     project: ProjectModel;
-    player: PlayerModel;
-    onUpdate: (player: PlayerModel) => any;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -26,13 +26,25 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.player.spriteId, this.props.project) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.player.spriteId, this.props.project);
+    }
+
+    get player(): PlayerModel
+    {
+        return ObjectHelper.getObjectWithId<PlayerModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<PlayerModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.player,
+            ...obj
+        }, this.props.project));
     }
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             name: e.currentTarget.value
         });
     }
@@ -42,11 +54,10 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.player.lives;
+            val = this.player.lives;
         }
 
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             lives: val
         });
     }
@@ -56,11 +67,10 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.player.moveSpeed;
+            val = this.player.moveSpeed;
         }
 
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             moveSpeed: val
         });
     }
@@ -70,35 +80,31 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.player.focusedMoveSpeed;
+            val = this.player.focusedMoveSpeed;
         }
 
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             focusedMoveSpeed: val
         });
     }
 
     handleSpriteChange = (spriteId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             spriteId: spriteId
         });
     }
 
     handleScriptChange = (scriptId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             scriptId: scriptId
         });
     }
 
     handleBulletChange = (bulletId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.player,
+        this.update({
             bulletId: bulletId
         });
     }
@@ -112,13 +118,13 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.player.name}
+                        value={this.player.name}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.player.spriteId}
+                        currentObjectId={this.player.spriteId}
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
@@ -139,7 +145,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                     <input
                         type="number"
                         onChange={this.handleMoveSpeedChange}
-                        value={this.props.player.moveSpeed}
+                        value={this.player.moveSpeed}
                     />
                     <span>pixels per frame</span>
                 </div>
@@ -148,7 +154,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                     <input
                         type="number"
                         onChange={this.handleLivesChange}
-                        value={this.props.player.lives}
+                        value={this.player.lives}
                     />
                 </div>
                 <div className="row">
@@ -156,14 +162,14 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                     <input
                         type="number"
                         onChange={this.handleFocusedMoveSpeedChange}
-                        value={this.props.player.focusedMoveSpeed}
+                        value={this.player.focusedMoveSpeed}
                     />
                     <span>pixels per frame</span>
                 </div>
                 <div className="row">
                     <span className="label">Bullet:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.player.bulletId}
+                        currentObjectId={this.player.bulletId}
                         objectType={"bullet"}
                         onChange={this.handleBulletChange}
                         project={this.props.project}
@@ -172,7 +178,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                 <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.player.scriptId}
+                        currentObjectId={this.player.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}

@@ -9,10 +9,10 @@ import AnimatedSpriteCanvas from '../../../../components/AnimatedSpriteCanvas/An
 interface Props
 {
     project: ProjectModel;
-    bossForm: BossFormModel;
+    id: number;
+    onUpdate: (project: ProjectModel) => any;
     index: number;
-    onUpdate: (bossForm: BossFormModel, index: number) => any;
-    onRequestRemove: (index: number) => any;
+    onRequestRemove: (id: number) => any;
 }
 
 interface State
@@ -28,31 +28,35 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.bossForm.spriteId, this.props.project) || null;
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.bossForm.spriteId, this.props.project);
+    }
+
+    get bossForm(): BossFormModel
+    {
+        return ObjectHelper.getObjectWithId<BossFormModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<BossFormModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.bossForm,
+            ...obj
+        }, this.props.project));
     }
 
     handleSpriteChange = (spriteId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.bossForm,
-            spriteId: spriteId
-        }, this.props.index);
+        this.update({ spriteId });
     }
 
     handleScriptChange = (scriptId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.bossForm,
-            scriptId: scriptId
-        }, this.props.index);
+        this.update({ scriptId });
     }
 
     handleBulletChange = (bulletId: number) =>
     {
-        this.props.onUpdate({
-            ...this.props.bossForm,
-            bulletId: bulletId
-        }, this.props.index);
+        this.update({ bulletId });
     }
 
     handleHpChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -60,13 +64,10 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.bossForm.hp;
+            val = this.bossForm.hp;
         }
-
-        this.props.onUpdate({
-            ...this.props.bossForm,
-            hp: Math.max(1, val)
-        }, this.props.index);
+        const hp = Math.max(1, val);
+        this.update({ hp });
     }
 
     handleLifetimeChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -74,18 +75,15 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.props.bossForm.lifetime;
+            val = this.bossForm.lifetime;
         }
-
-        this.props.onUpdate({
-            ...this.props.bossForm,
-            lifetime: Math.max(1, val)
-        }, this.props.index);
+        const lifetime = Math.max(1, val);
+        this.update({ lifetime });
     }
 
     handleRequestRemove = () =>
     {
-        this.props.onRequestRemove(this.props.index);
+        this.props.onRequestRemove(this.props.id);
     }
 
     render()
@@ -96,7 +94,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.bossForm.spriteId}
+                        currentObjectId={this.bossForm.spriteId}
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
@@ -116,7 +114,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                     <span className="label">HP:</span>
                     <input
                         type="number"
-                        value={this.props.bossForm.hp.toString()}
+                        value={this.bossForm.hp.toString()}
                         onChange={this.handleHpChange}
                     />
                 </div>
@@ -124,14 +122,14 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                     <span className="label">Lifetime:</span>
                     <input
                         type="number"
-                        value={this.props.bossForm.lifetime.toString()}
+                        value={this.bossForm.lifetime.toString()}
                         onChange={this.handleLifetimeChange}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Bullet:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.bossForm.bulletId}
+                        currentObjectId={this.bossForm.bulletId}
                         objectType={"bullet"}
                         onChange={this.handleBulletChange}
                         project={this.props.project}
@@ -140,7 +138,7 @@ export default class BossFormEdit extends React.PureComponent<Props, State>
                 <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
-                        currentObjectId={this.props.bossForm.scriptId}
+                        currentObjectId={this.bossForm.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}

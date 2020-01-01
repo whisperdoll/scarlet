@@ -1,14 +1,16 @@
 import React, { ChangeEvent } from 'react';
 import './ScriptEdit.scss';
-import { ScriptModel } from '../../../utils/datatypes';
+import { ScriptModel, ProjectModel } from '../../../utils/datatypes';
 import * as fs from "fs";
 import PathHelper from '../../../utils/PathHelper';
+import ObjectHelper from '../../../utils/ObjectHelper';
 const { dialog } = require("electron").remote;
 
 interface Props
 {
-    script: ScriptModel;
-    onUpdate: (script: ScriptModel) => any;
+    id: number;
+    project: ProjectModel;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -27,6 +29,19 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
         };
     }
 
+    get script(): ScriptModel
+    {
+        return ObjectHelper.getObjectWithId<ScriptModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<ScriptModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.script,
+            ...obj
+        }, this.props.project));
+    }
+
     componentDidMount = () =>
     {
         this.loadPreview();
@@ -34,7 +49,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
 
     loadPreview = () =>
     {
-        const filename = PathHelper.resolveObjectFileName(this.props.script.path);
+        const filename = PathHelper.resolveObjectFileName(this.script.path);
         fs.readFile(filename, "utf8", (err, data) =>
         {
             this.setState((state) => ({
@@ -64,8 +79,7 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
-            this.props.onUpdate({
-                ...this.props.script,
+            this.update({
                 path: PathHelper.importObjectFileName(paths[0], "scripts")
             });
         }
@@ -73,15 +87,16 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.props.onUpdate({
-            ...this.props.script,
+        this.update({
             name: e.currentTarget.value
         });
     }
 
     componentDidUpdate = (prevProps: Props, prevState: State) =>
     {
-        if (this.props.script.path !== prevProps.script.path)
+        const prevScript = ObjectHelper.getObjectWithId<ScriptModel>(prevProps.id, prevProps.project);
+
+        if (prevScript?.path !== this.script.path)
         {
             this.loadPreview();
         }
@@ -96,12 +111,12 @@ export default class ScriptEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.script.name}
+                        value={this.script.name}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Path:</span>
-                    <span>{this.props.script.path || "<none>"}</span>
+                    <span>{this.script.path || "<none>"}</span>
                     <button onClick={this.handleBrowse}>
                         Browse...
                     </button>

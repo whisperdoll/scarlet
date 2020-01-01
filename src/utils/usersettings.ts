@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { getUserDataPath } from "./utils";
+import { BrowserWindow } from "electron";
 
 export default class UserSettings
 {

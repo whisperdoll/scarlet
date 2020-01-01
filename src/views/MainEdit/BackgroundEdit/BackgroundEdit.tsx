@@ -1,14 +1,16 @@
 import React, { ChangeEvent } from 'react';
 import './BackgroundEdit.scss';
-import { BackgroundModel } from '../../../utils/datatypes';
+import { BackgroundModel, ProjectModel } from '../../../utils/datatypes';
 import ImageCache from '../../../utils/ImageCache';
 import PathHelper from '../../../utils/PathHelper';
+import ObjectHelper from '../../../utils/ObjectHelper';
 const { dialog } = require("electron").remote;
 
 interface Props
 {
-    background: BackgroundModel;
-    onUpdate: (background: BackgroundModel) => any;
+    id: number;
+    project: ProjectModel;
+    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -20,6 +22,19 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
+    }
+
+    get background(): BackgroundModel
+    {
+        return ObjectHelper.getObjectWithId<BackgroundModel>(this.props.id, this.props.project)!;
+    }
+
+    update(obj: Partial<BackgroundModel>)
+    {
+        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
+            ...this.background,
+            ...obj
+        }, this.props.project));
     }
 
     handleBrowse = () =>
@@ -43,9 +58,8 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
         if (paths && paths[0])
         {
             const destFilename = PathHelper.importObjectFileName(paths[0], "backgrounds");
-            ImageCache.invalidateImage(this.props.background.path);
-            this.props.onUpdate({
-                ...this.props.background,
+            ImageCache.invalidateImage(this.background.path);
+            this.update({
                 path: destFilename
             });
         }
@@ -53,8 +67,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.props.onUpdate({
-            ...this.props.background,
+        this.update({
             name: e.currentTarget.value
         });
     }
@@ -68,10 +81,10 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.props.background.name}
+                        value={this.background.name}
                     />
                 </div>
-                <img alt="background" src={PathHelper.resolveObjectFileName(this.props.background.path)} />
+                <img alt="background" src={PathHelper.resolveObjectFileName(this.background.path)} />
                 <button
                     onClick={this.handleBrowse}
                 >

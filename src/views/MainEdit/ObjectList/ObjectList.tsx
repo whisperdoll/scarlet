@@ -6,12 +6,13 @@ import Point from '../../../utils/point';
 import ContextMenu from '../../../components/ContextMenu/ContextMenu';
 import ContextMenuItem from '../../../components/ContextMenu/ContextMenuItem';
 import ObjectHelper from '../../../utils/ObjectHelper';
+import FolderItem from './FolderItem/FolderItem';
 
 interface Props
 {
     project: ProjectModel;
     onCreate: (type: ObjectType) => any;
-    onSelect: (obj: ObjectModel) => any;
+    onSelect: (id: number) => any;
 }
 
 interface State
@@ -19,6 +20,13 @@ interface State
     currentContextMenu: "folder" | "object" | "none";
     contextMenuPosition: Point;
     contextHint: string;
+}
+
+interface Folder
+{
+    name: string;
+    hint: ObjectType;
+    children: number[];
 }
 
 export default class ObjectList extends React.PureComponent<Props, State>
@@ -35,62 +43,46 @@ export default class ObjectList extends React.PureComponent<Props, State>
     }
 
     // ADDTYPE //
-    get rootObjects(): ObjectModel[]
+    get rootObjects(): Folder[]
     {
         return [
             {
-                id: -1,
                 name: "Stages",
-                type: "folder",
                 hint: "stage",
                 children: []
             },
             {
-                id: -2,
                 name: "Players",
-                type: "folder",
                 hint: "player",
                 children: []
             },
             {
-                id: -3,
                 name: "Enemies",
-                type: "folder",
                 hint: "enemy",
                 children: []
             },
             {
-                id: -4,
                 name: "Bosses",
-                type: "folder",
                 hint: "boss",
                 children: []
             },
             {
-                id: -5,
                 name: "Bullets",
-                type: "folder",
                 hint: "bullet",
                 children: []
             },
             {
-                id: -6,
                 name: "Sprites",
-                type: "folder",
                 hint: "sprite",
                 children: []
             },
             {
-                id: -7,
                 name: "Backgrounds",
-                type: "folder",
                 hint: "background",
                 children: []
             },
             {
-                id: -8,
                 name: "Scripts",
-                type: "folder",
                 hint: "script",
                 children: []
             }
@@ -108,17 +100,19 @@ export default class ObjectList extends React.PureComponent<Props, State>
         });
     }
 
-    handleContextMenu = (model: ObjectModel, position: Point) =>
+    handleFolderContextMenu = (hint: ObjectType, position: Point) =>
     {
-        if (model.type === "folder")
-        {
-            this.setState(state => ({
-                ...state,
-                currentContextMenu: "folder",
-                contextMenuPosition: position,
-                contextHint: model.hint as string
-            }));
-        }
+        this.setState(state => ({
+            ...state,
+            currentContextMenu: "folder",
+            contextMenuPosition: position,
+            contextHint: hint
+        }));
+    }
+
+    handleObjectContextMenu = (id: number, position: Point) =>
+    {
+
     }
 
     handleCreate = () =>
@@ -127,9 +121,9 @@ export default class ObjectList extends React.PureComponent<Props, State>
         this.props.onCreate(type);
     }
 
-    handleSelect = (obj: ObjectModel) =>
+    handleSelect = (id: number) =>
     {
-        this.props.onSelect(obj);
+        this.props.onSelect(id);
     }
 
     render = () =>
@@ -139,26 +133,32 @@ export default class ObjectList extends React.PureComponent<Props, State>
         // make folders //
         GameObjectTypes.forEach((type) =>
         {
-            const c = objs.find(o => o.hint === type)?.children as ObjectModel[];
-            c.push(...ObjectHelper.getObjectsWithType(type, this.props.project));
+            const c = objs.find(o => o.hint === type)!.children as number[];
+            c.push(...ObjectHelper.getObjectsWithType(type, this.props.project).map(o => o.id));
         });
-
-        const objEls = objs.map((o) =>
-        {
-            return (
-                <ObjectItem
-                    model={o}
-                    onContextMenu={this.handleContextMenu}
-                    onSelect={this.handleSelect}
-                    key={o.id}
-                />
-            );
-        })
 
         return (
             <div className="fullSize noScroll">
                 <div className="objectList">
-                    {objEls}
+                    {objs.map((o, i) => (
+                        <FolderItem
+                            hint={o.hint}
+                            name={o.name}
+                            onContextMenu={this.handleFolderContextMenu}
+                            onSelect={this.handleSelect}
+                            key={i}
+                        >
+                            {o.children.map((child) => (
+                                <ObjectItem
+                                    id={child}
+                                    key={child}
+                                    project={this.props.project}
+                                    onContextMenu={this.handleObjectContextMenu}
+                                    onSelect={this.props.onSelect}
+                                />
+                            ))}
+                        </FolderItem>
+                    ))}
                 </div>
                 <ContextMenu
                     showing={this.state.currentContextMenu === "folder"}

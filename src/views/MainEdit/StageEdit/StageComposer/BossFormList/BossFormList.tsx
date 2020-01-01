@@ -41,17 +41,14 @@ export default class BossFormList extends React.PureComponent<Props, State>
 
     private spriteForForm(formIndex: number): SpriteModel | null
     {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.bossId, this.props.project);
-        if (!boss) return null;
-        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(boss.forms[formIndex].spriteId, this.props.project);
-        return sprite;
+        return ObjectHelper.getSubObject(this.props.bossId, `form[${formIndex}].sprite`, this.props.project);
     }
 
     render()
     {
         return (
             <div className="bossFormList" onClick={this.handleFormDeselect}>
-                {ObjectHelper.getObjectWithId<BossModel>(this.props.bossId, this.props.project)?.forms.map((bossForm, i) => (
+                {ObjectHelper.getObjectWithId<BossModel>(this.props.bossId, this.props.project)?.formIds.map((formId, i) => (
                     <div
                         className="bossFormItem"
                         onClick={this.handleFormSelect}
