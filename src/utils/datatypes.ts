@@ -49,11 +49,6 @@ export interface SpriteHaver
     spriteId: number;
 };
 
-export interface BulletHaver
-{
-    bulletId: number;
-};
-
 export interface ObjectModel
 {
     id: number;
@@ -86,7 +81,6 @@ export interface PlayerModel extends ObjectModel
     lives: number;
     spriteId: number;
     scriptId: number;
-    bulletId: number;
 };
 
 export interface ScriptModel extends ObjectModel
@@ -100,7 +94,6 @@ export interface EnemyModel extends ObjectModel
     type: "enemy";
     spriteId: number;
     scriptId: number;
-    bulletId: number;
     hp: number;
 };
 
@@ -118,7 +111,6 @@ export interface BossFormModel extends ObjectModel
     lifetime: number;
     spriteId: number;
     scriptId: number;
-    bulletId: number;
     hp: number;
 };
 

@@ -11,6 +11,7 @@ interface Props
     id: number;
     project: ProjectModel;
     onUpdate: (project: ProjectModel) => any;
+    onRequestEdit: (id: number) => any;
 }
 
 interface State
@@ -102,13 +103,6 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
         });
     }
 
-    handleBulletChange = (bulletId: number) =>
-    {
-        this.update({
-            bulletId: bulletId
-        });
-    }
-
     render = () =>
     {
         return (
@@ -128,6 +122,7 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
+                        onRequestEdit={this.props.onRequestEdit}
                     />
                     {this.sprite && (
                         <AnimatedSpriteCanvas
@@ -167,21 +162,13 @@ export default class PlayerEdit extends React.PureComponent<Props, State>
                     <span>pixels per frame</span>
                 </div>
                 <div className="row">
-                    <span className="label">Bullet:</span>
-                    <ObjectSelect
-                        currentObjectId={this.player.bulletId}
-                        objectType={"bullet"}
-                        onChange={this.handleBulletChange}
-                        project={this.props.project}
-                    />
-                </div>
-                <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
                         currentObjectId={this.player.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}
+                        onRequestEdit={this.props.onRequestEdit}
                     />
                 </div>
             </div>

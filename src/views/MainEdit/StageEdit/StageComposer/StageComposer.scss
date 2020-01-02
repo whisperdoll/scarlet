@@ -32,6 +32,8 @@
         }
     }
 
+    $colWidth: 300px;
+
     .edit
     {
         flex-grow: 1;
@@ -39,7 +41,7 @@
 
         & > *
         {
-            flex-basis: 300px;
+            flex-basis: $colWidth;
         }
 
         & > .stageInfo, & > .rightCol
@@ -54,6 +56,35 @@
             .row > .formsLabel
             {
                 margin-right: auto;
+            }
+        }
+
+        & > .rightCol
+        {
+            & > div:not(.row)
+            {
+                box-sizing: border-box;
+                background-color: transparent;
+                border: 0;
+                flex-grow: 2;
+                border-bottom: 1px solid $controlBorderColor;
+                margin-bottom: 8px;
+                padding: 0;
+                overflow: auto;
+
+                h1, h2
+                {
+                    font-size: 16px;
+                    margin: 0;
+                    margin-bottom: 16px;
+                    font-weight: normal;
+                }
+
+                & > div > canvas, & > div > code, & > div > img
+                {
+                    width: $colWidth !important;
+                    height: auto;
+                }
             }
         }
 
@@ -83,27 +114,6 @@
                     box-sizing: border-box;
                 }
             }
-        }
-
-        & .bossFormEdit, & .propertyEdit
-        {
-            box-sizing: border-box;
-            background-color: transparent;
-            border: 0;
-            flex-grow: 2;
-            border-bottom: 1px solid $controlBorderColor;
-            margin-bottom: 8px;
-            padding: 0;
-
-            h2
-            {
-                font-size: 16px;
-                margin: 0;
-                margin-bottom: 16px;
-                font-weight: normal;
-            }
-
-            overflow: auto;
         }
     }
 

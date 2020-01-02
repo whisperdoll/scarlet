@@ -12,6 +12,7 @@ import BossEdit from './BossEdit/BossEdit';
 import StageEdit from './StageEdit/StageEdit';
 import BackgroundEdit from './BackgroundEdit/BackgroundEdit';
 import KeyBindEdit from './KeyBindEdit/KeyBindEdit';
+import ObjectEdit from '../../components/ObjectEdit/ObjectEdit';
 
 interface Props
 {
@@ -58,16 +59,19 @@ export default class MainEditView extends React.PureComponent<Props, State>
         }));
     }
 
-    handleProjectUpdate = (project: ProjectModel) =>
-    {
-        this.props.onUpdate(project);
-    }
-
     handleEditKeyBinds = () =>
     {
         this.setState(state => ({
             ...state,
             currentlyEditing: "keyBinds"
+        }));
+    }
+
+    handleRequestEdit = (id: number) =>
+    {
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: id
         }));
     }
 
@@ -108,7 +112,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                                 case "keyBinds":
                                     return (
                                         <KeyBindEdit
-                                            onUpdate={this.handleProjectUpdate}
+                                            onUpdate={this.props.onUpdate}
                                             project={this.props.project}
                                         />
                                     );
@@ -119,78 +123,12 @@ export default class MainEditView extends React.PureComponent<Props, State>
                     </div>
                 )}
                 {typeof(this.state.currentlyEditing) === "number" && this.currentlyEditingObj && (
-                    <div className="objectEdit">
-                        <h1 className="noEmpty">{this.currentlyEditingObj.name}</h1>
-                        {(() => {
-                            switch (this.currentlyEditingObj.type)
-                            {
-                                case "sprite":
-                                    return (
-                                        <SpriteEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "player":
-                                    return (
-                                        <PlayerEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "script":
-                                    return (
-                                        <ScriptEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "enemy":
-                                    return (
-                                        <EnemyEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "bullet":
-                                    return (
-                                        <BulletEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "boss":
-                                    return (
-                                        <BossEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "stage":
-                                    return (
-                                        <StageEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
-                                case "background":
-                                    return (
-                                        <BackgroundEdit
-                                            id={this.state.currentlyEditing}
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    )
-                            }
-                        })()}
-                    </div>
+                    <ObjectEdit
+                        id={this.state.currentlyEditing}
+                        onUpdate={this.props.onUpdate}
+                        project={this.props.project}
+                        onRequestEdit={this.handleRequestEdit}
+                    />
                 )}
             </div>
         );

@@ -165,7 +165,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         }
 
         this.update({
-            numCells: val
+            numCells: Math.max(val, 1)
         });
     }
 

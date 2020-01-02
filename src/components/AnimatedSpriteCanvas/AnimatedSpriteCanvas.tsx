@@ -55,6 +55,24 @@ export default class AnimatedSpriteCanvas extends React.PureComponent<Props, Sta
         });
     }
 
+    componentDidUpdate(prevProps: Props, prevState: State)
+    {
+        if (prevProps.sprite.numCells !== this.props.sprite.numCells || prevProps.sprite.path !== this.props.sprite.path)
+        {
+            ImageCache.getImage(this.props.sprite.path, (img) =>
+            {
+                if (this.unmounted) return;
+    
+                const cellWidth = Math.floor(img.width / this.props.sprite.numCells);
+                
+                this.canvas?.resize(new Point(cellWidth, img.height), false);
+        
+                this.counter = 0;
+                this.renderSprite(-1);
+            });
+        }
+    }
+
     componentWillUnmount = () =>
     {
         this.unmounted = true;

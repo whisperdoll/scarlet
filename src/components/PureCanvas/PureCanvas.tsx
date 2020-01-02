@@ -51,6 +51,6 @@ export default class PureCanvas extends React.Component<Props, State>
 
     render = () =>
     {
-        return <canvas id="renderer" ref={this.canvasRef}></canvas>;
+        return <canvas ref={this.canvasRef}></canvas>;
     }
 }

@@ -6,7 +6,7 @@ import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
 import PropertyEdit from './PropertyEdit/PropertyEdit';
 import StageRenderer from "./StageRenderer/StageRenderer";
-import { array_copy, obj_copy, array_remove_at } from '../../../../utils/utils';
+import { array_copy, obj_copy, array_remove_at, array_last } from '../../../../utils/utils';
 import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
@@ -14,6 +14,7 @@ import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
 import ImageCache from '../../../../utils/ImageCache';
 import GameEngine from '../../../../utils/GameEngine';
 import update from "immutability-helper";
+import ObjectEdit from '../../../../components/ObjectEdit/ObjectEdit';
 
 type PauseAction = "loopAndPause" | "pause";
 type DeathAction = "loopAndPause" | "pause" | "loop";
@@ -28,9 +29,9 @@ interface Props
 
 interface State
 {
+    currentSelectionType: "none" | "enemy" | "bossForm" | "object";
+    currentSelectionId: number; // index in the case of enemy
     frame: number;
-    selectedEnemyIndex: number;
-    selectedBossFormIndex: number;
     selectedNewEnemyId: number;
     playing: boolean;
     refreshRenderer: boolean;
@@ -54,13 +55,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
         
         this.state = {
             frame: 0,
-            selectedEnemyIndex: -1,
             selectedNewEnemyId: -1,
+            currentSelectionId: -1,
+            currentSelectionType: "none",
             playing: false,
             refreshRenderer: false,
             selectedEnemyAliveCount: 0,
             selectedEnemyBulletAliveCount: 0,
-            selectedBossFormIndex: 0,
             loopStart: 0,
             loopEnd: this.stage.length - 1,
             loopEnabled: false,
@@ -75,6 +76,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
     get stage(): StageModel
     {
         return ObjectHelper.getObjectWithId<StageModel>(this.props.id, this.props.project)!;
+    }
+
+    get boss(): BossModel | null
+    {
+        return ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId, this.props.project);
     }
 
     update(obj: Partial<StageModel>)
@@ -138,6 +144,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
         if (currentEnemies.length !== prevEnemies.length)
         {
             this.refreshScripts();
+
+            if (currentEnemies.length > prevEnemies.length)
+            {
+                // form was added //
+                this.setState(state => ({
+                    currentSelectionId: currentEnemies.length - 1,
+                    currentSelectionType: "enemy"
+                }));
+            }
         }
         else
         {
@@ -167,13 +182,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
             if (currentBoss.formIds.length > prevBoss.formIds.length)
             {
                 // form was added //
-                this.handleBossFormIndexChange(currentBoss.formIds.length - 1);
-            }
-            else if (currentBoss.formIds.length < prevBoss.formIds.length)
-            {
-                // form was removed //
-                const index = prevState.selectedBossFormIndex;
-                this.handleBossFormIndexChange(Math.max(0, index - 1));
+                this.setState(state => ({
+                    currentSelectionId: array_last(currentBoss.formIds),
+                    currentSelectionType: "bossForm"
+                }));
             }
         }
     }
@@ -374,8 +386,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            selectedEnemyIndex: index,
-            selectedBossFormIndex: -1
+            currentSelectionId: index,
+            currentSelectionType: "enemy"
         }));
     }
 
@@ -383,7 +395,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            selectedEnemyIndex: -1
+            currentSelectionId: -1,
+            currentSelectionType: "none"
         }));
     }
 
@@ -393,7 +406,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
         array_remove_at(enemies, index);
         this.setState(state => ({
             ...state,
-            selectedEnemyIndex: -1
+            currentSelectionId: -1,
+            currentSelectionType: "none"
         }));
         this.update({
             enemies: enemies
@@ -402,13 +416,10 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleSelectNewEnemy = (newEnemyId: number) =>
     {
-        this.setState(state =>
-        {
-            return {
+        this.setState(state => ({
                 ...state,
                 selectedNewEnemyId: newEnemyId
-            };
-        });
+        }));
     }
 
     handleUpdateEnemy = (enemy: StageEnemyData, index: number) =>
@@ -478,29 +489,23 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }));
     }
 
-    handleBossFormIndexChange = (index: number) =>
-    {
-        if (index >= 0)
-        {
-            this.setState(state => ({
-                ...state,
-                selectedBossFormIndex: index,
-                selectedEnemyIndex: -1
-            }));
-        }
-    }
-
     handleAddBossForm = () =>
     {
         const { obj, project } = ObjectHelper.createAndAddObject<BossFormModel>("bossForm", this.props.project);
         this.props.onUpdate(project);
     }
 
-    handleBossFormRemove = (id: number) =>
+    handleRemoveBossForm = (id: number) =>
     {
         const boss = ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId, this.props.project);
         if (boss)
         {
+            this.setState(state => ({
+                ...state,
+                currentSelectionId: -1,
+                currentSelectionType: "none"
+            }));
+
             // remove object //
             let project = ObjectHelper.removeObject(id, this.props.project);
     
@@ -647,22 +652,34 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }));
     }
 
-    private get selectedBossForm(): BossFormModel | null
+    handleRequestEdit = (id: number) =>
     {
-        return this.getBossForm(this.state.selectedBossFormIndex);
+        this.setState(state => ({
+            ...state,
+            currentSelectionId: id,
+            currentSelectionType: "object"
+        }));
     }
 
-    private getBossForm = (index: number): BossFormModel | null =>
+    handleSelectBossForm = (id: number) =>
     {
-        if (index === -1) return null;
+        this.setState(state => ({
+            ...state,
+            currentSelectionId: id,
+            currentSelectionType: "bossForm"
+        }));
+    }
 
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId, this.props.project);
-        if (!boss || boss.formIds.length === 0)
+    private get selectedBossForm(): BossFormModel | null
+    {
+        if (this.state.currentSelectionType === "bossForm")
+        {
+            return ObjectHelper.getObjectWithId<BossFormModel>(this.state.currentSelectionId, this.props.project);
+        }
+        else
         {
             return null;
         }
-
-        return ObjectHelper.getObjectWithId<BossFormModel>(boss.formIds[index], this.props.project);
     }
 
     render()
@@ -722,6 +739,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 objectType="background"
                                 onChange={this.handleBackgroundChange}
                                 project={this.props.project}
+                                onRequestEdit={this.handleRequestEdit}
                             />
                         </div>
                         <div className="row">
@@ -731,6 +749,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 objectType="player"
                                 onChange={this.handlePlayerChange}
                                 project={this.props.project}
+                                onRequestEdit={this.handleRequestEdit}
                             />
                         </div>
                         <div className="row">
@@ -754,6 +773,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 objectType="boss"
                                 onChange={this.handleBossChange}
                                 project={this.props.project}
+                                onRequestEdit={this.handleRequestEdit}
                             />
                         </div>
                         <div className="row">
@@ -795,7 +815,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             <button onClick={this.handleAddBossForm}>+ Add New</button>
                         </div>
                         <BossFormList
-                            onSelectBossForm={this.handleBossFormIndexChange}
+                            onSelectBossForm={this.handleSelectBossForm}
                             project={this.props.project}
                             stage={this.stage}
                             bossId={this.stage.bossId}
@@ -808,22 +828,20 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             id={this.props.id}
                             frame={this.state.frame}
                             refresh={this.state.refreshRenderer}
-                            selectedEntityIndex={this.state.selectedEnemyIndex >= 0 ? this.state.selectedEnemyIndex : (this.state.selectedBossFormIndex >= 0 ? this.state.selectedBossFormIndex : -1)}
                             onInstanceCount={this.handleInstanceCount}
                             playing={this.state.playing}
                             onPlayerDie={this.handlePlayerDie}
                             onPlayFrame={this.handlePlayFrame}
                             playerInvincible={this.state.playerInvincible}
                             onUpdate={this.props.onUpdate}
-                            onSelectEnemy={this.handleSelectEnemy}
                             onFinalFrameCalculate={this.handleFinalFrameCalculate}
                         />
                     </div>
                     <div className="col rightCol">
                         {/* properties */}
-                        {this.state.selectedEnemyIndex >= 0 && (
+                        {this.state.currentSelectionType === "enemy" && (
                             <PropertyEdit
-                                enemyIndex={this.state.selectedEnemyIndex}
+                                enemyIndex={this.state.currentSelectionId}
                                 onUpdate={this.handleUpdateEnemy}
                                 project={this.props.project}
                                 stage={this.stage}
@@ -831,14 +849,24 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 onRequestRemoveEnemy={this.handleRemoveEnemy}
                                 enemyAliveCount={this.state.selectedEnemyAliveCount}
                                 enemyBulletAliveCount={this.state.selectedEnemyBulletAliveCount}
+                                onRequestEdit={this.handleRequestEdit}
                             />
                         )}
                         {this.selectedBossForm && (
                             <BossFormEdit
-                                id={this.selectedBossForm.id}
-                                index={this.state.selectedBossFormIndex}
+                                id={this.state.currentSelectionId}
+                                index={this.boss!.formIds.indexOf(this.state.currentSelectionId)}
                                 onUpdate={this.props.onUpdate}
-                                onRequestRemove={this.handleBossFormRemove}
+                                onRequestRemove={this.handleRemoveBossForm}
+                                project={this.props.project}
+                                onRequestEdit={this.handleRequestEdit}
+                            />
+                        )}
+                        {this.state.currentSelectionType === "object" && (
+                            <ObjectEdit
+                                id={this.state.currentSelectionId}
+                                onRequestEdit={this.handleRequestEdit}
+                                onUpdate={this.props.onUpdate}
                                 project={this.props.project}
                             />
                         )}
@@ -906,7 +934,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     project={this.props.project}
                     stage={this.stage}
                     frame={this.state.frame}
-                    selectedEntityIndex={this.state.selectedEnemyIndex >= 0 ? this.state.selectedEnemyIndex : (this.state.selectedBossFormIndex >= 0 ? this.state.selectedBossFormIndex : -1)}
+                    currentSelectionId={this.state.currentSelectionId}
+                    currentSelectionType={this.state.currentSelectionType}
                     loopStart={this.state.loopStart}
                     loopEnd={this.state.loopEnd}
                     loopEnabled={this.state.loopEnabled}

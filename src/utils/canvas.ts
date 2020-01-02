@@ -103,7 +103,7 @@ export class Canvas
         }
         else
         {
-            this.canvas.style.transformOrigin = "top left";
+            //this.canvas.style.transformOrigin = "top left";
         }
 
         this.usingDeepCalc = options.deepCalc || false;

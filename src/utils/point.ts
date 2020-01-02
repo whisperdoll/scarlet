@@ -73,6 +73,11 @@ export default class Point implements PointLike
     {
         return new Point(Math.floor(this.x), Math.floor(this.y));
     }
+
+    public get ratio(): number
+    {
+        return this.x / this.y;
+    }
     
     public static fromSizeLike(sizeLike : SizeLike) : Point
     {

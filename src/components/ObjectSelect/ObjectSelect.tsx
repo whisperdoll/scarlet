@@ -7,7 +7,8 @@ interface Props
     project: ProjectModel;
     objectType: ObjectType;
     currentObjectId: number;
-    onChange: (objId: number) => any;
+    onChange: (id: number) => any;
+    onRequestEdit?: (id: number) => any;
 }
 
 interface State
@@ -35,19 +36,27 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
         }
     }
 
+    handleEdit = () =>
+    {
+        this.props.onRequestEdit!(this.props.currentObjectId);
+    }
+
     render = () =>
     {
         return (
-            <select
-                onChange={this.handleChange}
-                value={this.props.currentObjectId.toString()}
-            >
-                <option key={-1} value="-1">(None)</option>
-                {ObjectHelper.getObjectsWithType(this.props.objectType, this.props.project).map((obj) =>
-                {
-                   return <option key={obj.id} value={obj.id.toString()}>{obj.name}</option> 
-                })}
-            </select>
+            <React.Fragment>
+                <select
+                    onChange={this.handleChange}
+                    value={this.props.currentObjectId.toString()}
+                >
+                    <option key={-1} value="-1">(None)</option>
+                    {ObjectHelper.getObjectsWithType(this.props.objectType, this.props.project).map((obj) =>
+                    {
+                    return <option key={obj.id} value={obj.id.toString()}>{obj.name}</option> 
+                    })}
+                </select>
+                {this.props.onRequestEdit && <button onClick={this.handleEdit}>Edit...</button>}
+            </React.Fragment>
         );
     }
 }

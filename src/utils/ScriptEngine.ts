@@ -1,14 +1,16 @@
 import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
-import { ProjectModel, ScriptModel, KeyBindings } from "./datatypes";
+import { ProjectModel, ScriptModel, KeyBindings, BulletModel } from "./datatypes";
 import { PointLike } from "./point";
 import PathHelper from "../utils/PathHelper";
 import { obj_copy } from "../utils/utils";
+import { GameEntity } from "./GameEngine";
 
 export interface StageScriptData
 {
-    size: PointLike;
+    width: number;
+    height: number;
     age: number;
 };
 
@@ -19,9 +21,9 @@ export interface PlayerScriptData
 
 export interface ScriptMethodCollection
 {
-    init: (context: ScriptContext) => ScriptResult;
-    update: (context: ScriptContext) => ScriptResult;
-    die: (context: ScriptContext) => ScriptResult;
+    init?: (context: ScriptContext) => any;
+    update?: (context: ScriptContext) => any;
+    die?: (context: ScriptContext) => any;
 };
 
 export interface KeyContext extends Record<string, boolean>
@@ -38,30 +40,9 @@ export interface KeyContext extends Record<string, boolean>
 export interface ScriptContext
 {
     stage: StageScriptData;
-    entity: ScriptEntityData;
+    entity: GameEntity;
     keys: KeyContext;
-};
-
-export interface ScriptEntityData
-{
-    age: number;
-    spawnPosition: PointLike;
-    position: PointLike;
-    index: number;
-    hp: number;
-    store: Record<string, any>;
-};
-
-export interface ScriptResult
-{
-    position?: PointLike;
-    store?: Record<string, any>;
-    fire?: number;
-    fireStores?: Record<string, any>[];
-    alive?: boolean;
-    opacity?: number;
-    scaleX?: number;
-    scaleY?: number;
+    helpers: Readonly<Record<string, Function>>;
 };
 
 // engine //
@@ -159,11 +140,11 @@ export default class ScriptEngine
         return true;
     }
 
-    public static parseScript(scriptId: number, project: ProjectModel): ScriptMethodCollection
+    public static parseScript(scriptId: number, project: ProjectModel): ScriptMethodCollection | null
     {
         if (scriptId === -1)
         {
-            throw new Error("tried to parse script for scriptless object ");
+            return null;
         }
         if (!this.contextCache.has(scriptId))
         {

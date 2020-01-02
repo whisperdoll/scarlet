@@ -18,12 +18,10 @@ interface Props
     project: ProjectModel;
     frame: number;
     refresh: boolean;
-    selectedEntityIndex: number;
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
     onPlayFrame: (frame: number, isLastFrame: boolean) => any;
     onUpdate: (project: ProjectModel) => any;
-    onSelectEnemy: (index: number) => any;
     onFinalFrameCalculate: (finalFrame: number) => any;
     playing: boolean;
     playerInvincible: boolean;
@@ -140,8 +138,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             canvasElement: this.canvasRef.current!,
             opaque: true,
             align: {
-                horizontal: true,
-                vertical: true
+                horizontal: false,
+                vertical: false
             }
         });
         this.grabCanvas(this.canvas);
@@ -169,7 +167,13 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     componentDidUpdate = (prevProps: Props) =>
     {
-        this.handleResize();
+        const prevStage = ObjectHelper.getObjectWithId<StageModel>(prevProps.id, prevProps.project);
+        const stage = this.stage;
+
+        if (prevStage && (prevStage.size.x !== stage.size.x || prevStage.size.y !== stage.size.y))
+        {
+            this.handleResize();
+        }
 
         if (this.props.playing && !prevProps.playing)
         {
@@ -203,13 +207,25 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             const containerSize = Point.fromSizeLike(this.containerRef.current.getBoundingClientRect());
             const stageSize = Point.fromPointLike(this.stage.size);
-            const ratio = containerSize.dividedBy(stageSize).min;
-            this.canvas.scale(ratio, "translate(-50%,-50%)", "");
+            
+            const cr = containerSize.ratio;
+            const sr = stageSize.ratio;
+
+            if (cr < sr)
+            {
+                this.canvas.canvas.style.width = "100%";
+                this.canvas.canvas.style.height = "";
+            }
+            else
+            {
+                this.canvas.canvas.style.height = "100%";
+                this.canvas.canvas.style.width = "";
+            }
+            //this.canvas.scale(ratio, "translate(-50%,-50%)", "");
             /*if ((ratio >= 1 && this.ratio < 1) || (ratio < 1 && this.ratio >= 1))
             {
                 this.canvas.pixelated = ratio >= 1;
             }*/
-            this.ratio = ratio;
             this.dirty = true;
         }
     }
@@ -353,6 +369,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                     psprite.position = offsetPos;
                     psprite.alpha = entity.opacity;
                     psprite.scale = new PIXI.Point(entity.scaleX, entity.scaleY);
+                    psprite.tint = entity.tint;
                     container.addChild(psprite);
                     // console.timeEnd("== fetching");
                 }

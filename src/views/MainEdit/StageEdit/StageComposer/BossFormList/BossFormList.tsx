@@ -10,7 +10,7 @@ interface Props
     project: ProjectModel;
     stage: StageModel;
     bossId: number;
-    onSelectBossForm: (index: number) => any;
+    onSelectBossForm: (id: number) => any;
 }
 
 interface State
@@ -30,8 +30,8 @@ export default class BossFormList extends React.PureComponent<Props, State>
     handleFormSelect(e: React.MouseEvent<HTMLDivElement, MouseEvent>)
     {
         e.stopPropagation();
-        const index = parseInt(e.currentTarget.dataset.index as string);
-        this.props.onSelectBossForm(index);
+        const id = parseInt(e.currentTarget.dataset.id as string);
+        this.props.onSelectBossForm(id);
     }
 
     handleFormDeselect()
@@ -39,9 +39,9 @@ export default class BossFormList extends React.PureComponent<Props, State>
         this.props.onSelectBossForm(-1);
     }
 
-    private spriteForForm(formIndex: number): SpriteModel | null
+    private spriteForForm(id: number): SpriteModel | null
     {
-        return ObjectHelper.getSubObject(this.props.bossId, `form[${formIndex}].sprite`, this.props.project);
+        return ObjectHelper.getSubObject(id, "sprite", this.props.project);
     }
 
     render()
@@ -52,16 +52,16 @@ export default class BossFormList extends React.PureComponent<Props, State>
                     <div
                         className="bossFormItem"
                         onClick={this.handleFormSelect}
-                        key={i}
-                        data-index={i.toString()}
+                        key={formId}
+                        data-id={formId.toString()}
                     >
-                        {this.spriteForForm(i) && (
+                        {this.spriteForForm(formId) && (
                             <AnimatedSpriteCanvas
                                 canvasOptions={{
                                     opaque: false,
                                     pixelated: true
                                 }}
-                                sprite={this.spriteForForm(i)!}
+                                sprite={this.spriteForForm(formId)!}
                                 className="sprite"
                             />
                         )}

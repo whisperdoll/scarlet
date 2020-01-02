@@ -11,6 +11,7 @@ interface Props
     project: ProjectModel;
     id: number;
     onUpdate: (project: ProjectModel) => any;
+    onRequestEdit: (id: number) => any;
 }
 
 interface State
@@ -95,6 +96,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                         objectType={"sprite"}
                         project={this.props.project}
                         onChange={this.handleSpriteChange}
+                        onRequestEdit={this.props.onRequestEdit}
                     />
                     {this.sprite && (
                         <AnimatedSpriteCanvas
@@ -122,6 +124,7 @@ export default class BulletEdit extends React.PureComponent<Props, State>
                         objectType={"script"}
                         onChange={this.handleScriptChange}
                         project={this.props.project}
+                        onRequestEdit={this.props.onRequestEdit}
                     />
                 </div>
             </div>

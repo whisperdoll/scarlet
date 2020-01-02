@@ -12,6 +12,7 @@ interface Props
     id: number;
     project: ProjectModel;
     onUpdate: (project: ProjectModel) => any;
+    onRequestEdit: (id: number) => any;
 }
 
 interface State
@@ -92,6 +93,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
                         onRequestRemove={this.handleFormRemove}
                         project={this.props.project}
                         key={i}
+                        onRequestEdit={this.props.onRequestEdit}
                     />
                 ))}
                 <button onClick={this.addForm}>+ Add Form</button>

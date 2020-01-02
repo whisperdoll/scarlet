@@ -1,35 +1,35 @@
 import { PointLike } from "./point";
-import { BossModel, ScriptHaver, SpriteHaver, BulletHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel } from "./datatypes";
-import ScriptEngine, { KeyContext } from "./ScriptEngine";
+import { BossModel, ScriptHaver, SpriteHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel, ScriptModel } from "./datatypes";
+import ScriptEngine, { KeyContext, ScriptMethodCollection } from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
-import { obj_copy, array_remove_multiple, array_last, array_copy } from "./utils";
 import copy from "fast-copy";
 
 type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
-export interface GameEntity
+export interface GameEntity extends Record<string, any>
 {
-    scriptId: number;
-    spriteId: number;
-    bulletId: number;
-    id: number;
-    index: number;
-    spawnFrame: number;
-    lifetime: number;
+    readonly scriptId: number;
+    readonly spriteId: number;
+    readonly id: number;
+    readonly index: number;
+    readonly spawnFrame: number;
+    readonly type: GameEntityType;
+    readonly spawnPositionX: number;
+    readonly spawnPositionY: number;
+    readonly lifetime: number;
+    readonly scriptName: string; // used for errors etc
+
     age: number;
-    spawnPositionX: number;
-    spawnPositionY: number;
     positionX: number;
     positionY: number;
-    bulletsFired: number;
     alive: boolean;
-    type: GameEntityType;
     store: Record<string, any>;
     hp: number;
     opacity: number;
     scaleX: number;
     scaleY: number;
+    tint: number;
 };
 
 type KeyStruct = Map<string, boolean>;
@@ -68,12 +68,25 @@ export default class GameEngine
     private cacheInterval: number = 15;
     private _finalFrame: number = 0;
     private currentKeyContext: KeyContext = this.getKeyContext(new Map());
-
-    // time
     private cache: Map<number, GameState> = new Map();
+
+    private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
+    {
+        fireBullet: (name: string, isFriendly: boolean, spawnX: number, spawnY: number, store?: Record<string, any>): GameEntity | null =>
+        {
+            const bullet = ObjectHelper.getObjectWithName<BulletModel>(name);
+            if (bullet)
+            {
+                return this.handleFire(bullet, isFriendly ? "playerBullet" : "enemyBullet", spawnX, spawnY, store)
+            }
+
+            return null;
+        }
+    };
 
     constructor()
     {
+        Object.freeze(this.scriptHelperFunctions);
     }
 
     public get finalFrame(): number
@@ -97,6 +110,7 @@ export default class GameEngine
     private loadGameState(gameState: GameState)
     {
         this.entities = copy(gameState.entities);
+        (window as any).x = this.entities;
         this.stageAge = gameState.stageAge;
     }
 
@@ -145,6 +159,36 @@ export default class GameEngine
         return ret as KeyContext;
     }
 
+    private prepareEntity(entity: GameEntity): GameEntity
+    {
+        const toFreeze = [
+            "scriptId",
+            "spriteId",
+            "id",
+            "index",
+            "spawnFrame",
+            "type",
+            "spawnPositionX",
+            "spawnPositionY",
+            "lifetime"
+        ];
+        
+        toFreeze.forEach(prop => Object.defineProperty(entity, prop, {
+            configurable: false,
+            writable: false,
+            value: entity[prop]
+        }));
+
+        return entity;
+    }
+
+    private prepareAndAddEntity(entity: GameEntity): GameEntity
+    {
+        const e = this.prepareEntity(entity);
+        this.entities.push(e);
+        return e;
+    }
+
     public reset(stage: StageModel, project: ProjectModel)
     {
         this.entities = [];
@@ -155,15 +199,15 @@ export default class GameEngine
         const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId, project);
         if (player)
         {
-            this.entities.push({
+            this.prepareAndAddEntity({
                 age: 0,
                 alive: false,
                 bulletsFired: 0,
                 index: 0,
-                bulletId: player.bulletId,
                 positionX: stage.playerSpawnPosition.x,
                 positionY: stage.playerSpawnPosition.y,
                 scriptId: player.scriptId,
+                scriptName: ObjectHelper.getObjectWithId<ScriptModel>(player.scriptId, project)?.name || "",
                 spawnPositionX: stage.playerSpawnPosition.x,
                 spawnPositionY: stage.playerSpawnPosition.y,
                 spawnFrame: 0,
@@ -175,7 +219,8 @@ export default class GameEngine
                 id: player.id,
                 opacity: 1,
                 scaleX: 1,
-                scaleY: 1
+                scaleY: 1,
+                tint: 0xFFFFFF
             });
         }
         
@@ -188,7 +233,7 @@ export default class GameEngine
                 const form = ObjectHelper.getObjectWithId<BossFormModel>(formId, this.project!);
                 if (form)
                 {
-                    this.entities.push({
+                    this.prepareAndAddEntity({
                         age: 0,
                         alive: false,
                         bulletsFired: 0,
@@ -198,17 +243,18 @@ export default class GameEngine
                         type: "boss",
                         store: {},
                         hp: form.hp,
-                        bulletId: form.bulletId,
                         positionX: stage.bossSpawnPosition.x,
                         positionY: stage.bossSpawnPosition.y,
                         scriptId: form.scriptId,
+                        scriptName: ObjectHelper.getObjectWithId<ScriptModel>(form.scriptId, project)?.name || "",
                         spawnPositionX: stage.bossSpawnPosition.x,
                         spawnPositionY: stage.bossSpawnPosition.y,
                         spriteId: form.spriteId,
                         opacity: 1,
                         scaleX: 1,
                         scaleY: 1,
-                        id: form.id
+                        id: form.id,
+                        tint: 0xFFFFFF
                     });
     
                     spawnFrame += form.lifetime + GameEngine.bossTransitionFrames;
@@ -225,7 +271,7 @@ export default class GameEngine
             {
                 for (let i = 0; i < enemyData.spawnAmount; i++)
                 {
-                    this.entities.push({
+                    this.prepareAndAddEntity({
                         age: 0,
                         alive: false,
                         bulletsFired: 0,
@@ -235,17 +281,18 @@ export default class GameEngine
                         type: "enemy",
                         store: {},
                         hp: enemy.hp,
-                        bulletId: enemy.bulletId,
                         positionX: enemyData.spawnPosition.x,
                         positionY: enemyData.spawnPosition.y,
                         scriptId: enemy.scriptId,
+                        scriptName: ObjectHelper.getObjectWithId<ScriptModel>(enemy.scriptId, project)?.name || "",
                         spawnPositionX: enemyData.spawnPosition.x,
                         spawnPositionY: enemyData.spawnPosition.y,
                         spriteId: enemy.spriteId,
                         id: enemy.id,
                         opacity: 1,
                         scaleX: 1,
-                        scaleY: 1
+                        scaleY: 1,
+                        tint: 0xFFFFFF
                     });
                 }
             }
@@ -325,34 +372,14 @@ export default class GameEngine
     private killEntity(entity: GameEntity)
     {
         entity.alive = false;
+        /*Object.defineProperty(entity, "alive", {
+            writable: false,
+            configurable: false,
+            value: false
+        });*/
 
         const methods = ScriptEngine.parseScript(entity.scriptId, this.project as ProjectModel);
-        if (methods && methods.die)
-        {
-            const results = methods.die({
-                entity: {
-                    age: entity.age,
-                    index: entity.index,
-                    position: { x: entity.positionX, y: entity.positionY },
-                    spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
-                    hp: entity.hp,
-                    store: entity.store
-                },
-                stage: {
-                    age: this.stageAge,
-                    size: (this.stage as StageModel).size
-                },
-                keys: this.currentKeyContext
-            });
-
-            if (results)
-            {
-                if (results.fire)
-                {
-                    this.handleFire(entity, results.fire, results.fireStores);
-                }
-            }
-        }
+        this.tryCallScriptMethod(methods, "die", entity);
     }
 
     public advanceFrame(context: UpdateContext): UpdateResult
@@ -361,7 +388,6 @@ export default class GameEngine
 
         let playerAlive = true;
         let isLastUpdate = false;
-        const playerBullet = this.playerEntity ? ObjectHelper.getObjectWithId<BulletModel>(this.playerEntity.bulletId, this.project) : null;
         this.currentKeyContext = this.getKeyContext(context.keys);
         let bossSpawned = false;
 
@@ -421,13 +447,14 @@ export default class GameEngine
                 this.killEntity(entity);
                 alreadyUpdated = true;
             }
-            else if (entity.type === "playerBullet" && playerBullet)
+            else if (entity.type === "playerBullet")
             {
+                const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.id, this.project)!;
                 // console.time("====== update player byullet");
                 const collidingEnemies = this.entities.filter(e => e.alive && (e.type === "enemy" || e.type === "boss") && this.testCollision(entity, e));
                 collidingEnemies.forEach((e) =>
                 {
-                    e.hp -= playerBullet.damage;
+                    e.hp -= bullet.damage;
                     if (e.hp <= 0)
                     {
                         e.hp = 0;
@@ -438,7 +465,7 @@ export default class GameEngine
                 // console.timeEnd("====== update player byullet");
             }
 
-            if (entity.scriptId >= 0 && !alreadyUpdated)
+            if (!alreadyUpdated)
             {
                 // console.time("====== run entyity script");
                 this.runEntityUpdateScript(entity, context);
@@ -475,6 +502,35 @@ export default class GameEngine
         return ret;
     }
 
+    private reportError(context: string, message: string)
+    {
+        console.error("an error occured during " + context + ":\n" + message);
+    }
+
+    private tryCallScriptMethod(methods: ScriptMethodCollection | null, method: keyof ScriptMethodCollection, entity: GameEntity)
+    {
+        if (methods && methods[method])
+        {
+            try
+            {
+                methods[method]!({
+                    entity: entity,
+                    stage: {
+                        age: this.stageAge,
+                        width: this.stage!.size.x,
+                        height: this.stage!.size.y
+                    },
+                    keys: this.currentKeyContext,
+                    helpers: this.scriptHelperFunctions
+                });
+            }
+            catch (e)
+            {
+                this.reportError(entity.scriptName + ":" + method, e.message);
+            }
+        }
+    }
+
     private trySpawnEntity(entity: GameEntity, keys: Map<string, boolean>): boolean
     {
         if (!this.project || !this.stage) return false;
@@ -482,63 +538,8 @@ export default class GameEngine
         if (!entity.alive && entity.spawnFrame === this.stageAge)
         {
             entity.alive = true;
-
-            if (entity.scriptId >= 0)
-            {
-                const methods = ScriptEngine.parseScript(entity.scriptId, this.project);
-                if (methods.init)
-                {
-                    const results = methods.init({
-                        entity: {
-                            age: 0,
-                            index: entity.index,
-                            position: { x: entity.positionX, y: entity.positionY },
-                            spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
-                            hp: entity.hp,
-                            store: entity.store
-                        },
-                        stage: {
-                            age: this.stageAge,
-                            size: this.stage.size
-                        },
-                        keys: this.currentKeyContext
-                    });
-    
-                    if (results)
-                    {
-                        if (results.position)
-                        {
-                            entity.positionX = results.position.x;
-                            entity.positionY = results.position.y;
-                        }
-                        if (results.store)
-                        {
-                            entity.store = results.store;
-                        }
-                        if (results.fire)
-                        {
-                            this.handleFire(entity, results.fire, results.fireStores);
-                        }
-                        if (results.alive === false)
-                        {
-                            this.killEntity(entity);
-                        }
-                        if (results.opacity || results.opacity === 0)
-                        {
-                            entity.opacity = results.opacity;
-                        }
-                        if (results.scaleX)
-                        {
-                            entity.scaleX = results.scaleX;
-                        }
-                        if (results.scaleY)
-                        {
-                            entity.scaleY = results.scaleY;
-                        }
-                    }
-                }
-            }
-
+            const methods = ScriptEngine.parseScript(entity.scriptId, this.project);
+            this.tryCallScriptMethod(methods, "init", entity);
             return true;
         }
 
@@ -577,124 +578,41 @@ export default class GameEngine
     private runEntityUpdateScript(entity: GameEntity, context: UpdateContext)
     {
         const methods = ScriptEngine.parseScript(entity.scriptId, this.project as ProjectModel);
-        const results = methods.update ? methods.update({
-            entity: {
-                age: entity.age,
-                index: entity.index,
-                position: { x: entity.positionX, y: entity.positionY },
-                spawnPosition: { x: entity.spawnPositionX, y: entity.spawnPositionY },
-                hp: entity.hp,
-                store: entity.store
-            },
-            stage: {
-                age: this.stageAge,
-                size: this.gameSize
-            },
-            keys: this.currentKeyContext
-        }) : null;
-
-        if (results)
-        {
-            if (results.position)
-            {
-                entity.positionX = results.position.x;
-                entity.positionY = results.position.y;
-            }
-
-            if (results.store)
-            {
-                entity.store = results.store;
-            }
-            
-            if (results.fire)
-            {
-                for (let i = 0; i < results.fire; i++)
-                {
-                    const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.bulletId, this.project as ProjectModel);
-                    if (bullet)
-                    {
-                        this.entities.push({
-                            age: 0,
-                            index: entity.bulletsFired++,
-                            id: entity.bulletId,
-                            bulletId: entity.bulletId,
-                            scriptId: bullet.scriptId,
-                            spriteId: bullet.spriteId,
-                            positionX: entity.positionX,
-                            positionY: entity.positionY,
-                            spawnPositionX: entity.spawnPositionX,
-                            spawnPositionY: entity.spawnPositionY,
-                            spawnFrame: this.stageAge,
-                            lifetime: -1,
-                            bulletsFired: 0,
-                            alive: true,
-                            type: entity.type === "player" ? "playerBullet" : "enemyBullet",
-                            store: results.fireStores ? results.fireStores[i] || {} : {},
-                            hp: 0,
-                            opacity: 1,
-                            scaleX: 1,
-                            scaleY: 1
-                        });
-                    }
-                }
-            }
-
-            if (!results.alive)
-            {
-                entity.alive = false;
-            }
-
-            if (results.fire)
-            {
-                this.handleFire(entity, results.fire, results.fireStores);
-            }
-
-            if (results.opacity || results.opacity === 0)
-            {
-                entity.opacity = results.opacity;
-            }
-            if (results.scaleX)
-            {
-                entity.scaleX = results.scaleX;
-            }
-            if (results.scaleY)
-            {
-                entity.scaleY = results.scaleY;
-            }
-        }
+        this.tryCallScriptMethod(methods, "update", entity);
     }
 
-    private handleFire(entity: GameEntity, num: number, stores?: any[])
+    private handleFire(bullet: number | BulletModel | null, bulletType: "playerBullet" | "enemyBullet", posX: number, posY: number, store: any): GameEntity | null
     {
-        for (let i = 0; i < num; i++)
+        if (typeof(bullet) === "number")
         {
-            const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.bulletId, this.project as ProjectModel);
-            if (bullet)
-            {
-                this.entities.push({
-                    age: 0,
-                    index: entity.bulletsFired++,
-                    id: entity.bulletId,
-                    bulletId: entity.bulletId,
-                    scriptId: bullet.scriptId,
-                    spriteId: bullet.spriteId,
-                    positionX: entity.positionX,
-                    positionY: entity.positionY,
-                    spawnPositionX: entity.spawnPositionX,
-                    spawnPositionY: entity.spawnPositionY,
-                    spawnFrame: this.stageAge,
-                    lifetime: -1,
-                    bulletsFired: 0,
-                    alive: true,
-                    type: entity.type === "player" ? "playerBullet" : "enemyBullet",
-                    store: stores ? stores[i] || {} : {},
-                    hp: 0,
-                    opacity: 1,
-                    scaleX: 1,
-                    scaleY: 1
-                });
-            }
+            bullet = ObjectHelper.getObjectWithId<BulletModel>(bullet, this.project!);
         }
+
+        if (!bullet) return null;
+        
+        return this.prepareAndAddEntity({
+            age: 0,
+            index: 0,
+            id: bullet.id,
+            scriptId: bullet.scriptId,
+            scriptName: ObjectHelper.getObjectWithId<ScriptModel>(bullet.scriptId, this.project!)?.name || "",
+            spriteId: bullet.spriteId,
+            positionX: posX,
+            positionY: posY,
+            spawnPositionX: posX,
+            spawnPositionY: posY,
+            spawnFrame: this.stageAge,
+            lifetime: -1,
+            bulletsFired: 0,
+            alive: true,
+            type: bulletType,
+            store: store || {},
+            hp: 0,
+            opacity: 1,
+            scaleX: 1,
+            scaleY: 1,
+            tint: 0xFFFFFF
+        });
     }
 
     private testCollision(entity1: GameEntity, entity2: GameEntity)

@@ -12,7 +12,8 @@ interface Props
     stage: StageModel;
     frame: number;
     onScrub: (frame: number) => any;
-    selectedEntityIndex: number;
+    currentSelectionType: "none" | "enemy" | "bossForm" | "object";
+    currentSelectionId: number;
     loopStart: number;
     loopEnd: number;
     loopEnabled: boolean;
@@ -121,7 +122,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                                             pixelated: true
                                         }}
                                         sprite={this.spriteForEnemy(enemy)!}
-                                        className={i === this.props.selectedEntityIndex ? "selected" : ""}
+                                        className={this.props.currentSelectionType === "enemy" && i === this.props.currentSelectionId ? "selected" : ""}
                                         style={{
                                             position: "absolute",
                                             left: (enemy.spawnFrame / this.props.max * 100).toString() + "%",
@@ -141,6 +142,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
                                             pixelated: true
                                         }}
                                         sprite={this.spriteForBossForm(bossForm)!}
+                                        className={this.props.currentSelectionType === "bossForm" && this.props.currentSelectionId === bossForm.id ? "selected" : ""}
                                         style={{
                                             position: "absolute",
                                             left: (bossForm.spawnFrame / this.props.max * 100).toString() + "%",

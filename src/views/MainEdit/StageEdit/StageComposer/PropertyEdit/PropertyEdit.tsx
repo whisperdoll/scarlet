@@ -13,6 +13,7 @@ interface Props
     onRequestRemoveEnemy: (index: number) => any;
     enemyAliveCount: number;
     enemyBulletAliveCount: number;
+    onRequestEdit: (id: number) => any;
 }
 
 interface State
@@ -157,6 +158,7 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             objectType="enemy"
                             onChange={this.handleTypeChange}
                             project={this.props.project}
+                            onRequestEdit={this.props.onRequestEdit}
                         />
                     </div>
                     <div className="row">
@@ -207,10 +209,10 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             value={this.enemy.spawnAmount.toString()}
                         />
                     </div>
-                    <button onClick={this.handleDeselect}>Deselect</button>
+                    {/* <button onClick={this.handleDeselect}>Deselect</button> */}
                     <button onClick={this.handleRequestRemove} className="remove">- Remove</button>
-                    <div>Alive: {this.props.enemyAliveCount}</div>
-                    <div>Bullets Alive: {this.props.enemyBulletAliveCount}</div>
+                    {/* <div>Alive: {this.props.enemyAliveCount}</div>
+                    <div>Bullets Alive: {this.props.enemyBulletAliveCount}</div> */}
                 </div>
             );
         }

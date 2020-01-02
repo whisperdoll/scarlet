@@ -176,7 +176,6 @@ export default class App extends React.PureComponent<Props, State>
                 return;
             }
 
-            project = ObjectHelper.init(project);
             this.setState(state => ({
                 ...state,
                 project: project,
@@ -210,20 +209,20 @@ export default class App extends React.PureComponent<Props, State>
             throw e;
         }
 
-        project = ObjectHelper.init(project);
         const filename = this.genProjectFilename(project, folderPath);
         this.setState(state => ({
             ...state,
             currentView: "MainEdit",
             project: project,
             projectFilename: filename
-        }));
-        this.handleSaveProject(project, filename);
+        }), () =>
+        {
+            this.handleSaveProject();
+        });
     }
 
     handleUpdateProject(project: ProjectModel)
     {
-        console.log(project);
         this.setState(state => ({
             ...state,
             project: project,
@@ -231,16 +230,13 @@ export default class App extends React.PureComponent<Props, State>
         }));
     }
 
-    handleSaveProject(project?: ProjectModel | null, filename?: string)
+    handleSaveProject()
     {
-        if (!project) project = this.state.project;
-        if (!filename) filename = this.state.projectFilename;
-
-        if (project)
+        if (this.state.project)
         {
             fs.writeFileSync(
-                filename,
-                JSON.stringify(project),
+                this.state.projectFilename,
+                JSON.stringify(this.state.project),
                 "utf8"
             );
             this.setState(state => ({
@@ -257,6 +253,10 @@ export default class App extends React.PureComponent<Props, State>
     componentDidUpdate()
     {
         this.setTitle();
+        if (this.state.project)
+        {
+            ObjectHelper.setCurrentProject(this.state.project);
+        }
         PathHelper.setProjectFilename(this.state.projectFilename);
     }
 
