@@ -1,19 +1,52 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ErrorTypes, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel } from "./datatypes";
-import { array_copy, array_remove } from "./utils";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel } from "./datatypes";
+import { array_copy, array_remove, array_ensureOne } from "./utils";
 import update from "immutability-helper";
 import Point, { PointLike } from "./point";
 import ImageCache from "./ImageCache";
 
 export default class ObjectHelper
 {
-    private static currentProject: ProjectModel;
+    private static currentProject: ProjectModel | null;
+    public static errors: string[] = [];
 
-    public static setCurrentProject(project: ProjectModel)
+    public static setCurrentProject(project: ProjectModel | null): { project: ProjectModel | null, errors: string[] }
     {
         this.currentProject = project;
+        this.checkForErrors();
+
+        return {
+            project: project,
+            errors: this.errors
+        }
     }
 
-    public static createAndAddObject<T extends ObjectModel>(type: ObjectType, project: ProjectModel = this.currentProject): { obj: T, project: ProjectModel }
+    private static checkForErrors()
+    {
+        this.errors = [];
+        if (!this.currentProject) return;
+
+        const objects = this.currentProject.objects;
+
+        const namesSeen: Set<string> = new Set();
+
+        for (let i = 0; i < objects.length; i++) {
+            // dup names //
+            const obj = objects[i];
+            if (namesSeen.has(obj.name))
+            {
+                array_ensureOne(this.errors, "duplicate name: `" + obj.name + "`");
+            }
+            namesSeen.add(obj.name);
+
+            // empty names //
+            if (!obj.name.trim())
+            {
+                array_ensureOne(this.errors, "empty name on " + obj.type + " object");
+            }
+        }
+    }
+
+    public static createAndAddObject<T extends ObjectModel>(type: ObjectType, project: ProjectModel = this.currentProject!): { obj: T, project: ProjectModel }
     {
         const id = this.genId(project);
         let ret: ObjectModel;
@@ -140,7 +173,7 @@ export default class ObjectHelper
         return { obj: ret as T, project: p };
     }
 
-    public static updateObject<T extends ObjectModel>(id: number, newObj: T, project: ProjectModel = this.currentProject): ProjectModel
+    public static updateObject<T extends ObjectModel>(id: number, newObj: T, project: ProjectModel = this.currentProject!): ProjectModel
     {
         const index = project.objects.findIndex(o => o.id === id);
         if (index === -1) 
@@ -157,7 +190,7 @@ export default class ObjectHelper
         });
     }
 
-    public static removeObject(id: number, project: ProjectModel = this.currentProject): ProjectModel
+    public static removeObject(id: number, project: ProjectModel = this.currentProject!): ProjectModel
     {
         const index = project.objects.findIndex(o => o.id === id);
         if (index === -1) return project;
@@ -174,7 +207,7 @@ export default class ObjectHelper
      * @param subIdentifier An identifier for the child object. e.g. "sprite" for object returned by spriteId, or "form[0].sprite" for sprite of first form
      * @param project The project.
      */
-    public static getSubObject<T extends ObjectModel>(parentObject: ObjectModel | number | null, subIdentifier: string, project: ProjectModel = this.currentProject): T | null
+    public static getSubObject<T extends ObjectModel>(parentObject: ObjectModel | number | null, subIdentifier: string, project: ProjectModel = this.currentProject!): T | null
     {
         if (typeof(parentObject) === "number")
         {
@@ -224,7 +257,7 @@ export default class ObjectHelper
     /**
      * @param type Type of objects to get
      */
-    public static getObjectsWithType<T extends ObjectModel>(type: ObjectType, project: ProjectModel = this.currentProject): T[]
+    public static getObjectsWithType<T extends ObjectModel>(type: ObjectType, project: ProjectModel = this.currentProject!): T[]
     {
         return project.objects.filter(o => o.type === type) as T[];
     }
@@ -234,19 +267,19 @@ export default class ObjectHelper
      * @param project Project
      * @returns Object with id. If the id is invalid, returns null.
      */
-    public static getObjectWithId<T extends ObjectModel>(id: number, project: ProjectModel = this.currentProject): T | null
+    public static getObjectWithId<T extends ObjectModel>(id: number, project: ProjectModel = this.currentProject!): T | null
     {
         if (id < 0) return null;
         return (project.objects.find(o => o.id === id) as T) || null;
     }
 
-    public static getObjectWithName<T extends ObjectModel>(name: string, project: ProjectModel = this.currentProject): T | null
+    public static getObjectWithName<T extends ObjectModel>(name: string, project: ProjectModel = this.currentProject!): T | null
     {
         if (!name) return null;
         return (project.objects.find(o => o.name === name) as T) || null;
     }
 
-    private static genId(project: ProjectModel = this.currentProject): number
+    private static genId(project: ProjectModel = this.currentProject!): number
     {
         // TODO: optimize this w/ a cache ?
         for (let i = 0; i < 1000000; i++)
@@ -260,7 +293,7 @@ export default class ObjectHelper
         throw new Error("max game objects");
     }
 
-    public static getSpriteSize(sprite: SpriteModel | number, project: ProjectModel = this.currentProject): Point
+    public static getSpriteSize(sprite: SpriteModel | number, project: ProjectModel = this.currentProject!): Point
     {
         if (typeof(sprite) === "number")
         {

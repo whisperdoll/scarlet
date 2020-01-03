@@ -1,6 +1,6 @@
 import React from 'react';
 import ObjectList from '../../views/MainEdit/ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
+import { ObjectModel, ProjectModel, ObjectType, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 import SpriteEdit from '../../views/MainEdit/SpriteEdit/SpriteEdit';
 import PlayerEdit from '../../views/MainEdit/PlayerEdit/PlayerEdit';

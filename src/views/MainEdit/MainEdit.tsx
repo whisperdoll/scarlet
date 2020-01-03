@@ -1,7 +1,7 @@
 import React from 'react';
 import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, ErrorTypes, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
+import { ObjectModel, ProjectModel, ObjectType, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 import SpriteEdit from './SpriteEdit/SpriteEdit';
 import PlayerEdit from './PlayerEdit/PlayerEdit';
@@ -24,7 +24,6 @@ interface Props
 interface State
 {
     currentlyEditing: number | null | "keyBinds";
-    errors: ErrorTypes[];
 }
 
 export default class MainEditView extends React.PureComponent<Props, State>
@@ -34,8 +33,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
         super(props);
 
         this.state = {
-            currentlyEditing: null,
-            errors: []
+            currentlyEditing: null
         };
     }
 
@@ -93,10 +91,12 @@ export default class MainEditView extends React.PureComponent<Props, State>
         return (
             <div className="mainEditView">
                 <div className="headerBar">
+                    {ObjectHelper.errors.length > 0 && (
+                        <div className="errorBadge" title={ObjectHelper.errors.join("\n")}>⚠️</div>
+                    )}
                     <div className="header">{this.props.project.name}</div>
                     <button onClick={this.handleEditKeyBinds}>Edit Key Bindings</button>
                 </div>
-                <div className="error">{this.state.errors.join(", ")}</div>
                 <ObjectList
                     project={this.props.project}
                     onCreate={this.handleObjectCreate}

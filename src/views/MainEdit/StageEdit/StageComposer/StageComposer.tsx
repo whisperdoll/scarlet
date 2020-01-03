@@ -12,7 +12,6 @@ import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
 import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
 import ImageCache from '../../../../utils/ImageCache';
-import GameEngine from '../../../../utils/GameEngine';
 import update from "immutability-helper";
 import ObjectEdit from '../../../../components/ObjectEdit/ObjectEdit';
 

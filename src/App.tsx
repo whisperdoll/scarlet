@@ -35,6 +35,7 @@ interface State
     project: ProjectModel | null;
     dirty: boolean;
     projectFilename: string;
+    errors: string[];
 }
 
 export default class App extends React.PureComponent<Props, State>
@@ -50,7 +51,8 @@ export default class App extends React.PureComponent<Props, State>
             currentView: "Home",
             project: null,
             dirty: false,
-            projectFilename: ""
+            projectFilename: "",
+            errors: []
         };
 
         this.handleNewProject = this.handleNewProject.bind(this);
@@ -140,7 +142,7 @@ export default class App extends React.PureComponent<Props, State>
 
         this.setState(state => ({
             ...state,
-            project: null,
+            ...ObjectHelper.setCurrentProject(null), // set project and errors
             currentView: "NewProject",
             dirty: false,
             projectFilename: ""
@@ -178,7 +180,7 @@ export default class App extends React.PureComponent<Props, State>
 
             this.setState(state => ({
                 ...state,
-                project: project,
+                ...ObjectHelper.setCurrentProject(project), // set project and errors
                 currentView: "MainEdit",
                 dirty: false,
                 projectFilename: paths[0]
@@ -213,7 +215,7 @@ export default class App extends React.PureComponent<Props, State>
         this.setState(state => ({
             ...state,
             currentView: "MainEdit",
-            project: project,
+            ...ObjectHelper.setCurrentProject(null), // set project and errors
             projectFilename: filename
         }), () =>
         {
@@ -225,7 +227,7 @@ export default class App extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            project: project,
+            ...ObjectHelper.setCurrentProject(project), // set project and errors
             dirty: true
         }));
     }

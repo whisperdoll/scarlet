@@ -4,6 +4,7 @@ import ScriptEngine, { KeyContext, ScriptMethodCollection } from "./ScriptEngine
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
 import copy from "fast-copy";
+import { array_ensureOne } from "./utils";
 
 type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
@@ -83,6 +84,8 @@ export default class GameEngine
             return null;
         }
     };
+
+    public errors: string[] = [];
 
     constructor()
     {
@@ -504,7 +507,7 @@ export default class GameEngine
 
     private reportError(context: string, message: string)
     {
-        console.error("an error occured during " + context + ":\n" + message);
+        array_ensureOne(this.errors, "an error occured during " + context + ":\n" + message);
     }
 
     private tryCallScriptMethod(methods: ScriptMethodCollection | null, method: keyof ScriptMethodCollection, entity: GameEntity)

@@ -41,7 +41,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private canvasRef : React.RefObject<HTMLCanvasElement>;
     private dirty: boolean = true;
     private rendering: boolean = false;
-    private ratio: number = 1;
     private keyDownMap: Map<string, boolean> = new Map();
     private animationFrameHandle: number | null = null;
     private engine: GameEngine;

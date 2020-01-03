@@ -19,6 +19,13 @@ $headerBarHeight: 64px;
         flex-direction: row;
         align-items: center;
         padding: 0 16px;
+
+        .errorBadge
+        {
+            margin-right: 4px;
+            font-size: 24px;
+            margin-top: -8px;
+        }
     
         .header
         {
@@ -63,19 +70,6 @@ $headerBarHeight: 64px;
             margin: 0;
             margin-bottom: 8px;
             margin-top: 12px;
-        }
-    }
-    
-    .mainEditView
-    {
-        & > .error
-        {
-            position: absolute;
-            top: 0;
-            left: 300px;
-            width: calc(100% - 300px);
-            background: red;
-            z-index: 1;
         }
     }
 }

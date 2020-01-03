@@ -18,8 +18,6 @@ export interface ProjectModel
     keyBindings: KeyBindings;
 };
 
-export type ErrorTypes = "Duplicate name" | "Empty name";
-
 // ADDTYPE //
 export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "bossForm" | "sprite" | "script" | "bullet" | "background";
 export const GameObjectTypes: ObjectType[] = [
