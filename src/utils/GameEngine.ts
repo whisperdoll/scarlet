@@ -64,7 +64,6 @@ export default class GameEngine
     private stageAge: number = 0;
     private gameSize: PointLike = { x: 0, y: 0 };
     private stage: StageModel | null = null;
-    private project: ProjectModel | null = null;
     private hasReset: boolean = false;
     private cacheInterval: number = 15;
     private _finalFrame: number = 0;
@@ -157,7 +156,7 @@ export default class GameEngine
         const ret: Record<string, boolean> = {};
         keys.forEach((key) =>
         {
-            ret[key] = !!this.project && !!keyMap.get(this.project.keyBindings[key]);
+            ret[key] = !!ObjectHelper.project && !!keyMap.get(ObjectHelper.project.keyBindings[key]);
         });
         return ret as KeyContext;
     }
@@ -192,14 +191,14 @@ export default class GameEngine
         return e;
     }
 
-    public reset(stage: StageModel, project: ProjectModel)
+    public reset(stage: StageModel)
     {
         this.entities = [];
         this.stageAge = 0;
-        this.project = project;
         this._finalFrame = stage.length - 1;
+        this.gameSize = stage.size;
 
-        const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId, project);
+        const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId);
         if (player)
         {
             this.prepareAndAddEntity({
@@ -210,7 +209,7 @@ export default class GameEngine
                 positionX: stage.playerSpawnPosition.x,
                 positionY: stage.playerSpawnPosition.y,
                 scriptId: player.scriptId,
-                scriptName: ObjectHelper.getObjectWithId<ScriptModel>(player.scriptId, project)?.name || "",
+                scriptName: ObjectHelper.getObjectWithId<ScriptModel>(player.scriptId)?.name || "",
                 spawnPositionX: stage.playerSpawnPosition.x,
                 spawnPositionY: stage.playerSpawnPosition.y,
                 spawnFrame: 0,
@@ -227,13 +226,13 @@ export default class GameEngine
             });
         }
         
-        const boss = ObjectHelper.getObjectWithId<BossModel>(stage.bossId, project);
+        const boss = ObjectHelper.getObjectWithId<BossModel>(stage.bossId);
         if (boss)
         {
             let spawnFrame = stage.length;
             boss.formIds.forEach((formId, i) =>
             {
-                const form = ObjectHelper.getObjectWithId<BossFormModel>(formId, this.project!);
+                const form = ObjectHelper.getObjectWithId<BossFormModel>(formId);
                 if (form)
                 {
                     this.prepareAndAddEntity({
@@ -249,7 +248,7 @@ export default class GameEngine
                         positionX: stage.bossSpawnPosition.x,
                         positionY: stage.bossSpawnPosition.y,
                         scriptId: form.scriptId,
-                        scriptName: ObjectHelper.getObjectWithId<ScriptModel>(form.scriptId, project)?.name || "",
+                        scriptName: ObjectHelper.getObjectWithId<ScriptModel>(form.scriptId)?.name || "",
                         spawnPositionX: stage.bossSpawnPosition.x,
                         spawnPositionY: stage.bossSpawnPosition.y,
                         spriteId: form.spriteId,
@@ -269,7 +268,7 @@ export default class GameEngine
 
         stage.enemies.forEach((enemyData: StageEnemyData) =>
         {
-            const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, project);
+            const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id);
             if (enemy)
             {
                 for (let i = 0; i < enemyData.spawnAmount; i++)
@@ -287,7 +286,7 @@ export default class GameEngine
                         positionX: enemyData.spawnPosition.x,
                         positionY: enemyData.spawnPosition.y,
                         scriptId: enemy.scriptId,
-                        scriptName: ObjectHelper.getObjectWithId<ScriptModel>(enemy.scriptId, project)?.name || "",
+                        scriptName: ObjectHelper.getObjectWithId<ScriptModel>(enemy.scriptId)?.name || "",
                         spawnPositionX: enemyData.spawnPosition.x,
                         spawnPositionY: enemyData.spawnPosition.y,
                         spriteId: enemy.spriteId,
@@ -302,7 +301,6 @@ export default class GameEngine
         });
 
         this.gameSize = stage.size;
-        this.project = project;
         this.stage = stage;
         this.hasReset = true;
     }
@@ -381,13 +379,13 @@ export default class GameEngine
             value: false
         });*/
 
-        const methods = ScriptEngine.parseScript(entity.scriptId, this.project as ProjectModel);
+        const methods = ScriptEngine.parseScript(entity.scriptId);
         this.tryCallScriptMethod(methods, "die", entity);
     }
 
     public advanceFrame(context: UpdateContext): UpdateResult
     {
-        if (!this.hasReset || !this.project || !this.stage) throw new Error("reset engine before use");
+        if (!this.hasReset || !ObjectHelper.project || !this.stage) throw new Error("reset engine before use");
 
         let playerAlive = true;
         let isLastUpdate = false;
@@ -452,7 +450,7 @@ export default class GameEngine
             }
             else if (entity.type === "playerBullet")
             {
-                const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.id, this.project)!;
+                const bullet = ObjectHelper.getObjectWithId<BulletModel>(entity.id)!;
                 // console.time("====== update player byullet");
                 const collidingEnemies = this.entities.filter(e => e.alive && (e.type === "enemy" || e.type === "boss") && this.testCollision(entity, e));
                 collidingEnemies.forEach((e) =>
@@ -536,12 +534,12 @@ export default class GameEngine
 
     private trySpawnEntity(entity: GameEntity, keys: Map<string, boolean>): boolean
     {
-        if (!this.project || !this.stage) return false;
+        if (!ObjectHelper.project || !this.stage) return false;
 
         if (!entity.alive && entity.spawnFrame === this.stageAge)
         {
             entity.alive = true;
-            const methods = ScriptEngine.parseScript(entity.scriptId, this.project);
+            const methods = ScriptEngine.parseScript(entity.scriptId);
             this.tryCallScriptMethod(methods, "init", entity);
             return true;
         }
@@ -551,28 +549,28 @@ export default class GameEngine
 
     private updatePlayer(entity: GameEntity, context: UpdateContext)
     {
-        if (!this.project) return;
+        if (!ObjectHelper.project) return;
 
         let speed = 0;
-        const player = ObjectHelper.getObjectWithId<PlayerModel>((this.stage as StageModel).playerId, this.project as ProjectModel);
+        const player = ObjectHelper.getObjectWithId<PlayerModel>((this.stage as StageModel).playerId);
         if (player)
         {
-            speed = context.keys.get(this.project.keyBindings.focus) ? player.focusedMoveSpeed : player.moveSpeed;
+            speed = context.keys.get(ObjectHelper.project.keyBindings.focus) ? player.focusedMoveSpeed : player.moveSpeed;
         }
 
-        if (context.keys.get(this.project.keyBindings.left))
+        if (context.keys.get(ObjectHelper.project.keyBindings.left))
         {
             entity.positionX -= speed;
         }
-        if (context.keys.get(this.project.keyBindings.right))
+        if (context.keys.get(ObjectHelper.project.keyBindings.right))
         {
             entity.positionX += speed;
         }
-        if (context.keys.get(this.project.keyBindings.up))
+        if (context.keys.get(ObjectHelper.project.keyBindings.up))
         {
             entity.positionY -= speed;
         }
-        if (context.keys.get(this.project.keyBindings.down))
+        if (context.keys.get(ObjectHelper.project.keyBindings.down))
         {
             entity.positionY += speed;
         }
@@ -580,7 +578,7 @@ export default class GameEngine
 
     private runEntityUpdateScript(entity: GameEntity, context: UpdateContext)
     {
-        const methods = ScriptEngine.parseScript(entity.scriptId, this.project as ProjectModel);
+        const methods = ScriptEngine.parseScript(entity.scriptId);
         this.tryCallScriptMethod(methods, "update", entity);
     }
 
@@ -588,7 +586,7 @@ export default class GameEngine
     {
         if (typeof(bullet) === "number")
         {
-            bullet = ObjectHelper.getObjectWithId<BulletModel>(bullet, this.project!);
+            bullet = ObjectHelper.getObjectWithId<BulletModel>(bullet);
         }
 
         if (!bullet) return null;
@@ -598,7 +596,7 @@ export default class GameEngine
             index: 0,
             id: bullet.id,
             scriptId: bullet.scriptId,
-            scriptName: ObjectHelper.getObjectWithId<ScriptModel>(bullet.scriptId, this.project!)?.name || "",
+            scriptName: ObjectHelper.getObjectWithId<ScriptModel>(bullet.scriptId)?.name || "",
             spriteId: bullet.spriteId,
             positionX: posX,
             positionY: posY,
@@ -620,8 +618,8 @@ export default class GameEngine
 
     private testCollision(entity1: GameEntity, entity2: GameEntity)
     {
-        const entity1Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity1.spriteId, this.project as ProjectModel);
-        const entity2Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity2.spriteId, this.project as ProjectModel);
+        const entity1Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity1.spriteId);
+        const entity2Sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity2.spriteId);
         if (entity1Sprite && entity2Sprite)
         {
             const entity1SpriteImage = ImageCache.getCachedImage(entity1Sprite.path);

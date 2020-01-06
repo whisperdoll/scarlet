@@ -17,9 +17,8 @@ const { dialog } = require("electron").remote;
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
+    obj: SpriteModel;
+    update: (obj: Partial<SpriteModel>) => any;
 }
 
 interface State
@@ -33,19 +32,6 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-    }
-
-    get sprite(): SpriteModel
-    {
-        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.id, this.props.project)!;
-    }
-
-    update(obj: Partial<SpriteModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.sprite,
-            ...obj
-        }, this.props.project));
     }
 
     handleBrowse = () =>
@@ -68,9 +54,9 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
-            ImageCache.invalidateImage(this.sprite.path); // clear old
+            ImageCache.invalidateImage(this.props.obj.path); // clear old
             const destFilename = PathHelper.importObjectFileName(paths[0], "sprites");
-            this.update({
+            this.props.update({
                 path: destFilename
             });
         }
@@ -78,15 +64,15 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.update({
+        this.props.update({
             name: e.currentTarget.value
         });
     }
 
     handleHitboxUpdate = (hitbox: Hitbox, index: number) =>
     {
-        this.update({
-            hitboxes: update(this.sprite.hitboxes, {
+        this.props.update({
+            hitboxes: update(this.props.obj.hitboxes, {
                 [index]: {
                     $set: hitbox
                 }
@@ -96,10 +82,10 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
     handleAddHitbox = () =>
     {
-        ImageCache.getImage(this.sprite.path, (img) =>
+        ImageCache.getImage(this.props.obj.path, (img) =>
         {
-            this.update({
-                hitboxes: [...this.sprite.hitboxes, {
+            this.props.update({
+                hitboxes: [...this.props.obj.hitboxes, {
                     position: {
                         x: img.width / 2,
                         y: img.height / 2
@@ -112,8 +98,8 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
 
     handleRemoveHitbox = (index: number) =>
     {
-        this.update({
-            hitboxes: update(this.sprite.hitboxes, {
+        this.props.update({
+            hitboxes: update(this.props.obj.hitboxes, {
                 $splice: [[index, 1]]
             })
         });
@@ -134,20 +120,20 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
     {
         this.canvas?.clear();
         
-        if (this.sprite.path)
+        if (this.props.obj.path)
         {
-            ImageCache.getImage(this.sprite.path, (img) =>
+            ImageCache.getImage(this.props.obj.path, (img) =>
             {
                 this.canvas?.resize(Point.fromSizeLike(img), false);
                 this.canvas?.drawImage(img, new Point(0));
 
-                const cellSize = new Point(Math.floor(img.width / this.sprite.numCells), img.height);
+                const cellSize = new Point(Math.floor(img.width / this.props.obj.numCells), img.height);
 
-                for (let i = 0; i < this.sprite.numCells; i++)
+                for (let i = 0; i < this.props.obj.numCells; i++)
                 {
                     this.canvas?.drawRect(new Rectangle(cellSize.times(new Point(i, 0)), cellSize.minus(new Point(1))), "red", 1);
 
-                    this.sprite.hitboxes.forEach((hitbox) =>
+                    this.props.obj.hitboxes.forEach((hitbox) =>
                     {
                         this.canvas?.fillCircle(Point.fromPointLike(hitbox.position).plus(cellSize.times(new Point(i, 0))), hitbox.radius, "rgba(255,0,0,0.5)");
                     });
@@ -161,10 +147,10 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.sprite.numCells;
+            val = this.props.obj.numCells;
         }
 
-        this.update({
+        this.props.update({
             numCells: Math.max(val, 1)
         });
     }
@@ -174,10 +160,10 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.sprite.framesPerCell;
+            val = this.props.obj.framesPerCell;
         }
 
-        this.update({
+        this.props.update({
             framesPerCell: val
         });
     }
@@ -191,7 +177,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.sprite.name}
+                        value={this.props.obj.name}
                     />
                 </div>
                 <PureCanvas
@@ -206,7 +192,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                     <span className="label">Number of Cells:</span>
                     <input
                         type="number"
-                        value={this.sprite.numCells}
+                        value={this.props.obj.numCells}
                         onChange={this.handleNumCellsChange}
                     />
                 </div>
@@ -214,11 +200,11 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                     <span className="label">Frames per Cell:</span>
                     <input
                         type="number"
-                        value={this.sprite.framesPerCell}
+                        value={this.props.obj.framesPerCell}
                         onChange={this.handleFramesPerCellChange}
                     />
                 </div>
-                {this.sprite.hitboxes.map((hitbox, i) =>
+                {this.props.obj.hitboxes.map((hitbox, i) =>
                 {
                     return (
                         <HitboxEdit

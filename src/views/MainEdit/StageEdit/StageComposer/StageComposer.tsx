@@ -20,9 +20,8 @@ type DeathAction = "loopAndPause" | "pause" | "loop";
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
+    obj: StageModel;
+    update: (obj: Partial<StageModel>) => any;
     onBack: () => any;
 }
 
@@ -74,25 +73,17 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     get stage(): StageModel
     {
-        return ObjectHelper.getObjectWithId<StageModel>(this.props.id, this.props.project)!;
+        return this.props.obj;
     }
 
     get boss(): BossModel | null
     {
-        return ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId, this.props.project);
-    }
-
-    update(obj: Partial<StageModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.stage,
-            ...obj
-        }, this.props.project));
+        return ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId);
     }
 
     refreshScripts = () =>
     {
-        ScriptEngine.updateCache(this.props.project);
+        ScriptEngine.updateCache();
         if (this.state.playing)
         {
             this.pause();
@@ -110,9 +101,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
             loading: true
         }));
 
-        ImageCache.updateCache(this.props.project, () =>
+        ImageCache.updateCache(ObjectHelper.project!, () =>
         {
-            StageRenderer.createTextureCache(this.props.project, () =>
+            StageRenderer.createTextureCache(ObjectHelper.project!, () =>
             {
                 this.setState(state => ({
                     ...state,
@@ -125,68 +116,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentDidMount = () =>
     {
-        ScriptEngine.updateCache(this.props.project);
+        ScriptEngine.updateCache();
         this.refreshImages();
     }
 
     componentWillUnmount = () =>
     {
-    }
-
-    componentDidUpdate = (prevProps: Props, prevState: State) =>
-    {
-        // script refreshing //
-        const currentEnemies = this.stage.enemies;
-        const prevStage = ObjectHelper.getObjectWithId<StageModel>(prevProps.id, prevProps.project)!;
-        const prevEnemies = prevStage.enemies;
-
-        if (currentEnemies.length !== prevEnemies.length)
-        {
-            this.refreshScripts();
-
-            if (currentEnemies.length > prevEnemies.length)
-            {
-                // form was added //
-                this.setState(state => ({
-                    currentSelectionId: currentEnemies.length - 1,
-                    currentSelectionType: "enemy"
-                }));
-            }
-        }
-        else
-        {
-            for (let i = 0; i < currentEnemies.length; i++)
-            {
-                const currObj = ObjectHelper.getObjectWithId(currentEnemies[i].id, this.props.project);
-                const prevObj = ObjectHelper.getObjectWithId(prevEnemies[i].id, prevProps.project);
-
-                if (!currObj || !prevObj)
-                {
-                    throw new Error("somertthing bad happen,,,");
-                }
-                else if (currObj.type !== prevObj.type)
-                {
-                    this.refreshScripts();
-                    break;
-                }
-            }
-        }
-
-        // boss stuff //
-        const currentBoss = ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId, this.props.project);
-        const prevBoss = ObjectHelper.getObjectWithId<BossModel>(prevStage.bossId, prevProps.project);
-
-        if (currentBoss && prevBoss)
-        {
-            if (currentBoss.formIds.length > prevBoss.formIds.length)
-            {
-                // form was added //
-                this.setState(state => ({
-                    currentSelectionId: array_last(currentBoss.formIds),
-                    currentSelectionType: "bossForm"
-                }));
-            }
-        }
     }
 
     handleBack = () =>
@@ -202,7 +137,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.length;
         }
 
-        this.update({
+        this.props.update({
             length: Math.max(1, val)
         });
     }
@@ -215,7 +150,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.size.x;
         }
 
-        this.update({
+        this.props.update({
             size: {
                 ...this.stage.size,
                 x: Math.max(1, val)
@@ -231,7 +166,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.size.y;
         }
 
-        this.update({
+        this.props.update({
             size: {
                 ...this.stage.size,
                 y: Math.max(1, val)
@@ -247,7 +182,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.size.y;
         }
 
-        this.update({
+        this.props.update({
             playerSpawnPosition: {
                 ...this.stage.playerSpawnPosition,
                 x: val
@@ -263,7 +198,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.size.y;
         }
 
-        this.update({
+        this.props.update({
             playerSpawnPosition: {
                 ...this.stage.playerSpawnPosition,
                 y: val
@@ -279,7 +214,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.size.y;
         }
 
-        this.update({
+        this.props.update({
             bossSpawnPosition: {
                 ...this.stage.bossSpawnPosition,
                 x: val
@@ -295,7 +230,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             val = this.stage.size.y;
         }
 
-        this.update({
+        this.props.update({
             bossSpawnPosition: {
                 ...this.stage.bossSpawnPosition,
                 y: val
@@ -333,21 +268,21 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleBackgroundChange = (backgroundId: number) =>
     {
-        this.update({
+        this.props.update({
             backgroundId: backgroundId
         });
     }
 
     handlePlayerChange = (playerId: number) =>
     {
-        this.update({
+        this.props.update({
             playerId: playerId
         });
     }
 
     handleBossChange = (bossId: number) =>
     {
-        this.update({
+        this.props.update({
             bossId: bossId
         });
     }
@@ -365,7 +300,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         if (this.state.selectedNewEnemyId >= 0)
         {
-            this.update({
+            this.props.update({
                 enemies: this.stage.enemies.concat([{
                     id: this.state.selectedNewEnemyId,
                     instanceName: "New Enemy " + this.stage.enemies.length.toString(),
@@ -408,7 +343,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             currentSelectionId: -1,
             currentSelectionType: "none"
         }));
-        this.update({
+        this.props.update({
             enemies: enemies
         });
     }
@@ -426,7 +361,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         const enemies = array_copy(this.stage.enemies);
         enemies[index] = enemy;
 
-        this.update({
+        this.props.update({
             enemies: enemies
         });
     }
@@ -490,13 +425,25 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     handleAddBossForm = () =>
     {
-        const { obj, project } = ObjectHelper.createAndAddObject<BossFormModel>("bossForm", this.props.project);
-        this.props.onUpdate(project);
+        const currentBoss = ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId)!;
+
+        const formId = ObjectHelper.createAndAddObject<BossFormModel>("bossForm");
+        ObjectHelper.updateObject(this.stage.bossId, update(currentBoss, {
+            formIds: {
+                $push: [ formId ]
+            }
+        }));
+
+        this.setState(state => ({
+            ...state,
+            currentSelectionId: array_last(currentBoss.formIds),
+            currentSelectionType: "bossForm"
+        }));
     }
 
     handleRemoveBossForm = (id: number) =>
     {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId, this.props.project);
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId);
         if (boss)
         {
             this.setState(state => ({
@@ -505,17 +452,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 currentSelectionType: "none"
             }));
 
-            // remove object //
-            let project = ObjectHelper.removeObject(id, this.props.project);
-    
-            // unlink from boss //
-            project = ObjectHelper.updateObject(this.props.id, update(boss, {
+            // remove from boss //
+            ObjectHelper.updateObject(boss.id, update(boss, {
                 formIds: {
                     $splice: [[ boss.formIds.findIndex(_id => _id === id) ]]
                 }
-            }), project);
+            }));
     
-            this.props.onUpdate(project);
+            // remove from project //
+            ObjectHelper.removeObject(id);
         }
     }
 
@@ -673,7 +618,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         if (this.state.currentSelectionType === "bossForm")
         {
-            return ObjectHelper.getObjectWithId<BossFormModel>(this.state.currentSelectionId, this.props.project);
+            return ObjectHelper.getObjectWithId<BossFormModel>(this.state.currentSelectionId);
         }
         else
         {
@@ -684,7 +629,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
     render()
     {
         if (this.state.loading) return null;
-        
+
         return (
             <div className="stageComposer">
                 {/* header */}
@@ -737,7 +682,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 currentObjectId={this.stage.backgroundId}
                                 objectType="background"
                                 onChange={this.handleBackgroundChange}
-                                project={this.props.project}
                                 onRequestEdit={this.handleRequestEdit}
                             />
                         </div>
@@ -747,7 +691,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 currentObjectId={this.stage.playerId}
                                 objectType="player"
                                 onChange={this.handlePlayerChange}
-                                project={this.props.project}
                                 onRequestEdit={this.handleRequestEdit}
                             />
                         </div>
@@ -771,7 +714,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 currentObjectId={this.stage.bossId}
                                 objectType="boss"
                                 onChange={this.handleBossChange}
-                                project={this.props.project}
                                 onRequestEdit={this.handleRequestEdit}
                             />
                         </div>
@@ -795,7 +737,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 currentObjectId={this.state.selectedNewEnemyId}
                                 objectType="enemy"
                                 onChange={this.handleSelectNewEnemy}
-                                project={this.props.project}
                             />
                             <button
                                 className="addEnemy"
@@ -806,7 +747,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         </div>
                         <EnemyList
                             onSelectEnemy={this.handleSelectEnemy}
-                            project={this.props.project}
                             stage={this.stage}
                         />
                         <div className="row">
@@ -815,16 +755,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         </div>
                         <BossFormList
                             onSelectBossForm={this.handleSelectBossForm}
-                            project={this.props.project}
-                            stage={this.stage}
                             bossId={this.stage.bossId}
                         />
                     </div>
                     {/* stage */}
                     <div className="stagePreview">
                         <StageRenderer
-                            project={this.props.project}
-                            id={this.props.id}
+                            obj={this.props.obj}
+                            update={this.props.update}
                             frame={this.state.frame}
                             refresh={this.state.refreshRenderer}
                             onInstanceCount={this.handleInstanceCount}
@@ -832,7 +770,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             onPlayerDie={this.handlePlayerDie}
                             onPlayFrame={this.handlePlayFrame}
                             playerInvincible={this.state.playerInvincible}
-                            onUpdate={this.props.onUpdate}
                             onFinalFrameCalculate={this.handleFinalFrameCalculate}
                         />
                     </div>
@@ -842,7 +779,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             <PropertyEdit
                                 enemyIndex={this.state.currentSelectionId}
                                 onUpdate={this.handleUpdateEnemy}
-                                project={this.props.project}
                                 stage={this.stage}
                                 onDeselectEnemy={this.handleDeselectEnemy}
                                 onRequestRemoveEnemy={this.handleRemoveEnemy}
@@ -851,22 +787,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 onRequestEdit={this.handleRequestEdit}
                             />
                         )}
-                        {this.selectedBossForm && (
-                            <BossFormEdit
-                                id={this.state.currentSelectionId}
-                                index={this.boss!.formIds.indexOf(this.state.currentSelectionId)}
-                                onUpdate={this.props.onUpdate}
-                                onRequestRemove={this.handleRemoveBossForm}
-                                project={this.props.project}
-                                onRequestEdit={this.handleRequestEdit}
-                            />
-                        )}
-                        {this.state.currentSelectionType === "object" && (
+                        {(this.state.currentSelectionType === "object" || this.state.currentSelectionType === "bossForm") && (
                             <ObjectEdit
                                 id={this.state.currentSelectionId}
                                 onRequestEdit={this.handleRequestEdit}
-                                onUpdate={this.props.onUpdate}
-                                project={this.props.project}
+                                index={this.boss?.formIds.indexOf(this.state.currentSelectionId)}
+                                onRequestRemove={this.handleRemoveBossForm}
                             />
                         )}
                         {this.state.loopEnabled && (<React.Fragment>
@@ -930,7 +856,6 @@ export default class StageComposer extends React.PureComponent<Props, State>
                 {/* timeline */}
                 <StageTimeline
                     onScrub={this.handleFrameScrub}
-                    project={this.props.project}
                     stage={this.stage}
                     frame={this.state.frame}
                     currentSelectionId={this.state.currentSelectionId}

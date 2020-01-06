@@ -8,9 +8,8 @@ import AnimatedSpriteCanvas from '../../../components/AnimatedSpriteCanvas/Anima
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
+    obj: EnemyModel;
+    update: (obj: Partial<EnemyModel>) => any;
     onRequestEdit: (id: number) => any;
 }
 
@@ -27,39 +26,26 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
 
     private get sprite(): SpriteModel | null
     {
-        return ObjectHelper.getObjectWithId<SpriteModel>(this.enemy.spriteId, this.props.project);
-    }
-
-    get enemy(): EnemyModel
-    {
-        return ObjectHelper.getObjectWithId<EnemyModel>(this.props.id, this.props.project)!;
-    }
-
-    update(obj: Partial<EnemyModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.enemy,
-            ...obj
-        }, this.props.project));
+        return ObjectHelper.getObjectWithId<SpriteModel>(this.props.obj.spriteId);
     }
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.update({
+        this.props.update({
             name: e.currentTarget.value
         });
     }
 
     handleSpriteChange = (spriteId: number) =>
     {
-        this.update({
+        this.props.update({
             spriteId: spriteId
         });
     }
 
     handleScriptChange = (scriptId: number) =>
     {
-        this.update({
+        this.props.update({
             scriptId: scriptId
         });
     }
@@ -69,10 +55,10 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
         let val = parseFloat(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.enemy.hp;
+            val = this.props.obj.hp;
         }
 
-        this.update({
+        this.props.update({
             hp: Math.max(1, val)
         });
     }
@@ -86,15 +72,14 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.enemy.name}
+                        value={this.props.obj.name}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Sprite:</span>
                     <ObjectSelect
-                        currentObjectId={this.enemy.spriteId}
+                        currentObjectId={this.props.obj.spriteId}
                         objectType={"sprite"}
-                        project={this.props.project}
                         onChange={this.handleSpriteChange}
                         onRequestEdit={this.props.onRequestEdit}
                     />
@@ -113,17 +98,16 @@ export default class EnemyEdit extends React.PureComponent<Props, State>
                     <span className="label">HP:</span>
                     <input
                         type="number"
-                        value={this.enemy.hp.toString()}
+                        value={this.props.obj.hp.toString()}
                         onChange={this.handleHpChange}
                     />
                 </div>
                 <div className="row">
                     <span className="label">Script:</span>
                     <ObjectSelect
-                        currentObjectId={this.enemy.scriptId}
+                        currentObjectId={this.props.obj.scriptId}
                         objectType={"script"}
                         onChange={this.handleScriptChange}
-                        project={this.props.project}
                         onRequestEdit={this.props.onRequestEdit}
                     />
                 </div>

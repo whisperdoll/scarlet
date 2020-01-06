@@ -14,14 +14,14 @@ import PathHelper from '../../../../../utils/PathHelper';
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
+    obj: StageModel;
+    update: (obj: Partial<StageModel>) => any;
+
     frame: number;
     refresh: boolean;
     onInstanceCount: (instances: number, bullets: number) => any;
     onPlayerDie: () => any;
     onPlayFrame: (frame: number, isLastFrame: boolean) => any;
-    onUpdate: (project: ProjectModel) => any;
     onFinalFrameCalculate: (finalFrame: number) => any;
     playing: boolean;
     playerInvincible: boolean;
@@ -66,15 +66,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     get stage(): StageModel
     {
-        return ObjectHelper.getObjectWithId<StageModel>(this.props.id, this.props.project)!;
-    }
-
-    update(obj: Partial<StageModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.stage,
-            ...obj
-        }, this.props.project));
+        return this.props.obj;
     }
 
     public static createTextureCache(project: ProjectModel, callback: () => any)
@@ -166,7 +158,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     componentDidUpdate = (prevProps: Props) =>
     {
-        const prevStage = ObjectHelper.getObjectWithId<StageModel>(prevProps.id, prevProps.project);
+        const prevStage = prevProps.obj;
         const stage = this.stage;
 
         if (prevStage && (prevStage.size.x !== stage.size.x || prevStage.size.y !== stage.size.y))
@@ -189,8 +181,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             this.startPlaying();
         }
 
-        if (this.props.project !== prevProps.project
-            || this.props.refresh !== prevProps.refresh)
+        if (!this.props.playing && (stage !== prevStage || this.props.refresh !== prevProps.refresh))
         {
             this.resetEngine();
             this.engine.invalidateCache();
@@ -264,7 +255,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             const containsPoint = (spriteId: number | null | undefined, spawnPosition: PointLike): boolean =>
             {
                 if (spriteId === null || spriteId === undefined) return false;
-                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
+                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId);
                 if (sprite)
                 {
                     const img = ImageCache.getCachedImage(sprite.path);
@@ -328,7 +319,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     resetEngine = () =>
     {
-        this.engine.reset(this.stage, this.props.project);
+        this.engine.reset(this.stage);
     }
 
     renderEntities = () =>
@@ -336,7 +327,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         const container = new PIXI.Container();
 
         // console.time("==== background");
-        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.stage.backgroundId, this.props.project);
+        const background = ObjectHelper.getObjectWithId<BackgroundModel>(this.stage.backgroundId);
         if (background)
         {
             const texture = StageRenderer.textureCache.get(background.id)![0];
@@ -353,7 +344,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {            
             if (entity.alive)
             {
-                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.spriteId, this.props.project);
+                const sprite = ObjectHelper.getObjectWithId<SpriteModel>(entity.spriteId);
                 if (sprite)
                 {
                     const pos = new Point(entity.positionX, entity.positionY);
@@ -458,7 +449,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
                         break;
                 }
 
-                this.update(stage);
+                this.props.update(stage);
             }
             
             if (this.dirty)

@@ -10,7 +10,6 @@ import FolderItem from './FolderItem/FolderItem';
 
 interface Props
 {
-    project: ProjectModel;
     onCreate: (type: ObjectType) => any;
     onSelect: (id: number) => any;
 }
@@ -26,7 +25,7 @@ interface Folder
 {
     name: string;
     hint: ObjectType;
-    children: number[];
+    childIds: number[];
 }
 
 export default class ObjectList extends React.PureComponent<Props, State>
@@ -49,42 +48,42 @@ export default class ObjectList extends React.PureComponent<Props, State>
             {
                 name: "Stages",
                 hint: "stage",
-                children: []
+                childIds: []
             },
             {
                 name: "Players",
                 hint: "player",
-                children: []
+                childIds: []
             },
             {
                 name: "Enemies",
                 hint: "enemy",
-                children: []
+                childIds: []
             },
             {
                 name: "Bosses",
                 hint: "boss",
-                children: []
+                childIds: []
             },
             {
                 name: "Bullets",
                 hint: "bullet",
-                children: []
+                childIds: []
             },
             {
                 name: "Sprites",
                 hint: "sprite",
-                children: []
+                childIds: []
             },
             {
                 name: "Backgrounds",
                 hint: "background",
-                children: []
+                childIds: []
             },
             {
                 name: "Scripts",
                 hint: "script",
-                children: []
+                childIds: []
             }
         ];
     }
@@ -133,8 +132,8 @@ export default class ObjectList extends React.PureComponent<Props, State>
         // make folders //
         GameObjectTypes.forEach((type) =>
         {
-            const c = objs.find(o => o.hint === type)!.children as number[];
-            c.push(...ObjectHelper.getObjectsWithType(type, this.props.project).map(o => o.id));
+            const c = objs.find(o => o.hint === type)!.childIds as number[];
+            c.push(...ObjectHelper.getObjectsWithType(type).map(o => o.id));
         });
 
         return (
@@ -148,11 +147,10 @@ export default class ObjectList extends React.PureComponent<Props, State>
                             onSelect={this.handleSelect}
                             key={i}
                         >
-                            {o.children.map((child) => (
+                            {o.childIds.map((childId) => (
                                 <ObjectItem
-                                    id={child}
-                                    key={child}
-                                    project={this.props.project}
+                                    id={childId}
+                                    key={childId}
                                     onContextMenu={this.handleObjectContextMenu}
                                     onSelect={this.props.onSelect}
                                 />

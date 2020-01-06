@@ -6,12 +6,12 @@ import BossFormEdit from './BossFormEdit/BossFormEdit';
 import ObjectHelper from '../../../utils/ObjectHelper';
 import update from "immutability-helper";
 import PathHelper from '../../../utils/PathHelper';
+import ObjectEdit from '../../../components/ObjectEdit/ObjectEdit';
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
+    obj: BossModel;
+    update: (obj: Partial<BossModel>) => any;
     onRequestEdit: (id: number) => any;
 }
 
@@ -26,50 +26,31 @@ export default class BossEdit extends React.PureComponent<Props, State>
         super(props);
     }
 
-    get boss(): BossModel
-    {
-        return ObjectHelper.getObjectWithId<BossModel>(this.props.id, this.props.project)!;
-    }
-
-    update(obj: Partial<BossModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.boss,
-            ...obj
-        }, this.props.project));
-    }
-
     handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     {
-        this.update({
+        this.props.update({
             name: e.currentTarget.value
         });
     }
 
     addForm = () =>
     {
-        let { obj, project } = ObjectHelper.createAndAddObject<BossFormModel>("bossForm", this.props.project);
-        project = ObjectHelper.updateObject(this.props.id, update(this.boss, {
-            formIds: {
-                $push: [ obj.id ]
-            }
-        }), project);
-        this.props.onUpdate(project);
+        this.props.update({
+            formIds: this.props.obj.formIds.concat([ ObjectHelper.createAndAddObject("bossForm") ])
+        });
     }
 
     handleFormRemove = (id: number) =>
     {
-        // remove object //
-        let project = ObjectHelper.removeObject(id, this.props.project);
+        // remove from boss //
+        this.props.update({
+            formIds: update(this.props.obj.formIds, {
+                $splice: [[ this.props.obj.formIds.findIndex(_id => _id === id) ]]
+            })
+        });
 
-        // unlink from boss //
-        project = ObjectHelper.updateObject(this.props.id, update(this.boss, {
-            formIds: {
-                $splice: [[ this.boss.formIds.findIndex(_id => _id === id) ]]
-            }
-        }), project);
-
-        this.props.onUpdate(project);
+        // remove from project //
+        ObjectHelper.removeObject(id);
     }
 
     render()
@@ -81,19 +62,17 @@ export default class BossEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.boss.name}
+                        value={this.props.obj.name}
                     />
                 </div>
-                {this.boss.formIds.map((formId, i) =>
-                (
-                    <BossFormEdit
+                {this.props.obj.formIds.map((formId, i) => (
+                    <ObjectEdit
                         id={formId}
-                        index={i}
-                        onUpdate={this.props.onUpdate}
-                        onRequestRemove={this.handleFormRemove}
-                        project={this.props.project}
-                        key={i}
                         onRequestEdit={this.props.onRequestEdit}
+                        index={i}
+                        onRequestRemove={this.handleFormRemove}
+                        key={formId}
+                        showTitle={false}
                     />
                 ))}
                 <button onClick={this.addForm}>+ Add Form</button>

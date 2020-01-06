@@ -55,12 +55,12 @@ export default class ScriptEngine
     private static contextNameCache: Map<string, vm.Context> = new Map();
     private static waitingImports: Map<string, string[][]> = new Map(); // scriptName, (scriptName, asName)[]
 
-    public static updateCache(project: ProjectModel)
+    public static updateCache()
     {
         this.contextCache.clear();
         this.resultCache.clear();
-        const scripts = ObjectHelper.getObjectsWithType<ScriptModel>("script", project);
-        scripts.forEach(script => this.fetchScriptFor(script, project));
+        const scripts = ObjectHelper.getObjectsWithType<ScriptModel>("script");
+        scripts.forEach(script => this.fetchScriptFor(script));
         this.resolveImports();
     }
 
@@ -94,7 +94,7 @@ export default class ScriptEngine
         });
     }
 
-    private static fetchScriptFor(scriptObject: ScriptModel, project: ProjectModel): boolean
+    private static fetchScriptFor(scriptObject: ScriptModel): boolean
     {
         let code: string;
 
@@ -140,7 +140,7 @@ export default class ScriptEngine
         return true;
     }
 
-    public static parseScript(scriptId: number, project: ProjectModel): ScriptMethodCollection | null
+    public static parseScript(scriptId: number): ScriptMethodCollection | null
     {
         if (scriptId === -1)
         {

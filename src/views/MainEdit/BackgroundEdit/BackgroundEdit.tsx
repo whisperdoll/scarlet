@@ -8,9 +8,8 @@ const { dialog } = require("electron").remote;
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
+    obj: BackgroundModel;
+    update: (obj: Partial<BackgroundModel>) => any;
 }
 
 interface State
@@ -22,19 +21,6 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-    }
-
-    get background(): BackgroundModel
-    {
-        return ObjectHelper.getObjectWithId<BackgroundModel>(this.props.id, this.props.project)!;
-    }
-
-    update(obj: Partial<BackgroundModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.background,
-            ...obj
-        }, this.props.project));
     }
 
     handleBrowse = () =>
@@ -58,8 +44,8 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
         if (paths && paths[0])
         {
             const destFilename = PathHelper.importObjectFileName(paths[0], "backgrounds");
-            ImageCache.invalidateImage(this.background.path);
-            this.update({
+            ImageCache.invalidateImage(this.props.obj.path);
+            this.props.update({
                 path: destFilename
             });
         }
@@ -67,7 +53,7 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
 
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.update({
+        this.props.update({
             name: e.currentTarget.value
         });
     }
@@ -81,10 +67,10 @@ export default class BackgroundEdit extends React.PureComponent<Props, State>
                     <input
                         type="text"
                         onChange={this.handleNameChange}
-                        value={this.background.name}
+                        value={this.props.obj.name}
                     />
                 </div>
-                <img alt="background" src={PathHelper.resolveObjectFileName(this.background.path)} />
+                <img alt="background" src={PathHelper.resolveObjectFileName(this.props.obj.path)} />
                 <button
                     onClick={this.handleBrowse}
                 >

@@ -8,7 +8,6 @@ import GameEngine from '../../../../../utils/GameEngine';
 
 interface Props
 {
-    project: ProjectModel;
     stage: StageModel;
     frame: number;
     onScrub: (frame: number) => any;
@@ -42,7 +41,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
 
     private spriteForEnemy = (enemyData: StageEnemyData): SpriteModel | null =>
     {
-        const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id, this.props.project);
+        const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyData.id);
         return enemy && this.getSprite(enemy.spriteId);
     }
 
@@ -53,13 +52,13 @@ export default class StageTimeline extends React.PureComponent<Props, State>
 
     private getSprite = (spriteId: number): SpriteModel | null =>
     {
-        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId, this.props.project);
+        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(spriteId);
         return sprite;
     }
 
     private getBossForms = (): (BossFormModel & { spawnFrame: number })[] =>
     {
-        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId, this.props.project);
+        const boss = ObjectHelper.getObjectWithId<BossModel>(this.props.stage.bossId);
         if (boss)
         {
             let spawnFrame = this.props.stage.length;
@@ -67,7 +66,7 @@ export default class StageTimeline extends React.PureComponent<Props, State>
             
             boss.formIds.forEach((formId) =>
             {
-                const form = ObjectHelper.getObjectWithId<BossFormModel>(formId, this.props.project);
+                const form = ObjectHelper.getObjectWithId<BossFormModel>(formId);
                 if (form)
                 {
                     ret.push({

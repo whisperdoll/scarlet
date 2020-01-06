@@ -6,9 +6,8 @@ import ObjectHelper from '../../../utils/ObjectHelper';
 
 interface Props
 {
-    id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
+    obj: StageModel;
+    update: (obj: Partial<StageModel>) => any;
 }
 
 interface State
@@ -27,23 +26,9 @@ export default class StageEdit extends React.PureComponent<Props, State>
         };
     }
 
-    get stage(): StageModel
-    {
-        return ObjectHelper.getObjectWithId<StageModel>(this.props.id, this.props.project)!;
-    }
-
-    update(obj: Partial<StageModel>)
-    {
-        this.props.onUpdate(ObjectHelper.updateObject(this.props.id, {
-            ...this.stage,
-            ...obj
-        }, this.props.project));
-    }
-
-
     handleNameChange = (e: ChangeEvent<HTMLInputElement>) =>
     {
-        this.update({
+        this.props.update({
             name: e.currentTarget.value
         });
     }
@@ -75,7 +60,7 @@ export default class StageEdit extends React.PureComponent<Props, State>
                         <input
                             type="text"
                             onChange={this.handleNameChange}
-                            value={this.stage.name}
+                            value={this.props.obj.name}
                         />
                     </div>
                     <button onClick={this.handleEditRequest}>Edit in Stage Composer</button>
@@ -87,9 +72,8 @@ export default class StageEdit extends React.PureComponent<Props, State>
             return (
                 <StageComposer
                     onBack={this.handleStageComposerBack}
-                    onUpdate={this.props.onUpdate}
-                    project={this.props.project}
-                    id={this.props.id}
+                    obj={this.props.obj}
+                    update={this.props.update}
                 />
             )
         }

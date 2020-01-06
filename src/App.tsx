@@ -32,15 +32,11 @@ type View = "Home" | "NewProject" | "MainEdit" | "StageEdit";
 interface State
 {
     currentView: View;
-    project: ProjectModel | null;
     dirty: boolean;
-    projectFilename: string;
-    errors: string[];
 }
 
 export default class App extends React.PureComponent<Props, State>
 {
-
     constructor(props: Props)
     {
         super(props);
@@ -49,20 +45,11 @@ export default class App extends React.PureComponent<Props, State>
 
         this.state = {
             currentView: "Home",
-            project: null,
-            dirty: false,
-            projectFilename: "",
-            errors: []
+            dirty: false
         };
-
-        this.handleNewProject = this.handleNewProject.bind(this);
-        this.handleOpenProject = this.handleOpenProject.bind(this);
-        this.handleCreateProject = this.handleCreateProject.bind(this);
-        this.handleUpdateProject = this.handleUpdateProject.bind(this);
-        this.handleSaveProject = this.handleSaveProject.bind(this);
     }
 
-    componentDidMount()
+    componentDidMount = () =>
     {
         console.log(process.version);
         const fileMenu = new Menu();
@@ -111,21 +98,21 @@ export default class App extends React.PureComponent<Props, State>
         this.setTitle();
     }
 
-    public genProjectFilename(project: ProjectModel, folderPath: string): string
+    public genProjectFilename = (project: ProjectModel, folderPath: string): string =>
     {
         return path.join(folderPath, project.name + ".scarlet");
     }
 
-    public genProjectFolderPath(project: ProjectModel, parentDirectory: string): string
+    public genProjectFolderPath = (project: ProjectModel, parentDirectory: string): string =>
     {
         return path.join(parentDirectory, project.name);
     }
 
-    setTitle()
+    setTitle = () =>
     {
-        if (this.state.project)
+        if (ObjectHelper.project)
         {
-            remote.getCurrentWindow().setTitle((this.state.dirty ? "*" : "") + "Scarlet - " + this.state.project.name);
+            remote.getCurrentWindow().setTitle((this.state.dirty ? "*" : "") + "Scarlet - " + ObjectHelper.project.name);
         }
         else
         {
@@ -133,23 +120,24 @@ export default class App extends React.PureComponent<Props, State>
         }
     }
 
-    handleNewProject()
+    handleNewProject = () =>
     {
-        if (this.state.project)
+        if (ObjectHelper.project)
         {
             this.handleSaveProject();
         }
 
         this.setState(state => ({
             ...state,
-            ...ObjectHelper.setCurrentProject(null), // set project and errors
             currentView: "NewProject",
-            dirty: false,
-            projectFilename: ""
+            dirty: false
         }));
+
+        ObjectHelper.project = null;
+        ObjectHelper.projectFilename = "";
     }
 
-    handleOpenProject()
+    handleOpenProject = () =>
     {
         const paths = dialog.showOpenDialogSync({
             title: "Open Project...",
@@ -159,7 +147,7 @@ export default class App extends React.PureComponent<Props, State>
 
         if (paths && paths[0])
         {
-            if (this.state.project)
+            if (ObjectHelper.project)
             {
                 this.handleSaveProject();
             }
@@ -180,15 +168,16 @@ export default class App extends React.PureComponent<Props, State>
 
             this.setState(state => ({
                 ...state,
-                ...ObjectHelper.setCurrentProject(project), // set project and errors
                 currentView: "MainEdit",
-                dirty: false,
-                projectFilename: paths[0]
+                dirty: false
             }));
+
+            ObjectHelper.project = project;
+            ObjectHelper.projectFilename = paths[0];
         }
     }
 
-    handleCreateProject(project: ProjectModel, parentDirectory: string)
+    handleCreateProject = (project: ProjectModel, parentDirectory: string) =>
     {
         const folderPath = this.genProjectFolderPath(project, parentDirectory);
 
@@ -212,33 +201,19 @@ export default class App extends React.PureComponent<Props, State>
         }
 
         const filename = this.genProjectFilename(project, folderPath);
-        this.setState(state => ({
-            ...state,
-            currentView: "MainEdit",
-            ...ObjectHelper.setCurrentProject(null), // set project and errors
-            projectFilename: filename
-        }), () =>
-        {
-            this.handleSaveProject();
-        });
+
+        ObjectHelper.project = project;
+        ObjectHelper.projectFilename = filename;
+        this.handleSaveProject();
     }
 
-    handleUpdateProject(project: ProjectModel)
+    handleSaveProject = () =>
     {
-        this.setState(state => ({
-            ...state,
-            ...ObjectHelper.setCurrentProject(project), // set project and errors
-            dirty: true
-        }));
-    }
-
-    handleSaveProject()
-    {
-        if (this.state.project)
+        if (ObjectHelper.project)
         {
             fs.writeFileSync(
-                this.state.projectFilename,
-                JSON.stringify(this.state.project),
+                ObjectHelper.projectFilename,
+                JSON.stringify(ObjectHelper.project),
                 "utf8"
             );
             this.setState(state => ({
@@ -252,17 +227,12 @@ export default class App extends React.PureComponent<Props, State>
         }
     }
 
-    componentDidUpdate()
+    componentDidUpdate = () =>
     {
         this.setTitle();
-        if (this.state.project)
-        {
-            ObjectHelper.setCurrentProject(this.state.project);
-        }
-        PathHelper.setProjectFilename(this.state.projectFilename);
     }
 
-    render()
+    render = () =>
     {
         switch (this.state.currentView)
         {
@@ -280,16 +250,12 @@ export default class App extends React.PureComponent<Props, State>
                     />
                 )
             case "MainEdit":
-                if (this.state.project === null) throw new Error("null project");
+                if (ObjectHelper.project === null) throw new Error("null project");
                 return (
-                    <MainEditView
-                        project={this.state.project}
-                        onUpdate={this.handleUpdateProject}
-                        projectFilename={this.state.projectFilename}
-                    />
+                    <MainEditView />
                 );
             case "StageEdit":
-                if (this.state.project === null) throw new Error("null project");
+                if (ObjectHelper.project === null) throw new Error("null project");
                 return (
                     <div>a</div>
                 );

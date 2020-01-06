@@ -1,23 +1,26 @@
 @import "../../../../variables.scss";
 
+$headerHeight: 36px;
+$timelineHeight: 64px;
+$playHeight: 32px;
+$margin: 16px;
+
 .objectEdit > .stageComposer
 {
-    padding: 8px 16px;
+    padding: 8px 24px;
     position: fixed;
     left: 0;
     top: 0;
     background: $appBackground;
     width: 100%;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
     box-sizing: border-box;
     z-index: 10;
 
     .row.header
     {
-        margin-bottom: 16px;
+        margin-bottom: $margin;
+        padding: 0;
 
         h1
         {
@@ -30,14 +33,21 @@
         {
             margin-left: auto;
         }
+
+        height: $headerHeight;
     }
 
     $colWidth: 300px;
 
     .edit
     {
+        padding: 0;
+        display: flex;
+        flex-direction: row;
         flex-grow: 1;
         align-items: stretch;
+        height: calc(100% - (#{$headerHeight} + #{$timelineHeight} + #{$playHeight}) - #{$margin} * 3);
+        margin-bottom: $margin;
 
         & > *
         {
@@ -46,7 +56,7 @@
 
         & > .stageInfo, & > .rightCol
         {
-            padding: 0px 8px;
+            padding: 0;
             
             .label
             {
@@ -59,8 +69,15 @@
             }
         }
 
+        & > .stageInfo
+        {
+            padding-right: 8px;
+        }
+
         & > .rightCol
         {
+            padding-left: 8px;
+            overflow: auto;
             & > div:not(.row)
             {
                 box-sizing: border-box;
@@ -82,7 +99,7 @@
 
                 & > div > canvas, & > div > code, & > div > img
                 {
-                    width: $colWidth !important;
+                    width: 100% !important;
                     height: auto;
                 }
             }
@@ -119,13 +136,16 @@
 
     .timeline
     {
-        padding: 8px 8px;
+        height: $timelineHeight;
+        padding: 0;
         box-sizing: border-box;
         margin: 0;
+        margin-bottom: $margin;
+    }
 
-        .play
-        {
-            flex-basis: 64px;
-        }
+    .play
+    {
+        height: $playHeight;
+        width: 100%;
     }
 }

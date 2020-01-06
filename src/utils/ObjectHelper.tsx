@@ -1,31 +1,133 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, KeyBindings } from "./datatypes";
 import { array_copy, array_remove, array_ensureOne } from "./utils";
 import update from "immutability-helper";
 import Point, { PointLike } from "./point";
 import ImageCache from "./ImageCache";
+import React from "react";
+
+export type ObjectEventHandler = (id: number, obj: ObjectModel | null, prevObj: ObjectModel | null, action: "update" | "create" | "delete") => any;
 
 export default class ObjectHelper
 {
-    private static currentProject: ProjectModel | null;
+    private static _project: ProjectModel | null;
+    public static projectFilename: string;
     public static errors: string[] = [];
 
-    public static setCurrentProject(project: ProjectModel | null): { project: ProjectModel | null, errors: string[] }
-    {
-        this.currentProject = project;
-        this.checkForErrors();
+    private static objectSubscriptions = new Map<number, ObjectEventHandler[]>();
+    private static errorSubscriptions: ((errors: string[]) => any)[] = [];
+    private static keyBindingSubscriptions: ((keyBindings: KeyBindings) => any)[] = [];
 
-        return {
-            project: project,
-            errors: this.errors
+    public static set project(project: ProjectModel | null)
+    {
+        this._project = project;
+        this.checkForErrors();
+    }
+
+    public static get project(): ProjectModel | null
+    {
+        return this._project;
+    }
+
+    public static subscribeToErrors(handler: (errors: string[]) => any)
+    {
+        this.errorSubscriptions.push(handler);
+    }
+
+    public static unsubscribeFromErrors(handler: (errors: string[]) => any)
+    {
+        const removal = array_remove(this.errorSubscriptions, handler);
+        if (!removal.existed)
+        {
+            throw new Error("not subscribed to that object");
+        }
+    }
+
+    public static subscribeToKeyBindings(handler: (keyBindings: KeyBindings) => any)
+    {
+        this.keyBindingSubscriptions.push(handler);
+    }
+
+    public static unsubscribeFromKeyBindings(handler: (keyBindings: KeyBindings) => any)
+    {
+        const removal = array_remove(this.keyBindingSubscriptions, handler);
+        if (!removal.existed)
+        {
+            throw new Error("not subscribed to that object");
+        }
+    }
+
+    public static subscribeToObject(id: number, handler: ObjectEventHandler)
+    {
+        let arr = this.objectSubscriptions.get(id);
+        if (!arr)
+        {
+            arr = [];
+            this.objectSubscriptions.set(id, arr);
+        }
+
+        arr.push(handler);
+    }
+
+    public static unsubscribeFromObject(id: number, handler: ObjectEventHandler)
+    {
+        let arr = this.objectSubscriptions.get(id);
+        if (!arr)
+        {
+            arr = [];
+            this.objectSubscriptions.set(id, arr);
+            throw new Error("not subscribed to that object");
+        }
+
+        const removal = array_remove(arr, handler);
+        if (!removal.existed)
+        {
+            throw new Error("not subscribed to that object");
+        }
+    }
+
+    private static broadcastErrors()
+    {
+        this.errorSubscriptions.forEach(handler => handler(this.errors));
+    }
+
+    private static broadcastKeyBindings()
+    {
+        this.keyBindingSubscriptions.forEach(handler => handler(this.project!.keyBindings));
+    }
+
+    private static broadcastObjectUpdate(id: number, newObj: ObjectModel | null, prevObj: ObjectModel | null)
+    {
+        const arr = this.objectSubscriptions.get(id);
+        if (arr)
+        {
+            arr.forEach(handler => handler(id, newObj, prevObj, "update"));
+        }
+    }
+
+    private static broadcastObjectCreate(id: number, obj: ObjectModel)
+    {
+        const arr = this.objectSubscriptions.get(id);
+        if (arr)
+        {
+            arr.forEach(handler => handler(id, obj, null, "create"));
+        }
+    }
+
+    private static broadcastObjectDelete(id: number, prevObj: ObjectModel | null)
+    {
+        const arr = this.objectSubscriptions.get(id);
+        if (arr)
+        {
+            arr.forEach(handler => handler(id, null, prevObj, "delete"));
         }
     }
 
     private static checkForErrors()
     {
         this.errors = [];
-        if (!this.currentProject) return;
+        if (!this.project) return;
 
-        const objects = this.currentProject.objects;
+        const objects = this.project.objects;
 
         const namesSeen: Set<string> = new Set();
 
@@ -44,12 +146,25 @@ export default class ObjectHelper
                 array_ensureOne(this.errors, "empty name on " + obj.type + " object");
             }
         }
+
+        this.broadcastErrors();
     }
 
-    public static createAndAddObject<T extends ObjectModel>(type: ObjectType, project: ProjectModel = this.currentProject!): { obj: T, project: ProjectModel }
+    public static updateKeyBindings(keyBindings: KeyBindings)
     {
-        const id = this.genId(project);
+        this.project = {
+            ...this.project!,
+            keyBindings: keyBindings
+        };
+
+        this.broadcastKeyBindings();
+    }
+
+    public static createAndAddObject<T extends ObjectModel>(type: ObjectType): number
+    {
+        const id = this.genId();
         let ret: ObjectModel;
+        const objectNumber = this.getObjectsWithType(type).length.toString();
 
         // ADDTYPE
         switch (type)
@@ -57,7 +172,7 @@ export default class ObjectHelper
             case "sprite":
                 ret = {
                     id: id,
-                    name: "New Sprite " + this.getObjectsWithType(type, project).length,
+                    name: "New Sprite " + objectNumber,
                     type: "sprite",
                     path: "",
                     hitboxes: [],
@@ -68,7 +183,7 @@ export default class ObjectHelper
             case "player":
                 ret = {
                     id: id,
-                    name: "New Player " + this.getObjectsWithType(type, project).length,
+                    name: "New Player " + objectNumber,
                     moveSpeed: 400,
                     focusedMoveSpeed: 200,
                     lives: 3,
@@ -81,7 +196,7 @@ export default class ObjectHelper
             case "script":
                 ret = {
                     id: id,
-                    name: "New Script " + this.getObjectsWithType(type, project).length,
+                    name: "New Script " + objectNumber,
                     path: "",
                     type: "script"
                 } as ScriptModel;
@@ -89,7 +204,7 @@ export default class ObjectHelper
             case "enemy":
                 ret = {
                     id: id,
-                    name: "New Enemy " + this.getObjectsWithType(type, project).length,
+                    name: "New Enemy " + objectNumber,
                     bulletId: -1,
                     scriptId: -1,
                     spriteId: -1,
@@ -100,7 +215,7 @@ export default class ObjectHelper
             case "bullet":
                 ret = {
                     id: id,
-                    name: "New Bullet " + this.getObjectsWithType(type, project).length,
+                    name: "New Bullet " + objectNumber,
                     scriptId: -1,
                     spriteId: -1,
                     type: "bullet",
@@ -111,7 +226,7 @@ export default class ObjectHelper
             case "boss":
                 ret = {
                     id: id,
-                    name: "New Boss " + this.getObjectsWithType(type, project).length,
+                    name: "New Boss " + objectNumber,
                     formIds: [],
                     type: "boss"
                 } as BossModel;
@@ -119,7 +234,7 @@ export default class ObjectHelper
             case "bossForm":
                 ret = {
                     id: id,
-                    name: "New Form " + this.getObjectsWithType(type, project).length,
+                    name: "New Form " + objectNumber,
                     bulletId: -1,
                     hp: 100,
                     lifetime: 60 * 30,
@@ -131,7 +246,7 @@ export default class ObjectHelper
             case "stage":
                 ret = {
                     id: id,
-                    name: "New Stage " + this.getObjectsWithType(type, project).length,
+                    name: "New Stage " + objectNumber,
                     type: "stage",
                     backgroundId: -1,
                     bossId: -1,
@@ -155,7 +270,7 @@ export default class ObjectHelper
             case "background":
                 ret = {
                     id: id,
-                    name: "New Background " + this.getObjectsWithType(type, project).length,
+                    name: "New Background " + objectNumber,
                     type: "background",
                     path: ""
                 } as BackgroundModel;
@@ -165,41 +280,52 @@ export default class ObjectHelper
         }
 
         // add to project //
-        const p = update(project, {
+        this.project = update(this.project, {
             objects: {
                 $push: [ ret ]
             }
         });
-        return { obj: ret as T, project: p };
+
+        this.broadcastObjectCreate(id, ret);
+        return id;
     }
 
-    public static updateObject<T extends ObjectModel>(id: number, newObj: T, project: ProjectModel = this.currentProject!): ProjectModel
+    public static updateObject<T extends ObjectModel>(id: number, newObj: T)
     {
-        const index = project.objects.findIndex(o => o.id === id);
+        const oldObj = this.getObjectWithId(id);
+        const index = this.project!.objects.findIndex(o => o.id === id);
         if (index === -1) 
         {
-            return project;
+            throw new Error("object with id " + id + " doesn't exist :c");
         }
 
-        return update(project, {
+        this.project = update(this.project!, {
             objects: {
                 [index]: {
                     $set: newObj
                 }
             }
         });
+
+        this.broadcastObjectUpdate(id, newObj, oldObj);
     }
 
-    public static removeObject(id: number, project: ProjectModel = this.currentProject!): ProjectModel
+    public static removeObject(id: number)
     {
-        const index = project.objects.findIndex(o => o.id === id);
-        if (index === -1) return project;
+        const oldObj = this.getObjectWithId(id);
+        const index = this.project!.objects.findIndex(o => o.id === id);
+        if (index === -1)
+        {
+            throw new Error("object with id " + id + " does not exist :c");
+        }
 
-        return update(project, {
+        this.project = update(this.project!, {
             objects: {
                 $splice: [[ index ]]
             }
         });
+
+        this.broadcastObjectDelete(id, oldObj);
     }
 
     /**
@@ -207,11 +333,11 @@ export default class ObjectHelper
      * @param subIdentifier An identifier for the child object. e.g. "sprite" for object returned by spriteId, or "form[0].sprite" for sprite of first form
      * @param project The project.
      */
-    public static getSubObject<T extends ObjectModel>(parentObject: ObjectModel | number | null, subIdentifier: string, project: ProjectModel = this.currentProject!): T | null
+    public static getSubObject<T extends ObjectModel>(parentObject: ObjectModel | number | null, subIdentifier: string): T | null
     {
         if (typeof(parentObject) === "number")
         {
-            parentObject = this.getObjectWithId(parentObject, project);
+            parentObject = this.getObjectWithId(parentObject);
         }
 
         if (!parentObject) return null;
@@ -241,11 +367,11 @@ export default class ObjectHelper
         {
             if (parts[i][1] >= 0)
             {
-                obj = this.getObjectWithId((obj as any)[parts[i][0]][parts[i][1]], project);
+                obj = this.getObjectWithId((obj as any)[parts[i][0]][parts[i][1]]);
             }
             else
             {
-                obj = this.getObjectWithId((obj as any)[parts[i][0]], project);
+                obj = this.getObjectWithId((obj as any)[parts[i][0]]);
             }
 
             if (!obj) return null;
@@ -257,9 +383,9 @@ export default class ObjectHelper
     /**
      * @param type Type of objects to get
      */
-    public static getObjectsWithType<T extends ObjectModel>(type: ObjectType, project: ProjectModel = this.currentProject!): T[]
+    public static getObjectsWithType<T extends ObjectModel>(type: ObjectType): T[]
     {
-        return project.objects.filter(o => o.type === type) as T[];
+        return this.project!.objects.filter(o => o.type === type) as T[];
     }
 
     /**
@@ -267,24 +393,24 @@ export default class ObjectHelper
      * @param project Project
      * @returns Object with id. If the id is invalid, returns null.
      */
-    public static getObjectWithId<T extends ObjectModel>(id: number, project: ProjectModel = this.currentProject!): T | null
+    public static getObjectWithId<T extends ObjectModel>(id: number): T | null
     {
         if (id < 0) return null;
-        return (project.objects.find(o => o.id === id) as T) || null;
+        return (this.project!.objects.find(o => o.id === id) as T) || null;
     }
 
-    public static getObjectWithName<T extends ObjectModel>(name: string, project: ProjectModel = this.currentProject!): T | null
+    public static getObjectWithName<T extends ObjectModel>(name: string): T | null
     {
         if (!name) return null;
-        return (project.objects.find(o => o.name === name) as T) || null;
+        return (this.project!.objects.find(o => o.name === name) as T) || null;
     }
 
-    private static genId(project: ProjectModel = this.currentProject!): number
+    private static genId(): number
     {
         // TODO: optimize this w/ a cache ?
         for (let i = 0; i < 1000000; i++)
         {
-            if (!project.objects.find(o => o.id === i))
+            if (!this.project!.objects.find(o => o.id === i))
             {
                 return i;
             }
@@ -293,11 +419,11 @@ export default class ObjectHelper
         throw new Error("max game objects");
     }
 
-    public static getSpriteSize(sprite: SpriteModel | number, project: ProjectModel = this.currentProject!): Point
+    public static getSpriteSize(sprite: SpriteModel | number): Point
     {
         if (typeof(sprite) === "number")
         {
-            sprite = this.getObjectWithId<SpriteModel>(sprite, project)!;
+            sprite = this.getObjectWithId<SpriteModel>(sprite)!;
             if (!sprite) throw new Error("bad sprite id"); 
         }
 

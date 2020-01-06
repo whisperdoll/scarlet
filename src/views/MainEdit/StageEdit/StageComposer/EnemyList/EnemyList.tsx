@@ -7,7 +7,6 @@ import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas
 
 interface Props
 {
-    project: ProjectModel;
     stage: StageModel;
     onSelectEnemy: (index: number) => any;
 }
@@ -41,9 +40,9 @@ export default class EnemyList extends React.PureComponent<Props, State>
 
     spriteForEnemy = (enemyId: number): SpriteModel | null =>
     {
-        const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyId, this.props.project);
+        const enemy = ObjectHelper.getObjectWithId<EnemyModel>(enemyId);
         if (!enemy) return null;
-        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId, this.props.project);
+        const sprite = ObjectHelper.getObjectWithId<SpriteModel>(enemy.spriteId);
         return sprite;
     }
 
@@ -70,7 +69,7 @@ export default class EnemyList extends React.PureComponent<Props, State>
                         )}
                         <span>{enemy.instanceName}</span>
                         <span>&nbsp;</span>
-                        <span className="enemyType">{"(" + ObjectHelper.getObjectWithId(enemy.id, this.props.project)?.name + ")"}</span>
+                        <span className="enemyType">{"(" + ObjectHelper.getObjectWithId(enemy.id)?.name + ")"}</span>
                     </div>
                 ))}
             </div>

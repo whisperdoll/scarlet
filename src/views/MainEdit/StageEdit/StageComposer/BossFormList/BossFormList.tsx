@@ -7,8 +7,6 @@ import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas
 
 interface Props
 {
-    project: ProjectModel;
-    stage: StageModel;
     bossId: number;
     onSelectBossForm: (id: number) => any;
 }
@@ -27,6 +25,30 @@ export default class BossFormList extends React.PureComponent<Props, State>
         this.handleFormDeselect = this.handleFormDeselect.bind(this);
     }
 
+    componentDidMount = () =>
+    {
+        ObjectHelper.subscribeToObject(this.props.bossId, this.handleBossUpdate);
+    }
+
+    componentWillUnmount = () =>
+    {
+        ObjectHelper.unsubscribeFromObject(this.props.bossId, this.handleBossUpdate);
+    }
+    
+    componentDidUpdate = (prevProps: Props) =>
+    {
+        if (prevProps.bossId !== this.props.bossId)
+        {
+            ObjectHelper.unsubscribeFromObject(prevProps.bossId, this.handleBossUpdate);
+            ObjectHelper.subscribeToObject(this.props.bossId, this.handleBossUpdate);
+        }
+    }
+
+    handleBossUpdate = () =>
+    {
+        this.forceUpdate();
+    }
+
     handleFormSelect(e: React.MouseEvent<HTMLDivElement, MouseEvent>)
     {
         e.stopPropagation();
@@ -41,14 +63,14 @@ export default class BossFormList extends React.PureComponent<Props, State>
 
     private spriteForForm(id: number): SpriteModel | null
     {
-        return ObjectHelper.getSubObject(id, "sprite", this.props.project);
+        return ObjectHelper.getSubObject(id, "sprite");
     }
 
     render()
     {
         return (
             <div className="bossFormList" onClick={this.handleFormDeselect}>
-                {ObjectHelper.getObjectWithId<BossModel>(this.props.bossId, this.props.project)?.formIds.map((formId, i) => (
+                {ObjectHelper.getObjectWithId<BossModel>(this.props.bossId)?.formIds.map((formId, i) => (
                     <div
                         className="bossFormItem"
                         onClick={this.handleFormSelect}

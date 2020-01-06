@@ -16,9 +16,6 @@ import ObjectEdit from '../../components/ObjectEdit/ObjectEdit';
 
 interface Props
 {
-    project: ProjectModel;
-    projectFilename: string;
-    onUpdate: (project: ProjectModel) => any;
 }
 
 interface State
@@ -39,14 +36,10 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
     handleObjectCreate = (type: ObjectType) =>
     {
-        const { obj, project } = ObjectHelper.createAndAddObject(type, this.props.project);
-
         this.setState(state => ({
             ...state,
-            currentlyEditing: obj.id
+            currentlyEditing: ObjectHelper.createAndAddObject(type)
         }));
-
-        this.props.onUpdate(project);
     }
 
     handleObjectSelect = (id: number) =>
@@ -77,7 +70,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
     {
         if (typeof(this.state.currentlyEditing) === "number")
         {
-            return ObjectHelper.getObjectWithId(this.state.currentlyEditing, this.props.project);
+            return ObjectHelper.getObjectWithId(this.state.currentlyEditing);
         }
         else
         {
@@ -94,11 +87,10 @@ export default class MainEditView extends React.PureComponent<Props, State>
                     {ObjectHelper.errors.length > 0 && (
                         <div className="errorBadge" title={ObjectHelper.errors.join("\n")}>⚠️</div>
                     )}
-                    <div className="header">{this.props.project.name}</div>
+                    <div className="header">{ObjectHelper.project!.name}</div>
                     <button onClick={this.handleEditKeyBinds}>Edit Key Bindings</button>
                 </div>
                 <ObjectList
-                    project={this.props.project}
                     onCreate={this.handleObjectCreate}
                     onSelect={this.handleObjectSelect}
                 />
@@ -109,24 +101,15 @@ export default class MainEditView extends React.PureComponent<Props, State>
                         {
                             switch (this.state.currentlyEditing)
                             {
-                                case "keyBinds":
-                                    return (
-                                        <KeyBindEdit
-                                            onUpdate={this.props.onUpdate}
-                                            project={this.props.project}
-                                        />
-                                    );
+                                case "keyBinds": return <KeyBindEdit />;
+                                default: return null;
                             }
-
-                            return null;
                         })()}
                     </div>
                 )}
                 {typeof(this.state.currentlyEditing) === "number" && this.currentlyEditingObj && (
                     <ObjectEdit
                         id={this.state.currentlyEditing}
-                        onUpdate={this.props.onUpdate}
-                        project={this.props.project}
                         onRequestEdit={this.handleRequestEdit}
                     />
                 )}

@@ -1,13 +1,12 @@
 import * as npath from "path";
 import * as fs from "fs";
+import ObjectHelper from "./ObjectHelper";
 
 export default class PathHelper
 {
-    private static projectFilename: string = "";
-
-    public static setProjectFilename(projectFilename: string)
+    private static get projectFilename(): string
     {
-        this.projectFilename = projectFilename;
+        return ObjectHelper.projectFilename;
     }
 
     /**

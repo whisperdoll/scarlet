@@ -63,13 +63,13 @@ $headerBarHeight: 64px;
     
             margin-bottom: 8px;
         }
-    
-        & > h1
-        {
-            font-size: 32px;
-            margin: 0;
-            margin-bottom: 8px;
-            margin-top: 12px;
-        }
+    }
+
+    .objectEdit > h1
+    {
+        font-size: 32px;
+        margin: 0;
+        margin-bottom: 8px;
+        margin-top: 12px;
     }
 }

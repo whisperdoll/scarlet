@@ -5,7 +5,6 @@ import ObjectSelect from "../../../../../components/ObjectSelect/ObjectSelect";
 
 interface Props
 {
-    project: ProjectModel;
     stage: StageModel;
     enemyIndex: number;
     onUpdate: (enemy: StageEnemyData, index: number) => any;
@@ -157,7 +156,6 @@ export default class PropertyEdit extends React.PureComponent<Props, State>
                             currentObjectId={this.enemy.id}
                             objectType="enemy"
                             onChange={this.handleTypeChange}
-                            project={this.props.project}
                             onRequestEdit={this.props.onRequestEdit}
                         />
                     </div>

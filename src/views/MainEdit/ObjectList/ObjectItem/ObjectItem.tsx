@@ -7,7 +7,6 @@ import ObjectHelper from '../../../../utils/ObjectHelper';
 interface Props
 {
     id: number;
-    project: ProjectModel;
     onContextMenu: (id: number, position: Point) => any;
     onSelect: (id: number) => any;
 }
@@ -51,7 +50,7 @@ export default class ObjectItem extends React.PureComponent<Props, State>
                 onContextMenu={this.handleContextMenu}
             >
                 <span className="noEmpty">
-                    {ObjectHelper.getObjectWithId(this.props.id, this.props.project)?.name || null}
+                    {ObjectHelper.getObjectWithId(this.props.id)?.name || null}
                 </span>
             </div>
         );

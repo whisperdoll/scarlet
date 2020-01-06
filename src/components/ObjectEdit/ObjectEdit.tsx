@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component, ComponentType } from 'react';
 import ObjectList from '../../views/MainEdit/ObjectList/ObjectList';
 import { ObjectModel, ProjectModel, ObjectType, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
@@ -11,17 +11,20 @@ import BossEdit from '../../views/MainEdit/BossEdit/BossEdit';
 import StageEdit from '../../views/MainEdit/StageEdit/StageEdit';
 import BackgroundEdit from '../../views/MainEdit/BackgroundEdit/BackgroundEdit';
 import KeyBindEdit from '../../views/MainEdit/KeyBindEdit/KeyBindEdit';
+import BossFormEdit from '../../views/MainEdit/BossEdit/BossFormEdit/BossFormEdit';
 
 interface Props
 {
     id: number;
-    project: ProjectModel;
-    onUpdate: (project: ProjectModel) => any;
     onRequestEdit: (id: number) => any;
+    index?: number;
+    onRequestRemove?: (id: number) => any;
+    showTitle?: boolean;
 }
 
 interface State
 {
+    obj: ObjectModel | null;
 }
 
 export default class ObjectEdit extends React.PureComponent<Props, State>
@@ -29,103 +32,113 @@ export default class ObjectEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
+
+        this.state = {
+            obj: ObjectHelper.getObjectWithId(this.props.id)
+        };
+
+        ObjectHelper.subscribeToObject(this.props.id, this.handleSubscribedObjectUpdate);
     }
 
     get currentlyEditingObj(): ObjectModel | null
     {
-        if (typeof(this.props.id) === "number")
+        return ObjectHelper.getObjectWithId(this.props.id);
+    }
+
+    componentDidMount = () =>
+    {
+    }
+
+    componentWillUnmount = () =>
+    {
+        ObjectHelper.unsubscribeFromObject(this.props.id, this.handleSubscribedObjectUpdate);
+    }
+
+    handleSubscribedObjectUpdate = (id: number, obj: ObjectModel | null) =>
+    {
+        if (id === this.props.id)
         {
-            return ObjectHelper.getObjectWithId(this.props.id, this.props.project);
+            this.setState(state => ({
+                ...state,
+                obj: obj
+            }));
         }
         else
         {
-            return null;
+            console.error("bad update");
         }
+    }
+
+    handleChildObjectUpdate = (obj: any) =>
+    {
+        if (obj)
+        {
+            ObjectHelper.updateObject(this.props.id, {
+                ...ObjectHelper.getObjectWithId(this.props.id),
+                ...obj
+            });
+        }
+    }
+
+    static getDerivedStateFromProps = (props: Props, state: State) =>
+    {
+        return {
+            ...state,
+            obj: ObjectHelper.getObjectWithId(props.id)
+        };
+    }
+
+    componentDidUpdate = (prevProps: Props) =>
+    {
+        if (prevProps.id !== this.props.id)
+        {
+            ObjectHelper.unsubscribeFromObject(prevProps.id, this.handleSubscribedObjectUpdate);
+            ObjectHelper.subscribeToObject(this.props.id, this.handleSubscribedObjectUpdate);
+        }
+    }
+
+    getEditor()
+    {
+        let component: any;
+
+        if (this.currentlyEditingObj)
+        {
+            switch (this.currentlyEditingObj.type)
+            {
+                case "sprite": component = SpriteEdit; break;
+                case "script": component = ScriptEdit; break;
+                case "background": component = BackgroundEdit; break;
+                case "boss": component = BossEdit; break;
+                case "bossForm": component = BossFormEdit; break;
+                case "bullet": component = BulletEdit; break;
+                case "enemy": component = EnemyEdit; break;
+                case "player": component = PlayerEdit; break;
+                case "stage": component = StageEdit; break;
+            }
+            
+            return component;
+        }
+
+        return null;
     }
 
     render()
     {
         // ADDTYPE
-        const obj = ObjectHelper.getObjectWithId(this.props.id, this.props.project);
-
-        const editPart = obj ? (() => {
-            switch (obj.type)
-            {
-                case "sprite":
-                    return (
-                        <SpriteEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                        />
-                    );
-                case "player":
-                    return (
-                        <PlayerEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                            onRequestEdit={this.props.onRequestEdit}
-                        />
-                    );
-                case "script":
-                    return (
-                        <ScriptEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                        />
-                    );
-                case "enemy":
-                    return (
-                        <EnemyEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                            onRequestEdit={this.props.onRequestEdit}
-                        />
-                    );
-                case "bullet":
-                    return (
-                        <BulletEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                            onRequestEdit={this.props.onRequestEdit}
-                        />
-                    );
-                case "boss":
-                    return (
-                        <BossEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                            onRequestEdit={this.props.onRequestEdit}
-                        />
-                    );
-                case "stage":
-                    return (
-                        <StageEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                        />
-                    );
-                case "background":
-                    return (
-                        <BackgroundEdit
-                            id={this.props.id}
-                            onUpdate={this.props.onUpdate}
-                            project={this.props.project}
-                        />
-                    )
-            }
-        })() : null;
+        const Editor = this.getEditor();
 
         return (
             <div className="objectEdit">
-                <h1 className="noEmpty">{obj?.name}</h1>
-                {editPart}
+                {(this.props.showTitle !== false) && <h1 className="noEmpty">{this.state.obj?.name}</h1>}
+                {Editor && (
+                    <Editor
+                        obj={this.state.obj}
+                        update={this.handleChildObjectUpdate}
+                        onRequestEdit={this.props.onRequestEdit}
+                        index={this.props.index}
+                        onRequestRemove={this.props.onRequestRemove}
+                    />
+                )}
             </div>
         );
     }

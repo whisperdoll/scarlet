@@ -4,7 +4,6 @@ import ObjectHelper from '../../utils/ObjectHelper';
 
 interface Props
 {
-    project: ProjectModel;
     objectType: ObjectType;
     currentObjectId: number;
     onChange: (id: number) => any;
@@ -50,7 +49,7 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
                     value={this.props.currentObjectId.toString()}
                 >
                     <option key={-1} value="-1">(None)</option>
-                    {ObjectHelper.getObjectsWithType(this.props.objectType, this.props.project).map((obj) =>
+                    {ObjectHelper.getObjectsWithType(this.props.objectType).map((obj) =>
                     {
                     return <option key={obj.id} value={obj.id.toString()}>{obj.name}</option> 
                     })}
