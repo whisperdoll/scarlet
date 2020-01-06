@@ -1,5 +1,5 @@
 import { PointLike } from "./point";
-import { BossModel, ScriptHaver, SpriteHaver, ProjectModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel, ScriptModel } from "./datatypes";
+import { BossModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel, ScriptModel } from "./datatypes";
 import ScriptEngine, { KeyContext, ScriptMethodCollection } from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";

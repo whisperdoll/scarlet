@@ -1,8 +1,7 @@
 import React from 'react';
 import './BossFormList.scss';
-import { StageModel, ProjectModel, SpriteModel, BossModel } from '../../../../../utils/datatypes';
+import { SpriteModel, BossModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
-import PathHelper from '../../../../../utils/PathHelper';
 import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props

@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from 'react';
-import { ProjectModel, ObjectType } from '../../utils/datatypes';
+import { ObjectType } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 
 interface Props

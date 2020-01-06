@@ -1,6 +1,5 @@
 import React, { MouseEvent } from 'react';
 import './ObjectItem.scss';
-import { ObjectModel, ProjectModel } from '../../../../utils/datatypes';
 import Point from '../../../../utils/point';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 

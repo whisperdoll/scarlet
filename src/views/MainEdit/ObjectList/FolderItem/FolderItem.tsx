@@ -1,7 +1,6 @@
 import React, { MouseEvent } from 'react';
-import { ObjectModel, ObjectType } from '../../../../utils/datatypes';
+import { ObjectType } from '../../../../utils/datatypes';
 import Point from '../../../../utils/point';
-import ObjectItem from '../ObjectItem/ObjectItem';
 
 interface Props
 {

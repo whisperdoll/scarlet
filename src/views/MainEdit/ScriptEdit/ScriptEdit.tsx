@@ -1,9 +1,8 @@
 import React, { ChangeEvent } from 'react';
 import './ScriptEdit.scss';
-import { ScriptModel, ProjectModel } from '../../../utils/datatypes';
+import { ScriptModel } from '../../../utils/datatypes';
 import * as fs from "fs";
 import PathHelper from '../../../utils/PathHelper';
-import ObjectHelper from '../../../utils/ObjectHelper';
 const { dialog } = require("electron").remote;
 
 interface Props

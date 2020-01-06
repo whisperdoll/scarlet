@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as vm from "vm";
 import ObjectHelper from "./ObjectHelper";
-import { ProjectModel, ScriptModel, KeyBindings, BulletModel } from "./datatypes";
+import { ScriptModel } from "./datatypes";
 import { PointLike } from "./point";
 import PathHelper from "../utils/PathHelper";
 import { obj_copy } from "../utils/utils";

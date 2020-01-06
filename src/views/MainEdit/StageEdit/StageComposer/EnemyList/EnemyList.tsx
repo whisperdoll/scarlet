@@ -1,8 +1,7 @@
 import React from 'react';
 import './EnemyList.scss';
-import { StageModel, ProjectModel, SpriteModel, EnemyModel } from '../../../../../utils/datatypes';
+import { StageModel, SpriteModel, EnemyModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
-import PathHelper from '../../../../../utils/PathHelper';
 import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props

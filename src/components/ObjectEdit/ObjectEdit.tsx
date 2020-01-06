@@ -1,6 +1,5 @@
-import React, { Component, ComponentType } from 'react';
-import ObjectList from '../../views/MainEdit/ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
+import React from 'react';
+import { ObjectModel } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 import SpriteEdit from '../../views/MainEdit/SpriteEdit/SpriteEdit';
 import PlayerEdit from '../../views/MainEdit/PlayerEdit/PlayerEdit';
@@ -10,7 +9,6 @@ import BulletEdit from '../../views/MainEdit/BulletEdit/BulletEdit';
 import BossEdit from '../../views/MainEdit/BossEdit/BossEdit';
 import StageEdit from '../../views/MainEdit/StageEdit/StageEdit';
 import BackgroundEdit from '../../views/MainEdit/BackgroundEdit/BackgroundEdit';
-import KeyBindEdit from '../../views/MainEdit/KeyBindEdit/KeyBindEdit';
 import BossFormEdit from '../../views/MainEdit/BossEdit/BossFormEdit/BossFormEdit';
 
 interface Props

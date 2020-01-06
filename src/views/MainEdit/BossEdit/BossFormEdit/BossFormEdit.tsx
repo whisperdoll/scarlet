@@ -1,9 +1,8 @@
 import React, { ChangeEvent } from 'react';
 import './BossFormEdit.scss';
-import { BossFormModel, ProjectModel, SpriteModel } from '../../../../utils/datatypes';
+import { BossFormModel, SpriteModel } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
-import PathHelper from '../../../../utils/PathHelper';
 import AnimatedSpriteCanvas from '../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 
 interface Props

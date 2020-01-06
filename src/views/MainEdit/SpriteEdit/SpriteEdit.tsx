@@ -1,18 +1,14 @@
 import React, { ChangeEvent } from 'react';
 import './SpriteEdit.scss';
-import { SpriteModel, Hitbox, ProjectModel } from '../../../utils/datatypes';
+import { SpriteModel, Hitbox } from '../../../utils/datatypes';
 import HitboxEdit from './HitboxEdit/HitboxEdit';
-import { array_copy, array_remove_at } from '../../../utils/utils';
 import ImageCache from '../../../utils/ImageCache';
 import PureCanvas from '../../../components/PureCanvas/PureCanvas';
 import Point from '../../../utils/point';
 import { Canvas } from '../../../utils/canvas';
-import * as npath from "path";
-import * as fs from "fs";
 import PathHelper from '../../../utils/PathHelper';
 import update from "immutability-helper";
 import Rectangle from '../../../utils/rectangle';
-import ObjectHelper from '../../../utils/ObjectHelper';
 const { dialog } = require("electron").remote;
 
 interface Props

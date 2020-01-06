@@ -1,8 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './StageEdit.scss';
-import { StageModel, ProjectModel } from '../../../utils/datatypes';
+import { StageModel } from '../../../utils/datatypes';
 import StageComposer from './StageComposer/StageComposer';
-import ObjectHelper from '../../../utils/ObjectHelper';
 
 interface Props
 {

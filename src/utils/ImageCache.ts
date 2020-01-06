@@ -1,5 +1,4 @@
-import { ProjectModel, SpriteModel } from "./datatypes";
-import * as fs from "fs";
+import { ProjectModel } from "./datatypes";
 import PathHelper from "./PathHelper";
 
 export default class ImageCache

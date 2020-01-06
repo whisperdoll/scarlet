@@ -1,9 +1,8 @@
 import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, KeyBindings } from "./datatypes";
-import { array_copy, array_remove, array_ensureOne } from "./utils";
+import { array_remove, array_ensureOne } from "./utils";
 import update from "immutability-helper";
-import Point, { PointLike } from "./point";
+import Point from "./point";
 import ImageCache from "./ImageCache";
-import React from "react";
 
 export type ObjectEventHandler = (id: number, obj: ObjectModel | null, prevObj: ObjectModel | null, action: "update" | "create" | "delete") => any;
 

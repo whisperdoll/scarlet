@@ -1,6 +1,6 @@
 import React from 'react';
 import './KeyBindEdit.scss';
-import { ProjectModel, SpriteModel, KeyBindings } from '../../../utils/datatypes';
+import { KeyBindings } from '../../../utils/datatypes';
 import update from "immutability-helper";
 import ObjectHelper from '../../../utils/ObjectHelper';
 
@@ -18,15 +18,16 @@ export default class KeyBindEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
+
+        this.state = {
+            keyBindings: ObjectHelper.project!.keyBindings
+        };
+        
+        ObjectHelper.subscribeToKeyBindings(this.handleUpdateKeybindings);
     }
 
     componentDidMount = () =>
     {
-        this.state = {
-            keyBindings: ObjectHelper.project!.keyBindings
-        }
-
-        ObjectHelper.subscribeToKeyBindings(this.handleUpdateKeybindings);
     }
 
     componentWillUnmount = () =>

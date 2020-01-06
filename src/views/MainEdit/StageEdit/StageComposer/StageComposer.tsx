@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import './StageComposer.scss';
-import { StageModel, ProjectModel, StageEnemyData, BossModel, BossFormModel } from '../../../../utils/datatypes';
+import { StageModel, StageEnemyData, BossModel, BossFormModel } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
@@ -10,7 +10,6 @@ import { array_copy, obj_copy, array_remove_at, array_last } from '../../../../u
 import ScriptEngine from '../../../../utils/ScriptEngine';
 import StageTimeline from './StageTimeline/StageTimeline';
 import BossFormList from './BossFormList/BossFormList';
-import BossFormEdit from '../../BossEdit/BossFormEdit/BossFormEdit';
 import ImageCache from '../../../../utils/ImageCache';
 import update from "immutability-helper";
 import ObjectEdit from '../../../../components/ObjectEdit/ObjectEdit';

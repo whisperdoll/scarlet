@@ -1,11 +1,8 @@
 import React from 'react';
 import './BossEdit.scss';
-import { BossModel, ProjectModel, BossFormModel } from '../../../utils/datatypes';
-import { array_copy, array_remove_at } from '../../../utils/utils';
-import BossFormEdit from './BossFormEdit/BossFormEdit';
+import { BossModel } from '../../../utils/datatypes';
 import ObjectHelper from '../../../utils/ObjectHelper';
 import update from "immutability-helper";
-import PathHelper from '../../../utils/PathHelper';
 import ObjectEdit from '../../../components/ObjectEdit/ObjectEdit';
 
 interface Props

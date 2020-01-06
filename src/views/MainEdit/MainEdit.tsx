@@ -1,16 +1,8 @@
 import React from 'react';
 import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
-import { ObjectModel, ProjectModel, ObjectType, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel } from '../../utils/datatypes';
+import { ObjectModel, ObjectType } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
-import SpriteEdit from './SpriteEdit/SpriteEdit';
-import PlayerEdit from './PlayerEdit/PlayerEdit';
-import ScriptEdit from './ScriptEdit/ScriptEdit';
-import EnemyEdit from './EnemyEdit/EnemyEdit';
-import BulletEdit from './BulletEdit/BulletEdit';
-import BossEdit from './BossEdit/BossEdit';
-import StageEdit from './StageEdit/StageEdit';
-import BackgroundEdit from './BackgroundEdit/BackgroundEdit';
 import KeyBindEdit from './KeyBindEdit/KeyBindEdit';
 import ObjectEdit from '../../components/ObjectEdit/ObjectEdit';
 
@@ -85,7 +77,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
             <div className="mainEditView">
                 <div className="headerBar">
                     {ObjectHelper.errors.length > 0 && (
-                        <div className="errorBadge" title={ObjectHelper.errors.join("\n")}>⚠️</div>
+                        <span role="img" aria-label="Errors" className="errorBadge" title={ObjectHelper.errors.join("\n")}>⚠️</span>
                     )}
                     <div className="header">{ObjectHelper.project!.name}</div>
                     <button onClick={this.handleEditKeyBinds}>Edit Key Bindings</button>

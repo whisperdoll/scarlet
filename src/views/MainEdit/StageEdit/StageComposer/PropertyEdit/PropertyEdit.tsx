@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import './PropertyEdit.scss';
-import { StageModel, ProjectModel, StageEnemyData } from '../../../../../utils/datatypes';
+import { StageModel, StageEnemyData } from '../../../../../utils/datatypes';
 import ObjectSelect from "../../../../../components/ObjectSelect/ObjectSelect";
 
 interface Props

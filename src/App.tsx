@@ -8,10 +8,6 @@ import UserSettings from './utils/usersettings';
 import * as fs from "fs";
 import * as path from "path";
 import ObjectHelper from './utils/ObjectHelper';
-import ImageCache from './utils/ImageCache';
-import ScriptEngine from './utils/ScriptEngine';
-import PathHelper from './utils/PathHelper';
-import update from "immutability-helper";
 const { remote } = require('electron');
 const { Menu, MenuItem, dialog } = remote;
 

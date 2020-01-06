@@ -1,9 +1,8 @@
 import React, { ChangeEvent } from 'react';
 import './BackgroundEdit.scss';
-import { BackgroundModel, ProjectModel } from '../../../utils/datatypes';
+import { BackgroundModel } from '../../../utils/datatypes';
 import ImageCache from '../../../utils/ImageCache';
 import PathHelper from '../../../utils/PathHelper';
-import ObjectHelper from '../../../utils/ObjectHelper';
 const { dialog } = require("electron").remote;
 
 interface Props

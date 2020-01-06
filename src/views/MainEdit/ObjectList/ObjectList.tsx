@@ -1,7 +1,7 @@
 import React from 'react';
 import './ObjectList.scss';
 import ObjectItem from './ObjectItem/ObjectItem';
-import { ObjectModel, ProjectModel, ObjectType, GameObjectTypes } from '../../../utils/datatypes';
+import { ObjectType, GameObjectTypes } from '../../../utils/datatypes';
 import Point from '../../../utils/point';
 import ContextMenu from '../../../components/ContextMenu/ContextMenu';
 import ContextMenuItem from '../../../components/ContextMenu/ContextMenuItem';

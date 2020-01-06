@@ -1,13 +1,12 @@
 import React from 'react';
 import './StageRenderer.scss';
-import { StageModel, ProjectModel, BackgroundModel, SpriteModel, PlayerModel, BossModel } from '../../../../../utils/datatypes';
-import PureCanvas from "../../../../../components/PureCanvas/PureCanvas";
+import { StageModel, ProjectModel, BackgroundModel, SpriteModel } from '../../../../../utils/datatypes';
 import Point, { PointLike } from '../../../../../utils/point';
 import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import GameEngine, { UpdateResult, GameEntity } from '../../../../../utils/GameEngine';
+import GameEngine, { GameEntity } from '../../../../../utils/GameEngine';
 import update from "immutability-helper";
 import * as PIXI from "pixi.js";
 import PathHelper from '../../../../../utils/PathHelper';

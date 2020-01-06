@@ -1,8 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import './StageTimeline.scss';
-import { StageModel, ProjectModel, SpriteModel, StageEnemyData, EnemyModel, BossModel, BossFormModel } from '../../../../../utils/datatypes';
+import { StageModel, SpriteModel, StageEnemyData, EnemyModel, BossModel, BossFormModel } from '../../../../../utils/datatypes';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
-import PathHelper from '../../../../../utils/PathHelper';
 import AnimatedSpriteCanvas from '../../../../../components/AnimatedSpriteCanvas/AnimatedSpriteCanvas';
 import GameEngine from '../../../../../utils/GameEngine';
 
