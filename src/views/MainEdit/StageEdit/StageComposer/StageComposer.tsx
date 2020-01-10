@@ -454,7 +454,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             // remove from boss //
             ObjectHelper.updateObject(boss.id, update(boss, {
                 formIds: {
-                    $splice: [[ boss.formIds.findIndex(_id => _id === id) ]]
+                    $splice: [[ boss.formIds.findIndex(_id => _id === id), 1 ]]
                 }
             }));
     

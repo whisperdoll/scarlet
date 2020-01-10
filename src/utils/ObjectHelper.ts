@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, KeyBindings } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, ProjectSettings } from "./datatypes";
 import { array_remove, array_ensureOne } from "./utils";
 import update from "immutability-helper";
 import Point from "./point";
@@ -14,7 +14,7 @@ export default class ObjectHelper
 
     private static objectSubscriptions = new Map<number, ObjectEventHandler[]>();
     private static errorSubscriptions: ((errors: string[]) => any)[] = [];
-    private static keyBindingSubscriptions: ((keyBindings: KeyBindings) => any)[] = [];
+    private static settingsSubscriptions: ((settings: ProjectSettings) => any)[] = [];
 
     public static set project(project: ProjectModel | null)
     {
@@ -41,14 +41,14 @@ export default class ObjectHelper
         }
     }
 
-    public static subscribeToKeyBindings(handler: (keyBindings: KeyBindings) => any)
+    public static subscribeToSettings(handler: (settings: ProjectSettings) => any)
     {
-        this.keyBindingSubscriptions.push(handler);
+        this.settingsSubscriptions.push(handler);
     }
 
-    public static unsubscribeFromKeyBindings(handler: (keyBindings: KeyBindings) => any)
+    public static unsubscribeFromSettings(handler: (settings: ProjectSettings) => any)
     {
-        const removal = array_remove(this.keyBindingSubscriptions, handler);
+        const removal = array_remove(this.settingsSubscriptions, handler);
         if (!removal.existed)
         {
             throw new Error("not subscribed to that object");
@@ -89,9 +89,9 @@ export default class ObjectHelper
         this.errorSubscriptions.forEach(handler => handler(this.errors));
     }
 
-    private static broadcastKeyBindings()
+    private static broadcastSettings()
     {
-        this.keyBindingSubscriptions.forEach(handler => handler(this.project!.keyBindings));
+        this.settingsSubscriptions.forEach(handler => handler(this.project!.settings));
     }
 
     private static broadcastObjectUpdate(id: number, newObj: ObjectModel | null, prevObj: ObjectModel | null)
@@ -149,14 +149,14 @@ export default class ObjectHelper
         this.broadcastErrors();
     }
 
-    public static updateKeyBindings(keyBindings: KeyBindings)
+    public static updateSettings(settings: ProjectSettings)
     {
         this.project = {
             ...this.project!,
-            keyBindings: keyBindings
+            settings
         };
 
-        this.broadcastKeyBindings();
+        this.broadcastSettings();
     }
 
     public static createAndAddObject<T extends ObjectModel>(type: ObjectType): number
@@ -320,7 +320,7 @@ export default class ObjectHelper
 
         this.project = update(this.project!, {
             objects: {
-                $splice: [[ index ]]
+                $splice: [[ index, 1 ]]
             }
         });
 

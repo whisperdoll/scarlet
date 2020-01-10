@@ -3,8 +3,8 @@ import './MainEdit.scss';
 import ObjectList from './ObjectList/ObjectList';
 import { ObjectModel, ObjectType } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
-import KeyBindEdit from './KeyBindEdit/KeyBindEdit';
 import ObjectEdit from '../../components/ObjectEdit/ObjectEdit';
+import GameSettingsEdit from './GameSettingsEdit/GameSettingsEdit';
 
 interface Props
 {
@@ -12,7 +12,7 @@ interface Props
 
 interface State
 {
-    currentlyEditing: number | null | "keyBinds";
+    currentlyEditing: number | null | "gameSettings";
 }
 
 export default class MainEditView extends React.PureComponent<Props, State>
@@ -42,11 +42,11 @@ export default class MainEditView extends React.PureComponent<Props, State>
         }));
     }
 
-    handleEditKeyBinds = () =>
+    handleEditGameSettings = () =>
     {
         this.setState(state => ({
             ...state,
-            currentlyEditing: "keyBinds"
+            currentlyEditing: "gameSettings"
         }));
     }
 
@@ -80,7 +80,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                         <span role="img" aria-label="Errors" className="errorBadge" title={ObjectHelper.errors.join("\n")}>⚠️</span>
                     )}
                     <div className="header">{ObjectHelper.project!.name}</div>
-                    <button onClick={this.handleEditKeyBinds}>Edit Key Bindings</button>
+                    <button onClick={this.handleEditGameSettings}>Edit Game Settings</button>
                 </div>
                 <ObjectList
                     onCreate={this.handleObjectCreate}
@@ -93,7 +93,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                         {
                             switch (this.state.currentlyEditing)
                             {
-                                case "keyBinds": return <KeyBindEdit />;
+                                case "gameSettings": return <GameSettingsEdit />;
                                 default: return null;
                             }
                         })()}

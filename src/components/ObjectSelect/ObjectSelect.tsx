@@ -6,7 +6,8 @@ interface Props
 {
     objectType: ObjectType;
     currentObjectId: number;
-    onChange: (id: number) => any;
+    onChange: (id: number, key?: number | string) => any;
+    identifier?: string | number;
     onRequestEdit?: (id: number) => any;
 }
 
@@ -27,7 +28,7 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
 
         if (!isNaN(id))
         {
-            this.props.onChange(id);
+            this.props.onChange(id, this.props.identifier);
         }
         else
         {

@@ -6,11 +6,12 @@ import ObjectHelper from '../../../utils/ObjectHelper';
 
 interface Props
 {
+    keyBindings: KeyBindings;
+    onUpdate: (keyBindings: KeyBindings) => any;
 }
 
 interface State
 {
-    keyBindings: KeyBindings;
 }
 
 export default class KeyBindEdit extends React.PureComponent<Props, State>
@@ -18,34 +19,11 @@ export default class KeyBindEdit extends React.PureComponent<Props, State>
     constructor(props: Props)
     {
         super(props);
-
-        this.state = {
-            keyBindings: ObjectHelper.project!.keyBindings
-        };
-        
-        ObjectHelper.subscribeToKeyBindings(this.handleUpdateKeybindings);
-    }
-
-    componentDidMount = () =>
-    {
-    }
-
-    componentWillUnmount = () =>
-    {
-        ObjectHelper.unsubscribeFromKeyBindings(this.handleUpdateKeybindings);
-    }
-
-    handleUpdateKeybindings = (keyBindings: KeyBindings) =>
-    {
-        this.setState(state => ({
-            ...state,
-            keyBindings: keyBindings
-        }));
     }
 
     handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
     {
-        ObjectHelper.updateKeyBindings(update(ObjectHelper.project!.keyBindings, {
+        this.props.onUpdate(update(ObjectHelper.project!.settings.keyBindings, {
             [e.currentTarget.dataset.key as string]: {
                 $set: e.key.toLowerCase()
             }
@@ -67,7 +45,7 @@ export default class KeyBindEdit extends React.PureComponent<Props, State>
                             <input
                                 type="text"
                                 onKeyDown={this.handleKeyDown}
-                                value={this.state.keyBindings[key]}
+                                value={this.props.keyBindings[key]}
                                 data-key={key}
                                 readOnly={true}
                             />

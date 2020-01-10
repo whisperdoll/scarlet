@@ -42,7 +42,7 @@ export default class BossEdit extends React.PureComponent<Props, State>
         // remove from boss //
         this.props.update({
             formIds: update(this.props.obj.formIds, {
-                $splice: [[ this.props.obj.formIds.findIndex(_id => _id === id) ]]
+                $splice: [[ this.props.obj.formIds.findIndex(_id => _id === id), 1 ]]
             })
         });
 

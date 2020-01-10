@@ -177,7 +177,7 @@ export default class GameEngine
         const ret: Record<string, boolean> = {};
         keys.forEach((key) =>
         {
-            ret[key] = !!ObjectHelper.project && !!keyMap.get(ObjectHelper.project.keyBindings[key]);
+            ret[key] = !!ObjectHelper.project && !!keyMap.get(ObjectHelper.project.settings.keyBindings[key]);
         });
         return ret as KeyContext;
     }
@@ -576,22 +576,22 @@ export default class GameEngine
         const player = ObjectHelper.getObjectWithId<PlayerModel>((this.stage as StageModel).playerId);
         if (player)
         {
-            speed = context.keys.get(ObjectHelper.project.keyBindings.focus) ? player.focusedMoveSpeed : player.moveSpeed;
+            speed = context.keys.get(ObjectHelper.project.settings.keyBindings.focus) ? player.focusedMoveSpeed : player.moveSpeed;
         }
 
-        if (context.keys.get(ObjectHelper.project.keyBindings.left))
+        if (context.keys.get(ObjectHelper.project.settings.keyBindings.left))
         {
             entity.positionX -= speed;
         }
-        if (context.keys.get(ObjectHelper.project.keyBindings.right))
+        if (context.keys.get(ObjectHelper.project.settings.keyBindings.right))
         {
             entity.positionX += speed;
         }
-        if (context.keys.get(ObjectHelper.project.keyBindings.up))
+        if (context.keys.get(ObjectHelper.project.settings.keyBindings.up))
         {
             entity.positionY -= speed;
         }
-        if (context.keys.get(ObjectHelper.project.keyBindings.down))
+        if (context.keys.get(ObjectHelper.project.settings.keyBindings.down))
         {
             entity.positionY += speed;
         }

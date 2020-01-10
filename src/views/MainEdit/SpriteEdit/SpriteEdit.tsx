@@ -96,7 +96,7 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
     {
         this.props.update({
             hitboxes: update(this.props.obj.hitboxes, {
-                $splice: [[index, 1]]
+                $splice: [[ index, 1 ]]
             })
         });
     }

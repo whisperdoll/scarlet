@@ -11,11 +11,18 @@ export interface KeyBindings extends Record<string, string>
     focus: string;
 };
 
+export interface ProjectSettings
+{
+    keyBindings: KeyBindings;
+    stageIdOrder: number[];
+    fps: number;
+};
+
 export interface ProjectModel
 {
     name: string;
     objects: ObjectModel[];
-    keyBindings: KeyBindings;
+    settings: ProjectSettings;
 };
 
 // ADDTYPE //
