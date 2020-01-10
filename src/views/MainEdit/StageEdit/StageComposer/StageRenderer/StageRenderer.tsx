@@ -6,7 +6,7 @@ import { Canvas } from '../../../../../utils/canvas';
 import ImageCache from '../../../../../utils/ImageCache';
 import ObjectHelper from '../../../../../utils/ObjectHelper';
 import Rectangle from '../../../../../utils/rectangle';
-import GameEngine, { GameEntity } from '../../../../../utils/GameEngine';
+import GameEngine, { GameEntity, DrawSpriteInfo } from '../../../../../utils/GameEngine';
 import update from "immutability-helper";
 import * as PIXI from "pixi.js";
 import PathHelper from '../../../../../utils/PathHelper';
@@ -48,6 +48,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private selectedIndex: number;
     private entities: GameEntity[] = [];
     private mouseDelta = new Point();
+    private spritesToDraw: DrawSpriteInfo[] = [];
 
     constructor(props: Props)
     {
@@ -58,6 +59,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.selectedIndex = -1;
         
         this.engine = new GameEngine();
+        this.engine.onDrawSprite = (info) => this.spritesToDraw.push(info);
         window.addEventListener("resize", this.handleResize);
         this.containerRef = React.createRef();
         this.canvasRef = React.createRef();
@@ -365,6 +367,29 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             }
         });
         // console.timeEnd("==== entities");
+
+        this.spritesToDraw.forEach((info) =>
+        {
+            const sprite = ObjectHelper.getObjectWithName<SpriteModel>(info.name);
+            if (sprite)
+            {
+                const pos = new Point(info.x, info.y);
+                // console.time("== fetching");
+                const img = ImageCache.getCachedImage(sprite.path);
+                const currentCell = info.frame;
+                const cellSize = new Point(Math.floor(img.width / sprite.numCells), img.height);
+                const offsetPos = pos.minus(cellSize.dividedBy(2));
+    
+                const texture = StageRenderer.textureCache.get(sprite.id)![currentCell];
+                const psprite = new PIXI.Sprite(texture);
+                psprite.position = offsetPos;
+                psprite.alpha = info.opacity;
+                psprite.scale = new PIXI.Point(info.scaleX, info.scaleY);
+                psprite.tint = info.tint;
+                container.addChild(psprite);
+                // console.timeEnd("== fetching");
+            }
+        });
 
         this.renderer!.render(container);
     };

@@ -24,6 +24,7 @@ export interface ScriptMethodCollection
     init?: (context: ScriptContext) => any;
     update?: (context: ScriptContext) => any;
     die?: (context: ScriptContext) => any;
+    draw?: (context: ScriptContext) => any;
 };
 
 export interface KeyContext extends Record<string, boolean>

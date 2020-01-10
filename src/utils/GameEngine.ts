@@ -35,6 +35,18 @@ export interface GameEntity extends Record<string, any>
 
 type KeyStruct = Map<string, boolean>;
 
+export interface DrawSpriteInfo
+{
+    name: string;
+    x: number;
+    y: number;
+    scaleX: number;
+    scaleY: number;
+    opacity: number;
+    tint: number;
+    frame: number;
+};
+
 export interface UpdateContext
 {
     playerInvincible: boolean;
@@ -70,6 +82,8 @@ export default class GameEngine
     private currentKeyContext: KeyContext = this.getKeyContext(new Map());
     private cache: Map<number, GameState> = new Map();
 
+    public onDrawSprite: ((info: DrawSpriteInfo) => any) | null = null;
+
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
         fireBullet: (name: string, isFriendly: boolean, spawnX: number, spawnY: number, store?: Record<string, any>): GameEntity | null =>
@@ -81,6 +95,13 @@ export default class GameEngine
             }
 
             return null;
+        },
+        drawSprite: (name: string, x: number, y: number, scaleX: number, scaleY: number, opacity: number, tint: number, frame: number) =>
+        {
+            if (this.onDrawSprite)
+            {
+                this.onDrawSprite({ name, x, y, scaleX, scaleY, opacity, tint, frame });
+            }
         }
     };
 
