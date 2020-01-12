@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, ProjectSettings } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, ProjectSettings, SoundModel } from "./datatypes";
 import { array_remove, array_ensureOne } from "./utils";
 import update from "immutability-helper";
 import Point from "./point";
@@ -178,6 +178,14 @@ export default class ObjectHelper
                     numCells: 1,
                     framesPerCell: 0
                 } as SpriteModel;
+                break;
+            case "sound":
+                ret = {
+                    id: id,
+                    name: "New Sound " + objectNumber,
+                    type: "sound",
+                    path: ""
+                } as SoundModel;
                 break;
             case "player":
                 ret = {

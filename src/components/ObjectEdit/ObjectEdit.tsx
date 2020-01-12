@@ -10,6 +10,7 @@ import BossEdit from '../../views/MainEdit/BossEdit/BossEdit';
 import StageEdit from '../../views/MainEdit/StageEdit/StageEdit';
 import BackgroundEdit from '../../views/MainEdit/BackgroundEdit/BackgroundEdit';
 import BossFormEdit from '../../views/MainEdit/BossEdit/BossFormEdit/BossFormEdit';
+import SoundEdit from '../../views/MainEdit/SoundEdit/SoundEdit';
 
 interface Props
 {
@@ -99,6 +100,7 @@ export default class ObjectEdit extends React.PureComponent<Props, State>
     {
         let component: any;
 
+        // ADDTYPE
         if (this.currentlyEditingObj)
         {
             switch (this.currentlyEditingObj.type)
@@ -112,6 +114,7 @@ export default class ObjectEdit extends React.PureComponent<Props, State>
                 case "enemy": component = EnemyEdit; break;
                 case "player": component = PlayerEdit; break;
                 case "stage": component = StageEdit; break;
+                case "sound": component = SoundEdit; break;
             }
             
             return component;
@@ -122,7 +125,6 @@ export default class ObjectEdit extends React.PureComponent<Props, State>
 
     render()
     {
-        // ADDTYPE
         const Editor = this.getEditor();
 
         return (

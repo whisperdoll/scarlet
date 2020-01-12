@@ -48,7 +48,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     private selectedIndex: number;
     private entities: GameEntity[] = [];
     private mouseDelta = new Point();
-    private spritesToDraw: DrawSpriteInfo[] = [];
 
     constructor(props: Props)
     {
@@ -59,7 +58,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.selectedIndex = -1;
         
         this.engine = new GameEngine();
-        this.engine.onDrawSprite = (info) => this.spritesToDraw.push(info);
         window.addEventListener("resize", this.handleResize);
         this.containerRef = React.createRef();
         this.canvasRef = React.createRef();
@@ -368,10 +366,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         });
         // console.timeEnd("==== entities");
 
-        this.spritesToDraw.forEach((info) =>
+        this.engine.spritesToDraw.forEach((info) =>
         {
             const sprite = ObjectHelper.getObjectWithName<SpriteModel>(info.name);
-            if (sprite)
+            if (sprite && sprite.type === "sprite")
             {
                 const pos = new Point(info.x, info.y);
                 // console.time("== fetching");

@@ -2,6 +2,7 @@ import React, { MouseEvent } from 'react';
 import './ObjectItem.scss';
 import Point from '../../../../utils/point';
 import ObjectHelper from '../../../../utils/ObjectHelper';
+import { ObjectModel } from '../../../../utils/datatypes';
 
 interface Props
 {
@@ -13,6 +14,7 @@ interface Props
 interface State
 {
     isShowingChildren: boolean;
+    obj: ObjectModel | null;
 }
 
 export default class ObjectItem extends React.PureComponent<Props, State>
@@ -22,11 +24,51 @@ export default class ObjectItem extends React.PureComponent<Props, State>
         super(props);
         
         this.state = {
-            isShowingChildren: true
+            isShowingChildren: true,
+            obj: ObjectHelper.getObjectWithId(props.id)
         };
 
         this.handleClick = this.handleClick.bind(this);
         this.handleContextMenu = this.handleContextMenu.bind(this);
+
+        ObjectHelper.subscribeToObject(this.props.id, this.handleSubscribedObjectUpdate);
+    }
+
+    static getDerivedStateFromProps = (props: Props, state: State) =>
+    {
+        return {
+            ...state,
+            obj: ObjectHelper.getObjectWithId(props.id)
+        };
+    }
+
+    componentDidUpdate = (prevProps: Props) =>
+    {
+        if (prevProps.id !== this.props.id)
+        {
+            ObjectHelper.unsubscribeFromObject(prevProps.id, this.handleSubscribedObjectUpdate);
+            ObjectHelper.subscribeToObject(this.props.id, this.handleSubscribedObjectUpdate);
+        }
+    }
+
+    handleSubscribedObjectUpdate = (id: number, obj: ObjectModel | null) =>
+    {
+        if (id === this.props.id)
+        {
+            this.setState(state => ({
+                ...state,
+                obj: obj
+            }));
+        }
+        else
+        {
+            console.error("bad update");
+        }
+    }
+
+    componentWillUnmount = () =>
+    {
+        ObjectHelper.unsubscribeFromObject(this.props.id, this.handleSubscribedObjectUpdate);
     }
 
     handleClick(e: MouseEvent)

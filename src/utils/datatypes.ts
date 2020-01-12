@@ -9,50 +9,43 @@ export interface KeyBindings extends Record<string, string>
     up: string;
     down: string;
     focus: string;
-};
+}
 
 export interface ProjectSettings
 {
     keyBindings: KeyBindings;
     stageIdOrder: number[];
     fps: number;
-};
+}
 
 export interface ProjectModel
 {
     name: string;
     objects: ObjectModel[];
     settings: ProjectSettings;
-};
+}
 
 // ADDTYPE //
-export type ObjectType = "folder" | "player" | "stage" | "enemy" | "boss" | "bossForm" | "sprite" | "script" | "bullet" | "background";
-export const GameObjectTypes: ObjectType[] = [
-    "player",
-    "stage",
-    "enemy",
-    "boss",
-    "sprite",
-    "script",
-    "bullet",
-    "background"
-];
+const stringLitArray = <L extends string>(arr: L[]) => arr;
+
+export const GameObjectTypes = stringLitArray(["player", "stage", "enemy", "boss", "bossForm", "sprite", "script", "bullet", "background", "sound"]);
+export type ObjectType = (typeof GameObjectTypes)[number];
 
 export interface Hitbox
 {
     position: PointLike;
     radius: number;
-};
+}
 
 export interface ScriptHaver
 {
     scriptId: number;
-};
+}
 
 export interface SpriteHaver
 {
     spriteId: number;
-};
+}
 
 export interface ObjectModel
 {
@@ -61,7 +54,7 @@ export interface ObjectModel
     name: string;
     children?: ObjectModel[];
     hint?: ObjectType;
-};
+}
 
 export interface SpriteModel extends ObjectModel
 {
@@ -70,7 +63,13 @@ export interface SpriteModel extends ObjectModel
     numCells: number;
     framesPerCell: number;
     hitboxes: Hitbox[];
-};
+}
+
+export interface SoundModel extends ObjectModel
+{
+    type: "sound";
+    path: string;
+}
 
 export interface BackgroundModel extends ObjectModel
 {
@@ -86,13 +85,13 @@ export interface PlayerModel extends ObjectModel
     lives: number;
     spriteId: number;
     scriptId: number;
-};
+}
 
 export interface ScriptModel extends ObjectModel
 {
     type: "script";
     path: string;
-};
+}
 
 export interface EnemyModel extends ObjectModel
 {
@@ -100,7 +99,7 @@ export interface EnemyModel extends ObjectModel
     spriteId: number;
     scriptId: number;
     hp: number;
-};
+}
 
 export interface BulletModel extends ObjectModel
 {
@@ -108,7 +107,7 @@ export interface BulletModel extends ObjectModel
     spriteId: number;
     scriptId: number;
     damage: number;
-};
+}
 
 export interface BossFormModel extends ObjectModel
 {
@@ -117,13 +116,13 @@ export interface BossFormModel extends ObjectModel
     spriteId: number;
     scriptId: number;
     hp: number;
-};
+}
 
 export interface BossModel extends ObjectModel
 {
     type: "boss";
     formIds: number[];
-};
+}
 
 export interface StageModel extends ObjectModel
 {
@@ -136,7 +135,7 @@ export interface StageModel extends ObjectModel
     size: PointLike;
     playerSpawnPosition: PointLike;
     bossSpawnPosition: PointLike;
-};
+}
 
 export interface StageEnemyData
 {
@@ -146,4 +145,4 @@ export interface StageEnemyData
     spawnPosition: PointLike;
     spawnRate: number;
     spawnAmount: number;
-};
+}

@@ -84,6 +84,11 @@ export default class ObjectList extends React.PureComponent<Props, State>
                 name: "Scripts",
                 hint: "script",
                 childIds: []
+            },
+            {
+                name: "Sounds",
+                hint: "sound",
+                childIds: []
             }
         ];
     }
@@ -130,10 +135,9 @@ export default class ObjectList extends React.PureComponent<Props, State>
         const objs = this.rootObjects;
 
         // make folders //
-        GameObjectTypes.forEach((type) =>
+        objs.forEach((rootObj) =>
         {
-            const c = objs.find(o => o.hint === type)!.childIds as number[];
-            c.push(...ObjectHelper.getObjectsWithType(type).map(o => o.id));
+            rootObj.childIds.push(...ObjectHelper.getObjectsWithType(rootObj.hint).map(o => o.id));
         });
 
         return (

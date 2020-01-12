@@ -65,6 +65,7 @@ export interface GameState
 {
     entities: GameEntity[];
     stageAge: number;
+    spritesToDraw: DrawSpriteInfo[];
 };
 
 export default class GameEngine
@@ -81,8 +82,7 @@ export default class GameEngine
     private _finalFrame: number = 0;
     private currentKeyContext: KeyContext = this.getKeyContext(new Map());
     private cache: Map<number, GameState> = new Map();
-
-    public onDrawSprite: ((info: DrawSpriteInfo) => any) | null = null;
+    public spritesToDraw: DrawSpriteInfo[] = [];
 
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
@@ -98,10 +98,7 @@ export default class GameEngine
         },
         drawSprite: (name: string, x: number, y: number, scaleX: number, scaleY: number, opacity: number, tint: number, frame: number) =>
         {
-            if (this.onDrawSprite)
-            {
-                this.onDrawSprite({ name, x, y, scaleX, scaleY, opacity, tint, frame });
-            }
+            this.spritesToDraw.push({ name, x, y, scaleX, scaleY, opacity, tint, frame });
         }
     };
 
@@ -126,7 +123,8 @@ export default class GameEngine
     {
         return {
             entities: copy(this.entities),
-            stageAge: this.stageAge
+            stageAge: this.stageAge,
+            spritesToDraw: this.spritesToDraw
         };
     }
 
@@ -135,6 +133,7 @@ export default class GameEngine
         this.entities = copy(gameState.entities);
         (window as any).x = this.entities;
         this.stageAge = gameState.stageAge;
+        this.spritesToDraw = this.spritesToDraw
     }
 
     /**
@@ -412,6 +411,7 @@ export default class GameEngine
         let isLastUpdate = false;
         this.currentKeyContext = this.getKeyContext(context.keys);
         let bossSpawned = false;
+        this.spritesToDraw = [];
 
         // console.time("==== update entities");
         for (let i = 0; i < this.entities.length; i++)
@@ -601,6 +601,7 @@ export default class GameEngine
     {
         const methods = ScriptEngine.parseScript(entity.scriptId);
         this.tryCallScriptMethod(methods, "update", entity);
+        this.tryCallScriptMethod(methods, "draw", entity);
     }
 
     private handleFire(bullet: number | BulletModel | null, bulletType: "playerBullet" | "enemyBullet", posX: number, posY: number, store: any): GameEntity | null

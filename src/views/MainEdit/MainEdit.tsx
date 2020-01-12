@@ -72,7 +72,6 @@ export default class MainEditView extends React.PureComponent<Props, State>
 
     render()
     {
-        // ADDTYPE
         return (
             <div className="mainEditView">
                 <div className="headerBar">
