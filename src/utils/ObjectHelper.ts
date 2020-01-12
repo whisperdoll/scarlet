@@ -1,5 +1,5 @@
 import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, ProjectSettings, SoundModel } from "./datatypes";
-import { array_remove, array_ensureOne } from "./utils";
+import { array_remove, array_ensureOne, array_insert } from "./utils";
 import update from "immutability-helper";
 import Point from "./point";
 import ImageCache from "./ImageCache";
@@ -8,7 +8,6 @@ export type ObjectEventHandler = (id: number, obj: ObjectModel | null, prevObj: 
 
 export default class ObjectHelper
 {
-    private static _project: ProjectModel | null;
     public static projectFilename: string;
     public static errors: string[] = [];
 
@@ -16,15 +15,48 @@ export default class ObjectHelper
     private static errorSubscriptions: ((errors: string[]) => any)[] = [];
     private static settingsSubscriptions: ((settings: ProjectSettings) => any)[] = [];
 
+    private static projectHistory: (ProjectModel | null)[] = [];
+    private static projectHistoryIndex: number = -1;
+
+    public static undo()
+    {
+        if (this.projectHistoryIndex > 0)
+        {
+            this.projectHistoryIndex--;
+        }
+    }
+
+    public static redo()
+    {
+        if (this.projectHistoryIndex < this.projectHistory.length - 1)
+        {
+            this.projectHistoryIndex++;
+        }
+    }
+
     public static set project(project: ProjectModel | null)
     {
-        this._project = project;
         this.checkForErrors();
+
+        if (!project)
+        {
+            this.projectHistory = [];
+            this.projectHistoryIndex = -1;
+        }
+        else
+        {
+            if (this.projectHistoryIndex === -1)
+            {
+                this.projectHistoryIndex = 0;
+            }
+
+            array_insert(this.projectHistory, project, this.projectHistoryIndex);
+        }
     }
 
     public static get project(): ProjectModel | null
     {
-        return this._project;
+        return this.projectHistoryIndex === -1 ? null : this.projectHistory[this.projectHistoryIndex];
     }
 
     public static subscribeToErrors(handler: (errors: string[]) => any)
