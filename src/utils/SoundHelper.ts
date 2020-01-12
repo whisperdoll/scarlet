@@ -2,7 +2,7 @@ import ObjectHelper from "./ObjectHelper";
 import { SoundModel } from "./datatypes";
 import * as fs from "fs";
 
-export default class AudioHelper
+export default class SoundHelper
 {
     private static soundCache = new Map<number, AudioBuffer>();
     private static audioContext = new AudioContext();
