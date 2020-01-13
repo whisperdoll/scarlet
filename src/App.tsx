@@ -80,6 +80,20 @@ export default class App extends React.PureComponent<Props, State>
             role: "toggleDevTools"
         }));
 
+        const editMenu = new Menu();
+
+        editMenu.append(new MenuItem({
+            label: "Undo",
+            accelerator: "CmdOrCtrl+Z",
+            click: () => ObjectHelper.undo()
+        }));
+
+        editMenu.append(new MenuItem({
+            label: "Redo",
+            accelerator: "CmdOrCtrl+Y",
+            click: () => ObjectHelper.redo()
+        }));
+
         const menu = new Menu();
         menu.append(new MenuItem({
             label: "File",
@@ -88,6 +102,10 @@ export default class App extends React.PureComponent<Props, State>
         menu.append(new MenuItem({
             label: "Debug",
             submenu: debugMenu
+        }));
+        menu.append(new MenuItem({
+            label: "Edit",
+            submenu: editMenu
         }));
 
         remote.getCurrentWindow().setMenu(menu);
