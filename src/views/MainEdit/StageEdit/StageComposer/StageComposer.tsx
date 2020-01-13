@@ -597,12 +597,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    handlePlayerInvincibleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handlePlayerInvincibleChange = (toggled: boolean) =>
     {
-        const checked = e.currentTarget.checked;
         this.setState(state => ({
             ...state,
-            playerInvincible: checked
+            playerInvincible: toggled
         }));
     }
 
@@ -890,15 +889,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             </div>
                         </React.Fragment>)}
                         <button onClick={this.toggleLoopEnabled}>{this.state.loopEnabled ? "Disable" : "Enable"} Loop Points</button>
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={this.state.playerInvincible}
-                                onChange={this.handlePlayerInvincibleChange}
-                                name="playerInvincible"
-                            />
+                        <ToggleButton
+                            onToggle={this.handlePlayerInvincibleChange}
+                            toggled={this.state.playerInvincible}
+                        >
                             Player Invincible During Play
-                        </label>
+                        </ToggleButton>
                     </div>
                 </div>
                 {/* timeline */}
