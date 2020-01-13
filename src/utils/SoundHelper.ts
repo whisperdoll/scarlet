@@ -1,6 +1,7 @@
 import ObjectHelper from "./ObjectHelper";
 import { SoundModel } from "./datatypes";
 import * as fs from "fs";
+import PathHelper from "./PathHelper";
 
 export default class SoundHelper
 {
@@ -15,7 +16,6 @@ export default class SoundHelper
         this.channels.forEach((channel) =>
         {
             channel.stop();
-            channel.disconnect(this.audioContext.destination);
         });
         
         this.channels.clear();
@@ -25,13 +25,16 @@ export default class SoundHelper
         // TODO: parallelize this
         for (const sound of sounds)
         {
-            const buffer = fs.readFileSync(sound.path);
-            const audioBuffer = await this.audioContext.decodeAudioData(buffer.buffer);
-            this.soundCache.set(sound.id, audioBuffer);
+            if (sound.path)
+            {
+                const buffer = fs.readFileSync(PathHelper.resolveObjectFileName(sound.path));
+                const audioBuffer = await this.audioContext.decodeAudioData(buffer.buffer);
+                this.soundCache.set(sound.id, audioBuffer);
+            }
         }
     }
 
-    public static playSoundById(id: number, channel: number)
+    public static playSoundById(id: number, position?: number)
     {
         const audioBuffer = this.soundCache.get(id);
 
@@ -40,11 +43,10 @@ export default class SoundHelper
             const trackSource = this.audioContext.createBufferSource();
             trackSource.buffer = audioBuffer;
             trackSource.connect(this.audioContext.destination);
-            trackSource.start();
+            trackSource.start(0, position);
 
             trackSource.addEventListener("ended", (e) =>
             {
-                trackSource.disconnect(this.audioContext.destination);
                 this.channels.delete(trackSource);
             });
             
@@ -56,11 +58,19 @@ export default class SoundHelper
         }
     }
 
-    public static playSoundsByIds(infos: { id: number, channel: number }[])
+    public static playSoundsByIds(ids: number[])
     {
-        for (const { id, channel } of infos)
+        for (const id of ids)
         {
-            this.playSoundById(id, channel);
+            this.playSoundById(id);
         }
+    }
+
+    public static stopAll()
+    {
+        this.channels.forEach((channel) =>
+        {
+            channel.stop();
+        });
     }
 }

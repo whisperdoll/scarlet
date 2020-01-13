@@ -128,6 +128,7 @@ export interface StageModel extends ObjectModel
 {
     type: "stage";
     backgroundId: number;
+    musicId: number;
     playerId: number;
     bossId: number;
     length: number;

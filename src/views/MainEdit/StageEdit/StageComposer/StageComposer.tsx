@@ -13,6 +13,7 @@ import BossFormList from './BossFormList/BossFormList';
 import ImageCache from '../../../../utils/ImageCache';
 import update from "immutability-helper";
 import ObjectEdit from '../../../../components/ObjectEdit/ObjectEdit';
+import SoundHelper from '../../../../utils/SoundHelper';
 
 type PauseAction = "loopAndPause" | "pause";
 type DeathAction = "loopAndPause" | "pause" | "loop";
@@ -68,6 +69,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             finalFrame: 0,
             loading: true
         };
+
+        this.refreshSounds = this.refreshSounds.bind(this);
     }
 
     get stage(): StageModel
@@ -113,9 +116,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
         });
     }
 
-    componentDidMount = () =>
+    async refreshSounds()
+    {
+        await SoundHelper.updateCache();
+    }
+
+    async componentDidMount()
     {
         ScriptEngine.updateCache();
+        await this.refreshSounds();
         this.refreshImages();
     }
 
@@ -269,6 +278,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.props.update({
             backgroundId: backgroundId
+        });
+    }
+
+    handleMusicChange = (musicId: number) =>
+    {
+        this.props.update({
+            musicId: musicId
         });
     }
 
@@ -627,7 +643,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     render()
     {
-        if (this.state.loading) return null;
+        if (this.state.loading) return <div className="stageComposer"><h1>Loading...</h1></div>;
 
         return (
             <div className="stageComposer">
@@ -642,10 +658,16 @@ export default class StageComposer extends React.PureComponent<Props, State>
                         Refresh Scripts
                     </button>
                     <button
-                        className="refreshImage"
+                        className="refreshImages"
                         onClick={this.refreshImages}
                     >
                         Refresh Images
+                    </button>
+                    <button
+                        className="refreshSounds"
+                        onClick={this.refreshSounds}
+                    >
+                        Refresh Sounds
                     </button>
                 </div>
                 {/* edit stuff */}
@@ -681,6 +703,15 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 currentObjectId={this.stage.backgroundId}
                                 objectType="background"
                                 onChange={this.handleBackgroundChange}
+                                onRequestEdit={this.handleRequestEdit}
+                            />
+                        </div>
+                        <div className="row">
+                            <span className="label">Music:</span>
+                            <ObjectSelect
+                                currentObjectId={this.stage.musicId}
+                                objectType="sound"
+                                onChange={this.handleMusicChange}
                                 onRequestEdit={this.handleRequestEdit}
                             />
                         </div>

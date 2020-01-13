@@ -10,6 +10,7 @@ import GameEngine, { GameEntity, DrawSpriteInfo } from '../../../../../utils/Gam
 import update from "immutability-helper";
 import * as PIXI from "pixi.js";
 import PathHelper from '../../../../../utils/PathHelper';
+import SoundHelper from '../../../../../utils/SoundHelper';
 
 interface Props
 {
@@ -224,11 +225,17 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         console.log("play start");
         this.resetEngine();
         this.engine.fastForwardTo(this.props.frame);
+        SoundHelper.stopAll();
+        if (this.props.obj.musicId !== -1)
+        {
+            SoundHelper.playSoundById(this.props.obj.musicId, this.props.frame / ObjectHelper.project!.settings.fps);
+        }
     }
 
     stopPlaying = () =>
     {
         console.log("play stop");
+        SoundHelper.stopAll();
     }
 
     grabCanvas = (canvas: Canvas) =>
@@ -318,7 +325,9 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
     resetEngine = () =>
     {
+        SoundHelper.stopAll();
         this.engine.reset(this.stage);
+        this.engine.muted = !this.props.playing;
     }
 
     renderEntities = () =>

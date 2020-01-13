@@ -18,11 +18,13 @@ export default class ObjectHelper
     private static projectHistory: (ProjectModel | null)[] = [];
     private static projectHistoryIndex: number = -1;
 
+    public static maxHistorySize = 1000;
+
     public static undo()
     {
         if (this.projectHistoryIndex > 0)
         {
-            this.projectHistoryIndex--;
+            this.broadcastDiffs(this.projectHistoryIndex--);
         }
     }
 
@@ -30,7 +32,30 @@ export default class ObjectHelper
     {
         if (this.projectHistoryIndex < this.projectHistory.length - 1)
         {
-            this.projectHistoryIndex++;
+            this.broadcastDiffs(this.projectHistoryIndex++);
+        }
+    }
+
+    private static broadcastDiffs(lastIndex: number)
+    {
+        const lastProject = this.projectHistory[lastIndex];
+        if (!this.project || !lastProject)
+        {
+            return;
+        }
+
+        if (lastProject?.settings !== this.project?.settings)
+        {
+            this.broadcastSettings();
+        }
+
+        for (const obj of this.project.objects)
+        {
+            const oldObj = lastProject.objects.find(o => o.id === obj.id) || null;
+            if (obj !== oldObj)
+            {
+                this.broadcastObjectUpdate(obj.id, obj, oldObj)
+            }
         }
     }
 
@@ -45,12 +70,14 @@ export default class ObjectHelper
         }
         else
         {
-            if (this.projectHistoryIndex === -1)
-            {
-                this.projectHistoryIndex = 0;
-            }
+            array_insert(this.projectHistory, project, ++this.projectHistoryIndex);
+            this.projectHistory.splice(this.projectHistoryIndex + 1);
 
-            array_insert(this.projectHistory, project, this.projectHistoryIndex);
+            if (this.projectHistory.length > this.maxHistorySize)
+            {
+                const diff = this.projectHistory.length - this.maxHistorySize;
+                this.projectHistory.splice(0, diff);
+            }
         }
     }
 
@@ -288,6 +315,7 @@ export default class ObjectHelper
                     name: "New Stage " + objectNumber,
                     type: "stage",
                     backgroundId: -1,
+                    musicId: -1,
                     bossId: -1,
                     playerId: -1,
                     length: 60 * 60,

@@ -1,10 +1,11 @@
 import { PointLike } from "./point";
-import { BossModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel, ScriptModel } from "./datatypes";
+import { BossModel, BulletModel, SpriteModel, StageModel, PlayerModel, EnemyModel, StageEnemyData, BossFormModel, ScriptModel, SoundModel } from "./datatypes";
 import ScriptEngine, { KeyContext, ScriptMethodCollection } from "./ScriptEngine";
 import ObjectHelper from "./ObjectHelper";
 import ImageCache from "./ImageCache";
 import copy from "fast-copy";
 import { array_ensureOne } from "./utils";
+import SoundHelper from "./SoundHelper";
 
 type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
 
@@ -83,13 +84,14 @@ export default class GameEngine
     private currentKeyContext: KeyContext = this.getKeyContext(new Map());
     private cache: Map<number, GameState> = new Map();
     public spritesToDraw: DrawSpriteInfo[] = [];
+    public muted: boolean = true;
 
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
         fireBullet: (name: string, isFriendly: boolean, spawnX: number, spawnY: number, store?: Record<string, any>): GameEntity | null =>
         {
             const bullet = ObjectHelper.getObjectWithName<BulletModel>(name);
-            if (bullet)
+            if (bullet && bullet.type === "bullet")
             {
                 return this.handleFire(bullet, isFriendly ? "playerBullet" : "enemyBullet", spawnX, spawnY, store)
             }
@@ -99,6 +101,16 @@ export default class GameEngine
         drawSprite: (name: string, x: number, y: number, scaleX: number, scaleY: number, opacity: number, tint: number, frame: number) =>
         {
             this.spritesToDraw.push({ name, x, y, scaleX, scaleY, opacity, tint, frame });
+        },
+        playSound: (name: string) =>
+        {
+            if (this.muted) return;
+            
+            const sound = ObjectHelper.getObjectWithName<SoundModel>(name);
+            if (sound && sound.type === "sound")
+            {
+                SoundHelper.playSoundById(sound.id);
+            }
         }
     };
 
@@ -527,6 +539,7 @@ export default class GameEngine
     private reportError(context: string, message: string)
     {
         array_ensureOne(this.errors, "an error occured during " + context + ":\n" + message);
+        console.error("an error occured during " + context + ":\n" + message);
     }
 
     private tryCallScriptMethod(methods: ScriptMethodCollection | null, method: keyof ScriptMethodCollection, entity: GameEntity)
