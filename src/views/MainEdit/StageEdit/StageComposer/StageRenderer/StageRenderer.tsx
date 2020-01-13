@@ -25,6 +25,7 @@ interface Props
     onFinalFrameCalculate: (finalFrame: number) => any;
     playing: boolean;
     playerInvincible: boolean;
+    muted: boolean;
 }
 
 interface State
@@ -179,6 +180,11 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         {
             // we looped //
             this.startPlaying();
+            SoundHelper.stopAll();
+            if (this.props.obj.musicId !== -1)
+            {
+                SoundHelper.playSoundById(this.props.obj.musicId, this.props.frame / ObjectHelper.project!.settings.fps);
+            }
         }
 
         if (!this.props.playing && (stage !== prevStage || this.props.refresh !== prevProps.refresh))
@@ -188,6 +194,15 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             this.props.onFinalFrameCalculate(this.engine.finalFrame);
         }
 
+        const lastMuted = this.engine.muted;
+        this.engine.muted = !this.props.playing || this.props.muted;
+        if (!this.engine.muted && lastMuted)
+        {
+            if (this.props.obj.musicId !== -1)
+            {
+                SoundHelper.playSoundById(this.props.obj.musicId, this.props.frame / ObjectHelper.project!.settings.fps);
+            }
+        }
         this.dirty = true;
     }
 
@@ -225,11 +240,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         console.log("play start");
         this.resetEngine();
         this.engine.fastForwardTo(this.props.frame);
-        SoundHelper.stopAll();
-        if (this.props.obj.musicId !== -1)
-        {
-            SoundHelper.playSoundById(this.props.obj.musicId, this.props.frame / ObjectHelper.project!.settings.fps);
-        }
     }
 
     stopPlaying = () =>
@@ -327,7 +337,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         SoundHelper.stopAll();
         this.engine.reset(this.stage);
-        this.engine.muted = !this.props.playing;
     }
 
     renderEntities = () =>

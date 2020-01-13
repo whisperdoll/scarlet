@@ -14,6 +14,7 @@ import ImageCache from '../../../../utils/ImageCache';
 import update from "immutability-helper";
 import ObjectEdit from '../../../../components/ObjectEdit/ObjectEdit';
 import SoundHelper from '../../../../utils/SoundHelper';
+import ToggleButton from '../../../../components/ToggleButton/ToggleButton';
 
 type PauseAction = "loopAndPause" | "pause";
 type DeathAction = "loopAndPause" | "pause" | "loop";
@@ -43,6 +44,7 @@ interface State
     playerInvincible: boolean;
     finalFrame: number;
     loading: boolean;
+    muted: boolean;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -67,7 +69,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
             pauseAction: "loopAndPause",
             playerInvincible: true,
             finalFrame: 0,
-            loading: true
+            loading: true,
+            muted: false
         };
 
         this.refreshSounds = this.refreshSounds.bind(this);
@@ -629,6 +632,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
         }));
     }
 
+    handleToggleMute = (toggled: boolean) =>
+    {
+        this.setState(state => ({
+            ...state,
+            muted: toggled
+        }));
+    }
+
     private get selectedBossForm(): BossFormModel | null
     {
         if (this.state.currentSelectionType === "bossForm")
@@ -669,6 +680,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     >
                         Refresh Sounds
                     </button>
+                    <ToggleButton
+                        onToggle={this.handleToggleMute}
+                        toggled={this.state.muted}
+                    >
+                        Mute Sounds
+                    </ToggleButton>
                 </div>
                 {/* edit stuff */}
                 <div className="row edit">
@@ -801,6 +818,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             onPlayFrame={this.handlePlayFrame}
                             playerInvincible={this.state.playerInvincible}
                             onFinalFrameCalculate={this.handleFinalFrameCalculate}
+                            muted={this.state.muted}
                         />
                     </div>
                     <div className="col rightCol">

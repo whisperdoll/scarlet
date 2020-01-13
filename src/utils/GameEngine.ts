@@ -84,7 +84,7 @@ export default class GameEngine
     private currentKeyContext: KeyContext = this.getKeyContext(new Map());
     private cache: Map<number, GameState> = new Map();
     public spritesToDraw: DrawSpriteInfo[] = [];
-    public muted: boolean = true;
+    private _muted: boolean = false;
 
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
@@ -119,6 +119,21 @@ export default class GameEngine
     constructor()
     {
         Object.freeze(this.scriptHelperFunctions);
+    }
+
+    public get muted(): boolean
+    {
+        return this._muted;
+    }
+
+    public set muted(muted: boolean)
+    {
+        this._muted = muted;
+
+        if (muted)
+        {
+            SoundHelper.stopAll();
+        }
     }
 
     public get finalFrame(): number
