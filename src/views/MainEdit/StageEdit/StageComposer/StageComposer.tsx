@@ -339,7 +339,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.setState(state => ({
             ...state,
             currentSelectionId: index,
-            currentSelectionType: "enemy"
+            currentSelectionType: index === -1 ? "none" : "enemy"
         }));
     }
 
@@ -627,7 +627,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         this.setState(state => ({
             ...state,
             currentSelectionId: id,
-            currentSelectionType: "bossForm"
+            currentSelectionType: id === -1 ? "none" : "bossForm"
         }));
     }
 
@@ -796,7 +796,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             stage={this.stage}
                         />
                         <div className="row">
-                            <span className="formsLabel">Forms:</span>
+                            <span className="formsLabel">Boss Forms:</span>
                             <button onClick={this.handleAddBossForm}>+ Add New</button>
                         </div>
                         <BossFormList
@@ -841,6 +841,9 @@ export default class StageComposer extends React.PureComponent<Props, State>
                                 index={this.boss?.formIds.indexOf(this.state.currentSelectionId)}
                                 onRequestRemove={this.handleRemoveBossForm}
                             />
+                        )}
+                        {(this.state.currentSelectionType === "none") && (
+                            <div className="rightColFiller">Select an enemy or boss form to have its properties show up here :)</div>
                         )}
                         {this.state.loopEnabled && (<React.Fragment>
                             <div className="row">

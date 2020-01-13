@@ -34,7 +34,7 @@ export default class EnemyList extends React.PureComponent<Props, State>
 
     handleEnemyDeselect = () =>
     {
-        //this.props.onSelectEnemy(-1);
+        this.props.onSelectEnemy(-1);
     }
 
     spriteForEnemy = (enemyId: number): SpriteModel | null =>
