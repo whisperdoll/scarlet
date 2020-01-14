@@ -1,6 +1,6 @@
 import Point from "./point";
 
-export type RectAnchor = "ne" | "nw" | "se" | "sw";
+export type RectAnchor = "ne" | "nw" | "se" | "sw" | "n" | "e" | "s" | "w";
 
 export default class Rectangle
 {
@@ -45,27 +45,6 @@ export default class Rectangle
         return "(" + this.x + ", " + this.y + ", " + this.width + ", " + this.height + ")";
     }
 
-    public fitInside(rect : Rectangle, anchor : RectAnchor) : void
-    {
-        let ar = rect.aspectRatio;
-        let startPoint = this.getPointFromAnchor(anchor).copy();
-
-        if (ar > this.aspectRatio)
-        {
-            // wider //
-            this.width *= rect.height / this.height;
-            this.height = rect.height;
-        }
-        else
-        {
-            // taller //
-            this.height *= rect.width / this.width;
-            this.width = rect.width;
-        }
-
-        this.setPointFromAnchor(anchor, startPoint);
-    }
-
     public setWidthKeepAR(width : number) : void
     {
         let ar = this.width / width;
@@ -107,52 +86,7 @@ export default class Rectangle
         }
     }
 
-    public fitInsideGreedyCenter(rect : Rectangle, boundingRect : Rectangle)
-    {
-        let ar = rect.aspectRatio;
-        let center = this.center.copy(); // just being careful
-
-        if (ar > 1)
-        {
-            // wider //
-            this.height *= rect.width / this.width;
-            this.width = rect.width;
-        }
-        else
-        {
-            // taller //
-            this.width *= rect.height / this.height;
-            this.height = rect.height;
-        }
-
-        this.center = center;
-
-        if (!boundingRect.containsRect(this))
-        {
-            if (this.right > boundingRect.right)
-            {
-                this.setWidthKeepAR((boundingRect.right - center.x) * 2);
-                this.center = center;
-            }
-            if (this.bottom > boundingRect.bottom)
-            {
-                this.setHeightKeepAR((boundingRect.bottom - center.y) * 2);
-                this.center = center;
-            }
-            if (this.left < boundingRect.left)
-            {
-                this.setWidthKeepAR((center.x - boundingRect.left) * 2);
-                this.center = center;
-            }
-            if (this.top < boundingRect.top)
-            {
-                this.setHeightKeepAR((center.y - boundingRect.top) * 2);
-                this.center = center;
-            }
-        }
-    }
-
-    public fitInsideGreedy(rect : Rectangle, anchor : RectAnchor, boundingRect : Rectangle) : void
+    public fitInsideGreedy(rect : Rectangle, anchor : RectAnchor, boundingRect? : Rectangle) : void
     {
         let ar = rect.aspectRatio;
         let startPoint = this.getPointFromAnchor(anchor).copy();
@@ -172,7 +106,7 @@ export default class Rectangle
 
         this.setPointFromAnchor(anchor, startPoint);
 
-        if (!boundingRect.containsRect(this))
+        if (boundingRect && !boundingRect.containsRect(this))
         {
             if (this.right > boundingRect.right)
             {
@@ -212,6 +146,10 @@ export default class Rectangle
     {
         switch (anchor)
         {
+            case "n": return this.topCenter;
+            case "e": return this.rightCenter;
+            case "s": return this.bottomCenter;
+            case "w": return this.leftCenter;
             case "nw": return this.topLeft;
             case "ne": return this.topRight;
             case "sw": return this.bottomLeft;
@@ -223,6 +161,10 @@ export default class Rectangle
     {
         switch (anchor)
         {
+            case "n": this.topCenter = point; break;
+            case "e": this.rightCenter = point; break;
+            case "s": this.bottomCenter = point; break;
+            case "w": this.leftCenter = point; break;
             case "nw": this.topLeft = point; break;
             case "ne": this.topRight = point; break;
             case "sw": this.bottomLeft = point; break;
@@ -234,6 +176,10 @@ export default class Rectangle
     {
         switch (anchor)
         {
+            case "n": return "s";
+            case "e": return "w";
+            case "s": return "n";
+            case "w": return "e";
             case "nw": return "se";
             case "ne": return "sw";
             case "sw": return "ne";
@@ -389,6 +335,46 @@ export default class Rectangle
     public set bottomRight(bottomRight : Point)
     {
         this.position = bottomRight.minus(this.size);
+    }
+
+    public get topCenter() : Point
+    {
+        return this.position.plus(new Point(this.width / 2, 0));
+    }
+
+    public set topCenter(topCenter: Point)
+    {
+        this.position = topCenter.minus(new Point(this.width / 2, 0));
+    }
+
+    public get bottomCenter() : Point
+    {
+        return this.position.plus(new Point(this.width / 2, this.height));
+    }
+
+    public set bottomCenter(bottomCenter: Point)
+    {
+        this.position = bottomCenter.minus(new Point(this.width / 2, this.height));
+    }
+
+    public get leftCenter() : Point
+    {
+        return this.position.plus(new Point(0, this.height / 2));
+    }
+
+    public set leftCenter(leftCenter: Point)
+    {
+        this.position = leftCenter.minus(new Point(0, this.height / 2));
+    }
+
+    public get rightCenter() : Point
+    {
+        return this.position.plus(new Point(this.width, this.height / 2));
+    }
+
+    public set rightCenter(rightCenter: Point)
+    {
+        this.position = rightCenter.minus(new Point(this.width, this.height / 2));
     }
 
     public get center() : Point

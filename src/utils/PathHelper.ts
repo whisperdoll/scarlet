@@ -27,7 +27,7 @@ export default class PathHelper
     {
         const folderPath = npath.dirname(objectFilename);
         const destFolderPath = npath.join(npath.dirname(this.projectFilename), destFolderName);
-        const destFilename = npath.join(destFolderPath, npath.basename(objectFilename));
+        let destFilename = npath.join(destFolderPath, npath.basename(objectFilename));
 
         if (folderPath !== destFolderPath)
         {
@@ -41,6 +41,12 @@ export default class PathHelper
                 {
                     throw e;
                 }
+            }
+
+            while (fs.existsSync(destFilename))
+            {
+                const newBase = npath.basename(objectFilename, npath.extname(objectFilename)) + "_copy" + npath.extname(objectFilename);
+                destFilename = npath.join(destFolderPath, newBase);
             }
 
             fs.copyFileSync(objectFilename, destFilename);

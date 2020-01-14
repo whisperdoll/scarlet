@@ -84,6 +84,11 @@ export default class NewProjectView extends React.PureComponent<Props, State>
                 resolutionY: 600,
                 stageResolutionX: 384,
                 stageResolutionY: 448
+            },
+            mainMenu: {
+                fontFamily: "",
+                fontSize: 18,
+                images: []
             }
         };
 

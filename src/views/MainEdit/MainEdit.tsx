@@ -5,6 +5,7 @@ import { ObjectModel, ObjectType } from '../../utils/datatypes';
 import ObjectHelper from '../../utils/ObjectHelper';
 import ObjectEdit from '../../components/ObjectEdit/ObjectEdit';
 import GameSettingsEdit from './GameSettingsEdit/GameSettingsEdit';
+import MainMenuEdit from './MainMenuEdit/MainMenuEdit';
 
 interface Props
 {
@@ -12,7 +13,7 @@ interface Props
 
 interface State
 {
-    currentlyEditing: number | null | "gameSettings";
+    currentlyEditing: number | null | "gameSettings" | "mainMenu";
 }
 
 export default class MainEditView extends React.PureComponent<Props, State>
@@ -42,6 +43,14 @@ export default class MainEditView extends React.PureComponent<Props, State>
         }));
     }
 
+    handleEditMainMenu = () =>
+    {
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: "mainMenu"
+        }));
+    }
+
     handleEditGameSettings = () =>
     {
         this.setState(state => ({
@@ -55,6 +64,14 @@ export default class MainEditView extends React.PureComponent<Props, State>
         this.setState(state => ({
             ...state,
             currentlyEditing: id
+        }));
+    }
+
+    handleRequestBack = () =>
+    {
+        this.setState(state => ({
+            ...state,
+            currentlyEditing: null
         }));
     }
 
@@ -79,6 +96,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                         <span role="img" aria-label="Errors" className="errorBadge" title={ObjectHelper.errors.join("\n")}>⚠️</span>
                     )}
                     <div className="header">{ObjectHelper.project!.name}</div>
+                    <button onClick={this.handleEditMainMenu}>Edit Main Menu</button>
                     <button onClick={this.handleEditGameSettings}>Edit Game Settings</button>
                 </div>
                 <ObjectList
@@ -93,6 +111,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                             switch (this.state.currentlyEditing)
                             {
                                 case "gameSettings": return <GameSettingsEdit />;
+                                case "mainMenu": return <MainMenuEdit onBack={this.handleRequestBack} />
                                 default: return null;
                             }
                         })()}

@@ -59,7 +59,7 @@ $headerBarHeight: 64px;
         padding: 8px 16px;
         box-sizing: border-box;
     
-        & > div:not(.stageComposer)
+        & > div:not(.stageComposer):not(.mainMenuEdit)
         {
             & > *
             {

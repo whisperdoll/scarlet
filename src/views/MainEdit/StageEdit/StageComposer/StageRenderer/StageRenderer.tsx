@@ -60,7 +60,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         this.selectedIndex = -1;
         
         this.engine = new GameEngine();
-        window.addEventListener("resize", this.handleResize);
         this.containerRef = React.createRef();
         this.canvasRef = React.createRef();
     }
@@ -138,6 +137,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         (window as any).c = this.renderer;
 
         this.handleResize();
+        window.addEventListener("resize", this.handleResize);
         this.resetEngine();
         this.engine.invalidateCache();
         this.props.onFinalFrameCalculate(this.engine.finalFrame);

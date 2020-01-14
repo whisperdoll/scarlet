@@ -22,11 +22,25 @@ export interface ProjectSettings
     stageResolutionY: number;
 }
 
+export interface MainMenu
+{
+    images: {
+        path: string,
+        x: number,
+        y: number,
+        width: number,
+        height: number
+    }[];
+    fontFamily: string;
+    fontSize: number;
+}
+
 export interface ProjectModel
 {
     name: string;
     objects: ObjectModel[];
     settings: ProjectSettings;
+    mainMenu: MainMenu;
 }
 
 // ADDTYPE //

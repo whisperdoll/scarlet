@@ -60,20 +60,31 @@ export default class ImageCache
         let totalToFetch = 0;
         let fetchedSoFar = 0;
 
+        const cache = (path: string) =>
+        {
+            totalToFetch++;
+
+            this.getImage(path, () =>
+            {
+                fetchedSoFar++;
+                if (fetchedSoFar === totalToFetch)
+                {
+                    callback();
+                }
+            });
+        };
+
         project.objects.forEach((obj) =>
         {
             if (obj.type === "sprite" || obj.type === "background")
             {
-                totalToFetch++;
-                this.getImage((obj as any).path, () =>
-                {
-                    fetchedSoFar++;
-                    if (fetchedSoFar === totalToFetch)
-                    {
-                        callback();
-                    }
-                });
+                cache((obj as any).path);
             }
+        });
+
+        project.mainMenu.images.forEach((img) =>
+        {
+            cache(img.path);
         });
     }
 }

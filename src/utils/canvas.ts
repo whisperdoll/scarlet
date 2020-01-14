@@ -605,6 +605,16 @@ export class Canvas
         this.context.fill();
     }
 
+    public drawCircle(position : Point, radius : number, color : string, lineWidth : number) : void
+    {
+        this.color = color;
+        this.lineWidth = lineWidth;
+
+        this.context.beginPath();
+        this.context.arc(position.x, position.y, radius, 0, 2 * Math.PI, false);
+        this.context.stroke();
+    }
+
     public fillCircleInSquare(position : Point, diameter : number, color : string)
     {    
         this.color = color;
