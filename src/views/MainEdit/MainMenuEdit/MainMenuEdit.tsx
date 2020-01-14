@@ -107,7 +107,7 @@ export default class MainMenuEdit extends React.PureComponent<Props, State>
 
     componentWillUnmount = () =>
     {
-        ObjectHelper.subscribeToProject(this.handleProjectUpdate);
+        ObjectHelper.unsubscribeFromProject(this.handleProjectUpdate);
         if (this.animationFrame !== null)
         {
             cancelAnimationFrame(this.animationFrame);

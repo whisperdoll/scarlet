@@ -111,7 +111,7 @@ export default class MainEditView extends React.PureComponent<Props, State>
                             switch (this.state.currentlyEditing)
                             {
                                 case "gameSettings": return <GameSettingsEdit />;
-                                case "mainMenu": return <MainMenuEdit onBack={this.handleRequestBack} />
+                                case "mainMenu": return <MainMenuEdit onBack={this.handleRequestBack} />;
                                 default: return null;
                             }
                         })()}
