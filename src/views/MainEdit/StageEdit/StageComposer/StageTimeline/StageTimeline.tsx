@@ -16,6 +16,7 @@ interface Props
     loopEnd: number;
     loopEnabled: boolean;
     max: number;
+    refresh: boolean;
 }
 
 interface State

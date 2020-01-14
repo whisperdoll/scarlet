@@ -436,6 +436,22 @@ export default class GameEngine
     {
         if (!this.hasReset || !ObjectHelper.project || !this.stage) throw new Error("reset engine before use");
 
+        if (this.stageAge >= this.finalFrame)
+        {
+            if (this.stageAge === this.finalFrame)
+            {
+                console.warn("tried advancing beyond final frame");
+                this.stageAge++;
+            }
+            
+            return {
+                entities: this.entities,
+                isLastUpdate: true,
+                playerAlive: true,
+                stageAge: this.finalFrame - 1
+            };
+        }
+
         let playerAlive = true;
         let isLastUpdate = false;
         this.currentKeyContext = this.getKeyContext(context.keys);
@@ -536,10 +552,10 @@ export default class GameEngine
             {
                 isLastUpdate = true;
             }
-            else if (this.stageAge > this.finalFrame)
-            {
-                throw new Error("advanced beyond final frame.. shame on u");
-            }
+            // else if (this.stageAge > this.finalFrame)
+            // {
+            //     throw new Error("advanced beyond final frame.. shame on u");
+            // }
         }
 
         const ret = {

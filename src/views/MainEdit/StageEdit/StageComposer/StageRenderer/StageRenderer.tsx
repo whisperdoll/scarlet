@@ -184,6 +184,7 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (!this.props.playing && (stage !== prevStage || this.props.refresh !== prevProps.refresh))
         {
+            console.log("heyyy");
             this.resetEngine();
             this.engine.invalidateCache();
             this.props.onFinalFrameCalculate(this.engine.finalFrame);

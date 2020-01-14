@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import './StageComposer.scss';
-import { StageModel, StageEnemyData, BossModel, BossFormModel, ProjectSettings } from '../../../../utils/datatypes';
+import { StageModel, StageEnemyData, BossModel, BossFormModel, ProjectSettings, ProjectModel } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
@@ -75,7 +75,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
             settings: ObjectHelper.project!.settings
         };
 
-        ObjectHelper.subscribeToSettings(this.handleSettingsUpdate);
+        ObjectHelper.subscribeToProject(this.handleProjectUpdate);
 
         this.refreshSounds = this.refreshSounds.bind(this);
     }
@@ -90,12 +90,29 @@ export default class StageComposer extends React.PureComponent<Props, State>
         return ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId);
     }
 
-    handleSettingsUpdate = (settings: ProjectSettings) =>
+    handleProjectUpdate = (project: ProjectModel | null, oldProject: ProjectModel | null) =>
     {
+        if (!project || !oldProject) return;
+
         this.setState(state => ({
             ...state,
-            settings: settings
+            settings: project.settings
         }));
+
+        for (const obj of project.objects)
+        {
+            if (obj.type === "bossForm")
+            {
+                const oldBoss = oldProject.objects.find(o => o.id === obj.id) as BossFormModel;
+                if (obj !== oldBoss)
+                {
+                    this.setState(state => ({
+                        ...state,
+                        refreshRenderer: !state.refreshRenderer
+                    }));
+                }
+            }
+        }
     }
 
     refreshScripts = () =>
@@ -145,7 +162,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentWillUnmount = () =>
     {
-        ObjectHelper.unsubscribeFromSettings(this.handleSettingsUpdate);
+        ObjectHelper.unsubscribeFromProject(this.handleProjectUpdate);
     }
 
     handleBack = () =>
@@ -618,7 +635,8 @@ export default class StageComposer extends React.PureComponent<Props, State>
     {
         this.setState(state => ({
             ...state,
-            finalFrame: finalFrame
+            finalFrame: finalFrame,
+            frame: Math.max(0, Math.min(finalFrame - 1, state.frame))
         }));
     }
 
@@ -920,6 +938,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
                     loopEnd={this.state.loopEnd}
                     loopEnabled={this.state.loopEnabled}
                     max={this.state.finalFrame}
+                    refresh={this.state.refreshRenderer}
                 />
                 <button
                     className="play"

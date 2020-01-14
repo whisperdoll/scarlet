@@ -14,7 +14,7 @@ export default class ObjectHelper
     private static objectSubscriptions = new Map<number, ObjectEventHandler[]>();
     private static errorSubscriptions: ((errors: string[]) => any)[] = [];
     private static settingsSubscriptions: ((settings: ProjectSettings) => any)[] = [];
-    private static projectSubscriptions: ((project: ProjectModel | null) => any)[] = [];
+    private static projectSubscriptions: ((project: ProjectModel | null, oldProject: ProjectModel | null) => any)[] = [];
 
     private static projectHistory: (ProjectModel | null)[] = [];
     private static projectHistoryIndex: number = -1;
@@ -39,8 +39,8 @@ export default class ObjectHelper
 
     private static broadcastDiffs(lastIndex: number)
     {
-        this.broadcastProject();
-        
+        this.broadcastProject(this.projectHistory[lastIndex] || null);
+
         const lastProject = this.projectHistory[lastIndex];
         if (!this.project || !lastProject)
         {
@@ -64,6 +64,8 @@ export default class ObjectHelper
 
     public static set project(project: ProjectModel | null)
     {
+        let oldProject = this.project;
+
         if (!project)
         {
             this.projectHistory = [];
@@ -83,7 +85,7 @@ export default class ObjectHelper
             this.checkForErrors();
         }
 
-        this.broadcastProject();
+        this.broadcastProject(oldProject);
     }
 
     public static get project(): ProjectModel | null
@@ -91,21 +93,21 @@ export default class ObjectHelper
         return this.projectHistoryIndex === -1 ? null : this.projectHistory[this.projectHistoryIndex];
     }
 
-    public static subscribeToProject(handler: (project: ProjectModel | null) => any)
+    public static subscribeToProject(handler: (project: ProjectModel | null, oldProject: ProjectModel | null) => any)
     {
         this.projectSubscriptions.push(handler);
     }
 
-    public static unsubscribeFromProject(handler: (project: ProjectModel | null) => any)
+    public static unsubscribeFromProject(handler: (project: ProjectModel | null, oldProject: ProjectModel | null) => any)
     {
         array_remove(this.projectSubscriptions, handler);
     }
 
-    public static broadcastProject()
+    public static broadcastProject(oldProject: ProjectModel | null)
     {
         for (const handler of this.projectSubscriptions)
         {
-            handler(this.project);
+            handler(this.project, oldProject);
         }
     }
 
