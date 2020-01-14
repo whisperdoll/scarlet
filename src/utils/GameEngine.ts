@@ -67,6 +67,7 @@ export interface GameState
     entities: GameEntity[];
     stageAge: number;
     spritesToDraw: DrawSpriteInfo[];
+    globalStore: Record<string, any>;
 };
 
 export default class GameEngine
@@ -75,6 +76,7 @@ export default class GameEngine
     public static readonly bossTransitionFrames: number = 2 * 60;
 
     private entities: GameEntity[] = [];
+    private globalStore: Record<string, any> = {};
     private stageAge: number = 0;
     private stageSize: PointLike = { x: 0, y: 0 };
     private stage: StageModel | null = null;
@@ -151,16 +153,17 @@ export default class GameEngine
         return {
             entities: copy(this.entities),
             stageAge: this.stageAge,
-            spritesToDraw: this.spritesToDraw
+            spritesToDraw: this.spritesToDraw,
+            globalStore: copy(this.globalStore)
         };
     }
 
     private loadGameState(gameState: GameState)
     {
         this.entities = copy(gameState.entities);
-        (window as any).x = this.entities;
         this.stageAge = gameState.stageAge;
         this.spritesToDraw = this.spritesToDraw
+        this.globalStore = copy(gameState.globalStore);
     }
 
     /**
@@ -443,7 +446,7 @@ export default class GameEngine
                 console.warn("tried advancing beyond final frame");
                 this.stageAge++;
             }
-            
+
             return {
                 entities: this.entities,
                 isLastUpdate: true,
@@ -589,7 +592,8 @@ export default class GameEngine
                         height: this.stageSize.y
                     },
                     keys: this.currentKeyContext,
-                    helpers: this.scriptHelperFunctions
+                    helpers: this.scriptHelperFunctions,
+                    globalStore: this.globalStore
                 });
             }
             catch (e)

@@ -43,6 +43,7 @@ export interface ScriptContext
     stage: StageScriptData;
     entity: GameEntity;
     keys: KeyContext;
+    globalStore: Record<string, any>;
     helpers: Readonly<Record<string, Function>>;
 };
 
