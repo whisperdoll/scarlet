@@ -16,6 +16,10 @@ export interface ProjectSettings
     keyBindings: KeyBindings;
     stageIdOrder: number[];
     fps: number;
+    resolutionX: number;
+    resolutionY: number;
+    stageResolutionX: number;
+    stageResolutionY: number;
 }
 
 export interface ProjectModel
@@ -133,7 +137,6 @@ export interface StageModel extends ObjectModel
     bossId: number;
     length: number;
     enemies: StageEnemyData[]
-    size: PointLike;
     playerSpawnPosition: PointLike;
     bossSpawnPosition: PointLike;
 }

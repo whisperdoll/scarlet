@@ -123,8 +123,8 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         this.renderer = new PIXI.Renderer({
             view: this.canvasRef.current!,
-            width: this.stage.size.x,
-            height: this.stage.size.y
+            width: ObjectHelper.project!.settings.stageResolutionX,
+            height: ObjectHelper.project!.settings.stageResolutionY
         });
         this.canvas = new Canvas({
             canvasElement: this.canvasRef.current!,
@@ -161,11 +161,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
     {
         const prevStage = prevProps.obj;
         const stage = this.stage;
-
-        if (prevStage && (prevStage.size.x !== stage.size.x || prevStage.size.y !== stage.size.y))
-        {
-            this.handleResize();
-        }
 
         if (this.props.playing && !prevProps.playing)
         {
@@ -211,7 +206,10 @@ export default class StageRenderer extends React.PureComponent<Props, State>
         if (this.containerRef.current && this.canvas)
         {
             const containerSize = Point.fromSizeLike(this.containerRef.current.getBoundingClientRect());
-            const stageSize = Point.fromPointLike(this.stage.size);
+            const stageSize = new Point(
+                ObjectHelper.project!.settings.stageResolutionX,
+                ObjectHelper.project!.settings.stageResolutionY,
+            );
             
             const cr = containerSize.ratio;
             const sr = stageSize.ratio;

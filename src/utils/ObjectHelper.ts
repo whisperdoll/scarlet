@@ -320,10 +320,6 @@ export default class ObjectHelper
                     playerId: -1,
                     length: 60 * 60,
                     enemies: [],
-                    size: {
-                        x: 384,
-                        y: 448
-                    },
                     playerSpawnPosition: {
                         x: 384 / 2,
                         y: 400

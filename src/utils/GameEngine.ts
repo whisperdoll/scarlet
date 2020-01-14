@@ -76,7 +76,7 @@ export default class GameEngine
 
     private entities: GameEntity[] = [];
     private stageAge: number = 0;
-    private gameSize: PointLike = { x: 0, y: 0 };
+    private stageSize: PointLike = { x: 0, y: 0 };
     private stage: StageModel | null = null;
     private hasReset: boolean = false;
     private cacheInterval: number = 15;
@@ -243,7 +243,10 @@ export default class GameEngine
         this.entities = [];
         this.stageAge = 0;
         this._finalFrame = stage.length - 1;
-        this.gameSize = stage.size;
+        this.stageSize = {
+            x: ObjectHelper.project!.settings.stageResolutionX,
+            y: ObjectHelper.project!.settings.stageResolutionY
+        };
 
         const player = ObjectHelper.getObjectWithId<PlayerModel>(stage.playerId);
         if (player)
@@ -347,7 +350,6 @@ export default class GameEngine
             }
         });
 
-        this.gameSize = stage.size;
         this.stage = stage;
         this.hasReset = true;
     }
@@ -567,8 +569,8 @@ export default class GameEngine
                     entity: entity,
                     stage: {
                         age: this.stageAge,
-                        width: this.stage!.size.x,
-                        height: this.stage!.size.y
+                        width: this.stageSize.x,
+                        height: this.stageSize.y
                     },
                     keys: this.currentKeyContext,
                     helpers: this.scriptHelperFunctions

@@ -109,6 +109,25 @@ export default class GameSettingsEdit extends React.PureComponent<Props, State>
             })
         });
     }
+
+    handleChangeResolution = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        const dimStr = e.currentTarget.dataset.dim!.toString();
+        const prefix = dimStr[0] === "g" ? "resolution" : "stageResolution";
+        const dim = dimStr[1].toUpperCase();
+        const key = prefix + dim;
+
+        let val = parseInt(e.currentTarget.value);
+        if (isNaN(val))
+        {
+            val = (this.state.settings as any)[key];
+        }
+
+        ObjectHelper.updateSettings({
+            ...ObjectHelper.project!.settings,
+            [key]: val
+        });
+    }
     
     render = () =>
     {
@@ -119,6 +138,39 @@ export default class GameSettingsEdit extends React.PureComponent<Props, State>
                     keyBindings={this.state.settings.keyBindings}
                     onUpdate={this.handleUpdateKeyBindings}
                 />
+                <h3>Resolution</h3>
+                <div className="row">
+                    <span className="label">Game:</span>
+                    <input
+                        type="number"
+                        value={this.state.settings.resolutionX}
+                        onChange={this.handleChangeResolution}
+                        data-dim="gx"
+                    />
+                    <span>x</span>
+                    <input
+                        type="number"
+                        value={this.state.settings.resolutionY}
+                        onChange={this.handleChangeResolution}
+                        data-dim="gy"
+                    />
+                </div>
+                <div className="row">
+                    <span className="label">Stage:</span>
+                    <input
+                        type="number"
+                        value={this.state.settings.stageResolutionX}
+                        onChange={this.handleChangeResolution}
+                        data-dim="sx"
+                    />
+                    <span>x</span>
+                    <input
+                        type="number"
+                        value={this.state.settings.stageResolutionY}
+                        onChange={this.handleChangeResolution}
+                        data-dim="sy"
+                    />
+                </div>
                 <h3>Stage Order</h3>
                 <div className="col">
                     {ObjectHelper.project?.settings.stageIdOrder.map((id, i) =>

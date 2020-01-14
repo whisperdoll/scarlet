@@ -79,7 +79,11 @@ export default class NewProjectView extends React.PureComponent<Props, State>
                     focus: "shift"
                 },
                 stageIdOrder: [],
-                fps: 60
+                fps: 60,
+                resolutionX: 800,
+                resolutionY: 600,
+                stageResolutionX: 384,
+                stageResolutionY: 448
             }
         };
 

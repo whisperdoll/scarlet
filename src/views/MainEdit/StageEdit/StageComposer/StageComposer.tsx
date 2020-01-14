@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import './StageComposer.scss';
-import { StageModel, StageEnemyData, BossModel, BossFormModel } from '../../../../utils/datatypes';
+import { StageModel, StageEnemyData, BossModel, BossFormModel, ProjectSettings } from '../../../../utils/datatypes';
 import ObjectHelper from '../../../../utils/ObjectHelper';
 import ObjectSelect from "../../../../components/ObjectSelect/ObjectSelect";
 import EnemyList from './EnemyList/EnemyList';
@@ -45,6 +45,7 @@ interface State
     finalFrame: number;
     loading: boolean;
     muted: boolean;
+    settings: ProjectSettings;
 }
 
 export default class StageComposer extends React.PureComponent<Props, State>
@@ -70,8 +71,11 @@ export default class StageComposer extends React.PureComponent<Props, State>
             playerInvincible: true,
             finalFrame: 0,
             loading: true,
-            muted: false
+            muted: false,
+            settings: ObjectHelper.project!.settings
         };
+
+        ObjectHelper.subscribeToSettings(this.handleSettingsUpdate);
 
         this.refreshSounds = this.refreshSounds.bind(this);
     }
@@ -84,6 +88,14 @@ export default class StageComposer extends React.PureComponent<Props, State>
     get boss(): BossModel | null
     {
         return ObjectHelper.getObjectWithId<BossModel>(this.stage.bossId);
+    }
+
+    handleSettingsUpdate = (settings: ProjectSettings) =>
+    {
+        this.setState(state => ({
+            ...state,
+            settings: settings
+        }));
     }
 
     refreshScripts = () =>
@@ -133,6 +145,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
 
     componentWillUnmount = () =>
     {
+        ObjectHelper.unsubscribeFromSettings(this.handleSettingsUpdate);
     }
 
     handleBack = () =>
@@ -158,14 +171,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.stage.size.x;
+            val = this.state.settings.stageResolutionX;
         }
 
-        this.props.update({
-            size: {
-                ...this.stage.size,
-                x: Math.max(1, val)
-            }
+        ObjectHelper.updateSettings({
+            ...ObjectHelper.project!.settings,
+            stageResolutionX: Math.max(1, val)
         });
     }
 
@@ -174,14 +185,12 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.stage.size.y;
+            val = this.state.settings.stageResolutionY;
         }
 
-        this.props.update({
-            size: {
-                ...this.stage.size,
-                y: Math.max(1, val)
-            }
+        ObjectHelper.updateSettings({
+            ...ObjectHelper.project!.settings,
+            stageResolutionY: Math.max(1, val)
         });
     }
 
@@ -190,7 +199,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.stage.size.y;
+            val = this.stage.playerSpawnPosition.x;
         }
 
         this.props.update({
@@ -206,7 +215,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.stage.size.y;
+            val = this.stage.playerSpawnPosition.y;
         }
 
         this.props.update({
@@ -222,7 +231,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.stage.size.y;
+            val = this.stage.bossSpawnPosition.x;
         }
 
         this.props.update({
@@ -238,7 +247,7 @@ export default class StageComposer extends React.PureComponent<Props, State>
         let val = parseInt(e.currentTarget.value);
         if (isNaN(val))
         {
-            val = this.stage.size.y;
+            val = this.stage.bossSpawnPosition.y;
         }
 
         this.props.update({
@@ -695,13 +704,13 @@ export default class StageComposer extends React.PureComponent<Props, State>
                             <input
                                 type="number"
                                 onChange={this.handleWidthChange}
-                                value={this.stage.size.x.toString()}
+                                value={this.state.settings.stageResolutionX.toString()}
                             />
                             <span>x</span>
                             <input
                                 type="number"
                                 onChange={this.handleHeightChange}
-                                value={this.stage.size.y.toString()}
+                                value={this.state.settings.stageResolutionY.toString()}
                             />
                         </div>
                         <div className="row">
