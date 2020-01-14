@@ -14,6 +14,7 @@ export default class ObjectHelper
     private static objectSubscriptions = new Map<number, ObjectEventHandler[]>();
     private static errorSubscriptions: ((errors: string[]) => any)[] = [];
     private static settingsSubscriptions: ((settings: ProjectSettings) => any)[] = [];
+    private static projectSubscriptions: ((project: ProjectModel | null) => any)[] = [];
 
     private static projectHistory: (ProjectModel | null)[] = [];
     private static projectHistoryIndex: number = -1;
@@ -38,6 +39,8 @@ export default class ObjectHelper
 
     private static broadcastDiffs(lastIndex: number)
     {
+        this.broadcastProject();
+        
         const lastProject = this.projectHistory[lastIndex];
         if (!this.project || !lastProject)
         {
@@ -61,8 +64,6 @@ export default class ObjectHelper
 
     public static set project(project: ProjectModel | null)
     {
-        this.checkForErrors();
-
         if (!project)
         {
             this.projectHistory = [];
@@ -78,12 +79,34 @@ export default class ObjectHelper
                 const diff = this.projectHistory.length - this.maxHistorySize;
                 this.projectHistory.splice(0, diff);
             }
+
+            this.checkForErrors();
         }
+
+        this.broadcastProject();
     }
 
     public static get project(): ProjectModel | null
     {
         return this.projectHistoryIndex === -1 ? null : this.projectHistory[this.projectHistoryIndex];
+    }
+
+    public static subscribeToProject(handler: (project: ProjectModel | null) => any)
+    {
+        this.projectSubscriptions.push(handler);
+    }
+
+    public static unsubscribeFromProject(handler: (project: ProjectModel | null) => any)
+    {
+        array_remove(this.projectSubscriptions, handler);
+    }
+
+    public static broadcastProject()
+    {
+        for (const handler of this.projectSubscriptions)
+        {
+            handler(this.project);
+        }
     }
 
     public static subscribeToErrors(handler: (errors: string[]) => any)
