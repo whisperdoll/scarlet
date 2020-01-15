@@ -1,4 +1,4 @@
-import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, ProjectSettings, SoundModel } from "./datatypes";
+import { ObjectType, ProjectModel, ObjectModel, SpriteModel, PlayerModel, ScriptModel, EnemyModel, BulletModel, BossModel, StageModel, BackgroundModel, BossFormModel, ProjectSettings, SoundModel, ConsumableModel } from "./datatypes";
 import { array_remove, array_ensureOne, array_insert } from "./utils";
 import update from "immutability-helper";
 import Point from "./point";
@@ -333,6 +333,15 @@ export default class ObjectHelper
                     spriteId: -1,
                     type: "bossForm"
                 } as BossFormModel;
+                break;
+            case "consumable":
+                ret = {
+                    id: id,
+                    name: "New Consumable " + objectNumber,
+                    scriptId: -1,
+                    spriteId: -1,
+                    type: "consumable"
+                } as ConsumableModel;
                 break;
             case "stage":
                 ret = {

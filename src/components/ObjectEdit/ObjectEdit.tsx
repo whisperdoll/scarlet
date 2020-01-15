@@ -11,6 +11,7 @@ import StageEdit from '../../views/MainEdit/StageEdit/StageEdit';
 import BackgroundEdit from '../../views/MainEdit/BackgroundEdit/BackgroundEdit';
 import BossFormEdit from '../../views/MainEdit/BossEdit/BossFormEdit/BossFormEdit';
 import SoundEdit from '../../views/MainEdit/SoundEdit/SoundEdit';
+import ConsumableEdit from '../../views/MainEdit/ConsumableEdit/ConsumableEdit';
 
 interface Props
 {
@@ -115,6 +116,7 @@ export default class ObjectEdit extends React.PureComponent<Props, State>
                 case "player": component = PlayerEdit; break;
                 case "stage": component = StageEdit; break;
                 case "sound": component = SoundEdit; break;
+                case "consumable": component = ConsumableEdit; break;
             }
             
             return component;

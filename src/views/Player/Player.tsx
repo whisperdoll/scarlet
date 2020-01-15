@@ -21,6 +21,7 @@ interface Props
 interface State
 {
     loading: boolean;
+    points: number;
 }
 
 export default class PlayerView extends React.PureComponent<Props, State>
@@ -44,7 +45,8 @@ export default class PlayerView extends React.PureComponent<Props, State>
         super(props);
 
         this.state = {
-            loading: true
+            loading: true,
+            points: 0
         };
 
         this.containerRef = React.createRef();
@@ -54,6 +56,15 @@ export default class PlayerView extends React.PureComponent<Props, State>
         this.engine.onAddEntity = this.handleAddEntity;
         this.engine.onUpdateEntity = this.handleUpdateEntity;
         this.engine.onKillEntity = this.handleKillEntity;
+        this.engine.onUpdatePoints = this.handleUpdatePoints;
+    }
+
+    handleUpdatePoints = (points: number) =>
+    {
+        this.setState(state => ({
+            ...state,
+            points: points
+        }));
     }
 
     handleAddEntity = (entity: GameEntity) =>
@@ -280,7 +291,7 @@ export default class PlayerView extends React.PureComponent<Props, State>
                             height: ObjectHelper.project!.settings.stageResolutionY + "px"
                         }}
                     >
-                        <div>Score: 000000</div>
+                        <div>Score: {this.state.points.toString().padStart(8, "0")}</div>
                         <div>Lives: 3</div>
                         <div>Bomb: 3</div>
                     </div>

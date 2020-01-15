@@ -86,7 +86,8 @@ export default class SpriteEdit extends React.PureComponent<Props, State>
                         x: img.width / 2,
                         y: img.height / 2
                     },
-                    radius: 4
+                    radius: 4,
+                    consumablesOnly: false
                 }]
             });
         });

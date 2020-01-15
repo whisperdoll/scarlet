@@ -51,11 +51,11 @@ export default class ObjectSelect extends React.PureComponent<Props, State>
                 >
                     <option key={-1} value="-1">(None)</option>
                     {ObjectHelper.getObjectsWithType(this.props.objectType).map((obj) =>
-                    {
-                    return <option key={obj.id} value={obj.id.toString()}>{obj.name}</option> 
-                    })}
+                    (
+                        <option key={obj.id} value={obj.id.toString()}>{obj.name}</option> 
+                    ))}
                 </select>
-                {this.props.onRequestEdit && <button onClick={this.handleEdit}>Edit...</button>}
+                {this.props.onRequestEdit && this.props.currentObjectId >= 0 && <button onClick={this.handleEdit}>Edit...</button>}
             </React.Fragment>
         );
     }

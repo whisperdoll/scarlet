@@ -6,8 +6,9 @@ import ImageCache from "./ImageCache";
 import copy from "fast-copy";
 import { array_ensureOne } from "./utils";
 import SoundHelper from "./SoundHelper";
+import { MemoryRng } from "./MemoryRng";
 
-type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet";
+type GameEntityType = "player" | "enemy" | "boss" | "enemyBullet" | "playerBullet" | "consumable";
 
 export interface GameEntity extends Record<string, any>
 {
@@ -68,6 +69,7 @@ export interface GameState
     stageAge: number;
     spritesToDraw: DrawSpriteInfo[];
     globalStore: Record<string, any>;
+    rngDump: number;
 };
 
 export default class GameEngine
@@ -92,6 +94,7 @@ export default class GameEngine
     public onAddEntity: ((entity: GameEntity) => any) | null = null;
     public onKillEntity: ((entity: GameEntity) => any) | null = null;
     public onUpdatePoints: ((points: number) => any) | null = null;
+    private rng: MemoryRng = new MemoryRng();
 
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
@@ -123,6 +126,91 @@ export default class GameEngine
         {
             this.points += points;
             this.onUpdatePoints && this.onUpdatePoints(this.points);
+        },
+        getPlayer: (): GameEntity | null =>
+        {
+            return this.playerEntity;
+        },
+        random: (): number =>
+        {
+            return this.rng.random()
+        },
+        distanceBetween: (entity1: GameEntity, entity2: GameEntity): number =>
+        {
+            return Math.sqrt(Math.pow(entity1.positionX - entity2.positionX, 2) + Math.pow(entity1.positionY - entity2.positionY, 2));
+        },
+        angleBetween: (entity1: GameEntity, entity2: GameEntity): number =>
+        {
+            return Math.atan2(entity2.positionY - entity1.positionY, entity2.positionX - entity1.positionX);
+        },
+        radiansToDegrees: (rads: number): number =>
+        {
+            return rads * 180 / Math.PI;
+        },
+        degreesToRadians: (degs: number): number =>
+        {
+            return degs / 180 * Math.PI;
+        },
+        moveTowards: (entity1: GameEntity, entity2: GameEntity, amount: number) =>
+        {
+            const angle = this.scriptHelperFunctions.angleBetween(entity1, entity2);
+            entity1.positionY += Math.sin(angle) * amount;
+            entity1.positionX += Math.cos(angle) * amount;
+        },
+        spawnEntity: (name: string, x: number, y: number, store?: Record<string, any>): GameEntity | null =>
+        {
+            const obj = ObjectHelper.getObjectWithName(name);
+            const or = (prop: string, or: any) =>
+            {
+                return (obj as any)[prop] === undefined ? or : (obj as any)[prop];
+            };
+
+            if (obj)
+            {
+                let type: GameEntityType;
+    
+                switch (obj.type)
+                {
+                    case "enemy":
+                        type = "enemy";
+                        break;
+                    case "consumable":
+                        type = "consumable";
+                        break;
+                    default:
+                        return null;
+                }
+                
+                const entity = this.prepareAndAddEntity({
+                    age: 0,
+                    alive: true,
+                    hp: (obj as any).hp || 0,
+                    id: obj.id,
+                    index: 0,
+                    lifetime: or("lifetime", -1),
+                    opacity: 1,
+                    positionX: x,
+                    positionY: y,
+                    scaleX: 1,
+                    scaleY: 1,
+                    scriptId: or("scriptId", -1),
+                    scriptName: ObjectHelper.getObjectWithId<ScriptModel>(or("scriptId", -1))?.name || "",
+                    spawnFrame: this.stageAge,
+                    spawnPositionX: x,
+                    spawnPositionY: y,
+                    spriteId: or("spriteId", -1),
+                    store: store || {},
+                    tint: 0xFFFFFF,
+                    type: type
+                });
+
+                const methods = ScriptEngine.parseScript(entity.scriptId);
+                this.tryCallScriptMethod(methods, "init", entity);
+
+                return entity;
+            }
+
+            return null;
         }
     };
 
@@ -164,7 +252,8 @@ export default class GameEngine
             entities: copy(this.entities),
             stageAge: this.stageAge,
             spritesToDraw: this.spritesToDraw,
-            globalStore: copy(this.globalStore)
+            globalStore: copy(this.globalStore),
+            rngDump: this.rng.index
         };
     }
 
@@ -174,6 +263,7 @@ export default class GameEngine
         this.stageAge = gameState.stageAge;
         this.spritesToDraw = this.spritesToDraw
         this.globalStore = copy(gameState.globalStore);
+        this.rng.index = gameState.rngDump;
     }
 
     /**
@@ -525,6 +615,20 @@ export default class GameEngine
                     alreadyUpdated = true;
                 }
             }
+            else if (entity.type === "consumable")
+            {
+                if (playerAlive && this.playerEntity)
+                {
+                    this.runEntityUpdateScript(entity, context);
+                    if (this.testCollision(entity, this.playerEntity))
+                    {
+                        const methods = ScriptEngine.parseScript(entity.scriptId);
+                        this.tryCallScriptMethod(methods, "consumed", entity);
+                        this.killEntity(entity);
+                    }
+                    alreadyUpdated = true;
+                }
+            }
             else if (entity.type === "enemy" && bossSpawned)
             {
                 this.killEntity(entity);
@@ -710,14 +814,20 @@ export default class GameEngine
         {
             const entity1SpriteImage = ImageCache.getCachedImage(entity1Sprite.path);
             const entity2SpriteImage = ImageCache.getCachedImage(entity2Sprite.path);
+
+            const cellWidth1 = entity1SpriteImage.width / entity1Sprite.numCells;
+            const cellHeight1 = entity1SpriteImage.height / entity1Sprite.numCells;
+
+            const cellWidth2 = entity2SpriteImage.width / entity2Sprite.numCells;
+            const cellHeight2 = entity2SpriteImage.height / entity2Sprite.numCells;
             
             const entity1SpriteLocalCenter = {
-                x: entity1SpriteImage.width / 2,
-                y: entity1SpriteImage.height / 2
+                x: cellWidth1 / 2,
+                y: cellHeight1 / 2
             };
             const entity2SpriteLocalCenter = {
-                x: entity2SpriteImage.width / 2,
-                y: entity2SpriteImage.height / 2
+                x: cellWidth2 / 2,
+                y: cellHeight2 / 2
             };
             
             const entity1Hitboxes = entity1Sprite.hitboxes;
@@ -725,8 +835,18 @@ export default class GameEngine
 
             const shouldDie = entity1Hitboxes.some((hitbox) => 
             {
+                if (hitbox.consumablesOnly && entity2.type !== "consumable")
+                {
+                    return false;
+                }
+
                 return entity2Hitboxes.some((entity2Hitbox) => 
                 {
+                    if (entity2Hitbox.consumablesOnly && entity1.type !== "consumable")
+                    {
+                        return false;
+                    }
+                    
                     const entity1HitboxPoint = {
                         x: hitbox.position.x + entity1.positionX - entity1SpriteLocalCenter.x,
                         y: hitbox.position.y + entity1.positionY - entity1SpriteLocalCenter.y

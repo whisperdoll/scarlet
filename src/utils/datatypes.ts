@@ -46,13 +46,14 @@ export interface ProjectModel
 // ADDTYPE //
 const stringLitArray = <L extends string>(arr: L[]) => arr;
 
-export const GameObjectTypes = stringLitArray(["player", "stage", "enemy", "boss", "bossForm", "sprite", "script", "bullet", "background", "sound"]);
+export const GameObjectTypes = stringLitArray(["player", "stage", "enemy", "boss", "bossForm", "consumable", "sprite", "script", "bullet", "background", "sound"]);
 export type ObjectType = (typeof GameObjectTypes)[number];
 
 export interface Hitbox
 {
     position: PointLike;
     radius: number;
+    consumablesOnly: boolean;
 }
 
 export interface ScriptHaver
@@ -81,6 +82,13 @@ export interface SpriteModel extends ObjectModel
     numCells: number;
     framesPerCell: number;
     hitboxes: Hitbox[];
+}
+
+export interface ConsumableModel extends ObjectModel
+{
+    type: "consumable";
+    spriteId: number;
+    scriptId: number;
 }
 
 export interface SoundModel extends ObjectModel

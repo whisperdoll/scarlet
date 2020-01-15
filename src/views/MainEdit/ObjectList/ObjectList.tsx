@@ -71,6 +71,11 @@ export default class ObjectList extends React.PureComponent<Props, State>
                 childIds: []
             },
             {
+                name: "Consumables",
+                hint: "consumable",
+                childIds: []
+            },
+            {
                 name: "Sprites",
                 hint: "sprite",
                 childIds: []

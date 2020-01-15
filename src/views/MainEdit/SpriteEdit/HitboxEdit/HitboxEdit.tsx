@@ -1,6 +1,7 @@
 import React from 'react';
 import './HitboxEdit.scss';
 import { Hitbox } from '../../../../utils/datatypes';
+import ToggleButton from '../../../../components/ToggleButton/ToggleButton';
 
 interface Props
 {
@@ -74,6 +75,14 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
         this.props.onRequestRemove(this.props.index);
     }
 
+    handleToggleConsumablesOnly = (toggled: boolean) =>
+    {
+        this.props.onUpdate({
+            ...this.props.hitbox,
+            consumablesOnly: toggled
+        }, this.props.index);
+    }
+
     render = () =>
     {
         return (
@@ -101,6 +110,12 @@ export default class HitboxEdit extends React.PureComponent<Props, State>
                         value={this.props.hitbox.radius}
                     />
                 </div>
+                <ToggleButton
+                    onToggle={this.handleToggleConsumablesOnly}
+                    toggled={this.props.hitbox.consumablesOnly}
+                >
+                    Consumables Only
+                </ToggleButton>
                 <button onClick={this.handleRequestRemove} className="remove">- Remove</button>
             </div>
         );
