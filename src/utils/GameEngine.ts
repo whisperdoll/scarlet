@@ -87,6 +87,9 @@ export default class GameEngine
     private cache: Map<number, GameState> = new Map();
     public spritesToDraw: DrawSpriteInfo[] = [];
     private _muted: boolean = false;
+    public onUpdateEntity: ((entity: GameEntity) => any) | null = null;
+    public onAddEntity: ((entity: GameEntity) => any) | null = null;
+    public onKillEntity: ((entity: GameEntity) => any) | null = null;
 
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
@@ -238,6 +241,7 @@ export default class GameEngine
     {
         const e = this.prepareEntity(entity);
         this.entities.push(e);
+        this.onAddEntity && this.onAddEntity(entity);
         return e;
     }
 
@@ -433,6 +437,7 @@ export default class GameEngine
 
         const methods = ScriptEngine.parseScript(entity.scriptId);
         this.tryCallScriptMethod(methods, "die", entity);
+        this.onKillEntity && this.onKillEntity(entity);
     }
 
     public advanceFrame(context: UpdateContext): UpdateResult
@@ -652,6 +657,7 @@ export default class GameEngine
         const methods = ScriptEngine.parseScript(entity.scriptId);
         this.tryCallScriptMethod(methods, "update", entity);
         this.tryCallScriptMethod(methods, "draw", entity);
+        this.onUpdateEntity && this.onUpdateEntity(entity);
     }
 
     private handleFire(bullet: number | BulletModel | null, bulletType: "playerBullet" | "enemyBullet", posX: number, posY: number, store: any): GameEntity | null

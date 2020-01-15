@@ -1,19 +1,43 @@
 .playerView
 {
     overflow: hidden;
+    background: black;
 
     .gameContainer
     {
+        .mainMenu
+        {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform-origin: center;
+            transform: translate(-50%,-50%) scale(1);
+            overflow: hidden;
+        }
+
+        background: rgba(200,200,255,0.1);
         position: absolute;
         left: 50%;
         top: 50%;
         transform-origin: center;
         transform: translate(-50%,-50%) scale(1);
         box-sizing: border-box;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
 
         canvas
         {
             box-sizing: border-box;
+            margin-left: 32px;
+            margin-right: 32px;
+        }
+
+        .info
+        {
+            font-size: 32px;
         }
     }
 }
