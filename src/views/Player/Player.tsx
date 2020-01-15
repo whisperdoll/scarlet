@@ -226,7 +226,7 @@ export default class PlayerView extends React.PureComponent<Props, State>
         this.started = true;
         this.forceUpdate();
         this.resetEngine();
-        this.animationFrame = requestAnimationFrame(this.advanceFrame);
+        this.animationFrame = requestAnimationFrame(() => this.animationFrame = requestAnimationFrame(this.advanceFrame));
     }
 
     advanceFrame = () =>

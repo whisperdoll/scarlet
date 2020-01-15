@@ -78,6 +78,7 @@ export default class GameEngine
     private entities: GameEntity[] = [];
     private globalStore: Record<string, any> = {};
     private stageAge: number = 0;
+    private points: number = 0;
     private stageSize: PointLike = { x: 0, y: 0 };
     private stage: StageModel | null = null;
     private hasReset: boolean = false;
@@ -90,6 +91,7 @@ export default class GameEngine
     public onUpdateEntity: ((entity: GameEntity) => any) | null = null;
     public onAddEntity: ((entity: GameEntity) => any) | null = null;
     public onKillEntity: ((entity: GameEntity) => any) | null = null;
+    public onUpdatePoints: ((points: number) => any) | null = null;
 
     private readonly scriptHelperFunctions: Readonly<Record<string, Function>> =
     {
@@ -116,6 +118,11 @@ export default class GameEngine
             {
                 SoundHelper.playSoundById(sound.id);
             }
+        },
+        addPoints: (points: number) =>
+        {
+            this.points += points;
+            this.onUpdatePoints && this.onUpdatePoints(this.points);
         }
     };
 
@@ -249,6 +256,7 @@ export default class GameEngine
     {
         this.entities = [];
         this.stageAge = 0;
+        this.points = 0;
         this._finalFrame = stage.length - 1;
         this.stageSize = {
             x: ObjectHelper.project!.settings.stageResolutionX,
