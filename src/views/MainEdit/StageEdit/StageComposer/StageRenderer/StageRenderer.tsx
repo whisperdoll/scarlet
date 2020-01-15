@@ -34,7 +34,7 @@ interface State
 
 export default class StageRenderer extends React.PureComponent<Props, State>
 {
-    private static textureCache: Map<number, PIXI.Texture[]> = new Map();
+    public static textureCache: Map<number | string, PIXI.Texture[]> = new Map();
 
     private canvas: Canvas | null = null;
     private renderer: PIXI.Renderer | null = null;
@@ -94,24 +94,40 @@ export default class StageRenderer extends React.PureComponent<Props, State>
             }
         });
 
+        let i = 0;
+        for (const image of project.mainMenu.images)
+        {
+            const path = PathHelper.resolveObjectFileName(image.path);
+            PIXI.Loader.shared.add("mainMenu_" + i.toString(), path);
+            i++;
+        }
+
         PIXI.Loader.shared.load((loader, resources) =>
         {
-            for (let key in resources)
+            for (const key in resources)
             {
-                const texture = resources[key]!.texture;
-                const id = parseInt(key);
-                const numCells = cellNums.get(id)!;
-                const cellWidth = Math.floor(texture.width / numCells);
-
-                const texturesToCache: PIXI.Texture[] = [];
-
-                for (let i = 0; i < numCells; i++)
+                if (key.startsWith("mainMenu"))
                 {
-                    const subTexture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(cellWidth * i, 0, cellWidth, texture.height));
-                    texturesToCache.push(subTexture);
+                    const texture = resources[key]!.texture;
+                    this.textureCache.set(key, [texture]);
                 }
-
-                this.textureCache.set(id, texturesToCache);
+                else
+                {
+                    const texture = resources[key]!.texture;
+                    const id = parseInt(key);
+                    const numCells = cellNums.get(id)!;
+                    const cellWidth = Math.floor(texture.width / numCells);
+    
+                    const texturesToCache: PIXI.Texture[] = [];
+    
+                    for (let i = 0; i < numCells; i++)
+                    {
+                        const subTexture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(cellWidth * i, 0, cellWidth, texture.height));
+                        texturesToCache.push(subTexture);
+                    }
+    
+                    this.textureCache.set(id, texturesToCache);
+                }
             }
 
             callback();
@@ -184,7 +200,6 @@ export default class StageRenderer extends React.PureComponent<Props, State>
 
         if (!this.props.playing && (stage !== prevStage || this.props.refresh !== prevProps.refresh))
         {
-            console.log("heyyy");
             this.resetEngine();
             this.engine.invalidateCache();
             this.props.onFinalFrameCalculate(this.engine.finalFrame);

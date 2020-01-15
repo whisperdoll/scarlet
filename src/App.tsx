@@ -8,6 +8,7 @@ import UserSettings from './utils/usersettings';
 import * as fs from "fs";
 import * as path from "path";
 import ObjectHelper from './utils/ObjectHelper';
+import PlayerView from './views/Player/Player';
 const { remote } = require('electron');
 const { Menu, MenuItem, dialog } = remote;
 
@@ -23,7 +24,7 @@ interface ContextMenuInfo
     context: any;
 }
 
-type View = "Home" | "NewProject" | "MainEdit" | "StageEdit";
+type View = "Home" | "NewProject" | "MainEdit" | "StageEdit" | "Player";
 
 interface State
 {
@@ -124,6 +125,7 @@ export default class App extends React.PureComponent<Props, State>
 
     setTitle = () =>
     {
+        console.log("hey");
         if (ObjectHelper.project)
         {
             remote.getCurrentWindow().setTitle((this.state.dirty ? "*" : "") + "Scarlet - " + ObjectHelper.project.name);
@@ -183,6 +185,46 @@ export default class App extends React.PureComponent<Props, State>
             this.setState(state => ({
                 ...state,
                 currentView: "MainEdit",
+                dirty: false
+            }));
+
+            ObjectHelper.project = project;
+            ObjectHelper.projectFilename = paths[0];
+        }
+    }
+
+    handlePlayProject = () =>
+    {
+        const paths = dialog.showOpenDialogSync({
+            title: "Open Project...",
+            properties: [ "openFile" ],
+            filters: [{ name: "Scarlet Project File", extensions: [ "scarlet" ] }]
+        });
+
+        if (paths && paths[0])
+        {
+            if (ObjectHelper.project)
+            {
+                this.handleSaveProject();
+            }
+            
+            const projectText = fs.readFileSync(paths[0], "utf8");
+            let project: ProjectModel;
+
+            try
+            {
+                project = JSON.parse(projectText);
+            }
+            catch (e)
+            {
+                alert("Error opening project - see console for details");
+                console.log(e);
+                return;
+            }
+
+            this.setState(state => ({
+                ...state,
+                currentView: "Player",
                 dirty: false
             }));
 
@@ -256,6 +298,7 @@ export default class App extends React.PureComponent<Props, State>
                     <HomeView
                         onNew={this.handleNewProject}
                         onOpen={this.handleOpenProject}
+                        onPlay={this.handlePlayProject}
                     />
                 );
             case "NewProject":
@@ -273,6 +316,11 @@ export default class App extends React.PureComponent<Props, State>
                 if (ObjectHelper.project === null) throw new Error("null project");
                 return (
                     <div>a</div>
+                );
+            case "Player":
+                if (ObjectHelper.project === null) throw new Error("null project");
+                return (
+                    <PlayerView />
                 );
         }
     }
