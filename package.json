@@ -32,7 +32,7 @@
     "electron-is-dev": "^1.1.0",
     "fast-copy": "^2.0.4",
     "immutability-helper": "^3.0.1",
-    "node-sass": "^4.13.0",
+    "node-sass": "^7.0.0",
     "pixi.js": "^5.2.0",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
